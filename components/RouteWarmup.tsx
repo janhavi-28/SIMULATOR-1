@@ -5,13 +5,11 @@ import { useEffect } from "react";
 
 const MAIN_ROUTES = [
   "/subjects",
-  "/subjects/class-9",
-  "/subjects/class-10",
-  "/subjects/class-11",
-  "/subjects/class-11/physics",
-  "/subjects/class-11/chemistry",
-  "/subjects/class-12",
-  "/subjects/physics",
+  "/high-school/physics",
+  "/senior-secondary/physics",
+  "/senior-secondary/chemistry",
+  "/senior-secondary/maths",
+  "/trending-topics/physics",
 ];
 
 export default function RouteWarmup() {
