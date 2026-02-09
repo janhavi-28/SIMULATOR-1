@@ -15,6 +15,8 @@ type TopicPageContentProps = {
   subtitle?: React.ReactNode;
   /** Optional "part" label e.g. "Physical chemistry" */
   part?: string;
+  /** When true, content area uses full width (e.g. for simulators) */
+  fullWidth?: boolean;
   /** Page content: coming soon box or custom content */
   children: React.ReactNode;
 };
@@ -26,6 +28,7 @@ export default function TopicPageContent({
   title,
   subtitle,
   part,
+  fullWidth,
   children,
 }: TopicPageContentProps) {
   const base = `/subjects/${classSlug}/${subject}`;
@@ -43,7 +46,13 @@ export default function TopicPageContent({
   return (
     <main className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-neutral-950 via-neutral-900 to-black" />
-      <section className="mx-auto max-w-4xl px-6 pt-28 pb-24">
+      <section
+        className={
+          fullWidth
+            ? "mx-auto w-full min-w-0 px-4 pt-28 pb-24 sm:px-6 lg:px-8"
+            : "mx-auto max-w-4xl px-6 pt-28 pb-24"
+        }
+      >
         <nav className="mb-6 flex flex-wrap items-center gap-1 text-sm">
           <Link
             href={`/subjects/${classSlug}`}

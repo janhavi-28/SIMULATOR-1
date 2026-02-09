@@ -29,10 +29,94 @@ const ProjectileSimulation = dynamic(
   { ssr: false, loading: () => <SimulationLoading /> }
 );
 
+const VelocityTimePositionTimeGraphsSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/VelocityTimePositionTimeGraphsSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const RelationsUniformlyAcceleratedMotionSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/RelationsUniformlyAcceleratedMotionSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const SpecialRelativitySimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/SpecialRelativitySimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const GeneralRelativitySimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/GeneralRelativitySimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const BlackHolesSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/BlackHolesSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const WormholesSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/WormholesSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const TimeTravelSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/TimeTravelSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const DoubleSlitSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/DoubleSlitSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const QuantumSuperpositionSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/QuantumSuperpositionSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const QuantumEntanglementSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/QuantumEntanglementSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const QuantumTunnelingSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/QuantumTunnelingSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const WaveFunctionCollapseSimulation = dynamic(
+  () =>
+    import("@/components/simulations/physics/WaveFunctionCollapseSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
 const registry: Record<string, ComponentType> = {
   gravity: GravitySimulation,
   "rutherford-gold-foil": RutherfordSimulation,
   "projectile-motion": ProjectileSimulation,
+  "velocity-time-position-time-graphs": VelocityTimePositionTimeGraphsSimulation,
+  "relations-for-uniformly-accelerated-motion": RelationsUniformlyAcceleratedMotionSimulation,
+  "special-relativity": SpecialRelativitySimulation,
+  "general-relativity": GeneralRelativitySimulation,
+  "black-holes": BlackHolesSimulation,
+  wormholes: WormholesSimulation,
+  "time-travel": TimeTravelSimulation,
+  "double-slit": DoubleSlitSimulation,
+  "quantum-superposition": QuantumSuperpositionSimulation,
+  "quantum-entanglement": QuantumEntanglementSimulation,
+  "quantum-tunneling": QuantumTunnelingSimulation,
+  "wave-function-collapse": WaveFunctionCollapseSimulation,
 };
 
 export default function PhysicsSimulationLoader({
