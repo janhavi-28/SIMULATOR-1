@@ -56,12 +56,22 @@ export default async function SubjectTopicPage({ params }: PageProps) {
   }
   const title = slugToTitle(slug[slug.length - 1] ?? "");
 
+  const isSimulationTopic =
+    classSlug === "class-11" &&
+    subject === "physics" &&
+    slug.length >= 2 &&
+    slug[0] === "kinematics" &&
+    (slug[1] === "projectile-motion" ||
+      slug[1] === "velocity-time-position-time-graphs" ||
+      slug[1] === "relations-for-uniformly-accelerated-motion");
+
   return (
     <TopicPageContent
       classSlug={classSlug}
       subject={subject}
       breadcrumbs={breadcrumbs}
       title={title}
+      fullWidth={isSimulationTopic}
     >
       {classSlug === "class-11" &&
       subject === "physics" &&
@@ -70,6 +80,22 @@ export default async function SubjectTopicPage({ params }: PageProps) {
       slug[1] === "projectile-motion" ? (
         <div className="mt-2">
           <LazyPhysicsSimulationLoader topic="projectile-motion" />
+        </div>
+      ) : classSlug === "class-11" &&
+        subject === "physics" &&
+        slug.length >= 2 &&
+        slug[0] === "kinematics" &&
+        slug[1] === "velocity-time-position-time-graphs" ? (
+        <div className="mt-2">
+          <LazyPhysicsSimulationLoader topic="velocity-time-position-time-graphs" />
+        </div>
+      ) : classSlug === "class-11" &&
+        subject === "physics" &&
+        slug.length >= 2 &&
+        slug[0] === "kinematics" &&
+        slug[1] === "relations-for-uniformly-accelerated-motion" ? (
+        <div className="mt-2">
+          <LazyPhysicsSimulationLoader topic="relations-for-uniformly-accelerated-motion" />
         </div>
       ) : (
         <ComingSoonBlock topicTitle={title} />

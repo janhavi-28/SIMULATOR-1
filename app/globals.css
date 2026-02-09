@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Range sliders: track only; keep native thumb so drag always works */
+input[type="range"].physics-range {
+  height: 0.5rem;
+  width: 100%;
+  min-width: 60px;
+  cursor: pointer;
+  outline: none;
+  accent-color: rgb(34 211 238);
+}

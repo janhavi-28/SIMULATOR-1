@@ -1,0 +1,499 @@
+"use client";
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+// ---------------------------------------------------------------------------
+// Types & constants
+// ---------------------------------------------------------------------------
+
+interface QuantumSuperpositionParams {
+  /** Probability of state |A⟩ (|α|²). 0–1; β² = 1 − α². */
+  probA: number;
+  /** Relative phase between states (degrees). Affects interference. */
+  phaseDeg: number;
+  /** Width (spread) of each wave packet, σ (arb. units). */
+  spreadSigma: number;
+  /** Separation between packet centers (arb. units). */
+  separation: number;
+}
+
+const DEFAULT_PARAMS: QuantumSuperpositionParams = {
+  probA: 0.5,
+  phaseDeg: 0,
+  spreadSigma: 0.6,
+  separation: 2,
+};
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
+
+function formatNumber(n: number, digits = 2): string {
+  if (!Number.isFinite(n)) return "—";
+  return n.toFixed(digits);
+}
+
+// ---------------------------------------------------------------------------
+// Slider row
+// ---------------------------------------------------------------------------
+
+function SliderRow(props: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  accentClassName: string;
+  onChange: (next: number) => void;
+}) {
+  const { label, value, min, max, step, unit, accentClassName, onChange } = props;
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900/70 px-4 py-3 shadow-sm">
+      <div className="min-w-[180px]">
+        <div className="text-sm font-semibold text-white">{label}</div>
+        <div className="mt-0.5 text-xs text-neutral-400">
+          <span className="tabular-nums text-neutral-200">
+            {formatNumber(value, step < 1 ? 2 : 0)}
+          </span>{" "}
+          {unit}
+        </div>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={label}
+        className={`h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-800 outline-none ${accentClassName}`}
+      />
+      <div className="min-w-[100px] text-right text-xs text-neutral-400">
+        <span className="tabular-nums text-neutral-200">
+          {formatNumber(value, step < 1 ? 2 : 0)}
+        </span>{" "}
+        {unit}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Probability density: |ψ(x)|² for superposition of two Gaussians
+// ψ = α·ψ_A + β·e^(iφ)·ψ_B, with ψ_A, ψ_B normalized Gaussians.
+// |ψ|² = α²ψ_A² + β²ψ_B² + 2αβ ψ_A ψ_B cos(φ)
+// ---------------------------------------------------------------------------
+
+function gaussian(x: number, center: number, sigma: number): number {
+  const z = (x - center) / sigma;
+  return Math.exp(-0.5 * z * z);
+}
+
+function getProbabilityDensity(
+  x: number,
+  probA: number,
+  phaseDeg: number,
+  spreadSigma: number,
+  separation: number
+): number {
+  const alpha = Math.sqrt(probA);
+  const beta = Math.sqrt(1 - probA);
+  const phi = (phaseDeg * Math.PI) / 180;
+  const xA = -separation / 2;
+  const xB = separation / 2;
+  const psiA = gaussian(x, xA, spreadSigma);
+  const psiB = gaussian(x, xB, spreadSigma);
+  // |ψ|² = α²ψ_A² + β²ψ_B² + 2αβ ψ_A ψ_B cos(φ)
+  const term1 = alpha * alpha * psiA * psiA;
+  const term2 = beta * beta * psiB * psiB;
+  const interference = 2 * alpha * beta * psiA * psiB * Math.cos(phi);
+  return term1 + term2 + interference;
+}
+
+// Sample x range and return array of (x, |ψ|²) for drawing
+const X_MIN = -4;
+const X_MAX = 4;
+const N_SAMPLES = 256;
+
+function getDensityCurve(params: QuantumSuperpositionParams): { x: number; density: number }[] {
+  const { probA, phaseDeg, spreadSigma, separation } = params;
+  const out: { x: number; density: number }[] = [];
+  let maxDensity = 0;
+  for (let i = 0; i <= N_SAMPLES; i++) {
+    const x = X_MIN + (i / N_SAMPLES) * (X_MAX - X_MIN);
+    const density = getProbabilityDensity(x, probA, phaseDeg, spreadSigma, separation);
+    out.push({ x, density });
+    if (density > maxDensity) maxDensity = density;
+  }
+  const norm = maxDensity > 0 ? maxDensity : 1;
+  return out.map(({ x, density }) => ({ x, density: density / norm }));
+}
+
+// ---------------------------------------------------------------------------
+// Canvas: probability cloud (Schrödinger-style overlapping states)
+// ---------------------------------------------------------------------------
+
+interface CanvasSimulatorProps {
+  params: QuantumSuperpositionParams;
+}
+
+const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({ params }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    const canvas = canvasRef.current;
+    if (!el || !canvas) return;
+
+    const resize = () => {
+      const rect = el.getBoundingClientRect();
+      const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+      const w = Math.max(1, Math.floor(rect.width * dpr));
+      const h = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+    };
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const el = containerRef.current;
+    if (!canvas || !el) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = canvas.width / Math.max(1, el.getBoundingClientRect().width);
+    const w = canvas.width;
+    const h = canvas.height;
+
+    const bg = "#0a0a12";
+    const grid = "rgba(148,163,184,0.15)";
+    const axis = "#94a3b8";
+    const text = "#e2e8f0";
+    // Probability cloud: violet/indigo gradient (quantum / superposition)
+    const cloudGradientStart = "rgba(99,102,241,0.85)";
+    const cloudGradientEnd = "rgba(139,92,246,0.4)";
+    const cloudStroke = "rgba(129,140,248,0.9)";
+    const stateAColor = "rgba(34,211,238,0.35)";
+    const stateBColor = "rgba(251,146,60,0.35)";
+
+    const pad = 20 * dpr;
+    const leftPad = 52 * dpr;
+    const rightPad = 24 * dpr;
+    const bottomPad = 44 * dpr;
+    const topPad = 28 * dpr;
+
+    const plotX0 = leftPad;
+    const plotX1 = w - rightPad;
+    const plotY0 = topPad;
+    const plotY1 = h - bottomPad;
+    const plotW = plotX1 - plotX0;
+    const plotH = plotY1 - plotY0;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+
+      const gradBg = ctx.createLinearGradient(0, 0, w, h);
+      gradBg.addColorStop(0, bg);
+      gradBg.addColorStop(1, "#0f0f1a");
+      ctx.fillStyle = gradBg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = grid;
+      ctx.lineWidth = 1 * dpr;
+      for (let i = 0.25; i < 1; i += 0.25) {
+        const x = plotX0 + plotW * i;
+        ctx.beginPath();
+        ctx.moveTo(x, plotY0);
+        ctx.lineTo(x, plotY1);
+        ctx.stroke();
+      }
+      for (let i = 0.25; i < 1; i += 0.25) {
+        const y = plotY0 + plotH * i;
+        ctx.beginPath();
+        ctx.moveTo(plotX0, y);
+        ctx.lineTo(plotX1, y);
+        ctx.stroke();
+      }
+
+      const curve = getDensityCurve(params);
+      const toScreenX = (x: number) => {
+        const t = (x - X_MIN) / (X_MAX - X_MIN);
+        return plotX0 + clamp(t, 0, 1) * plotW;
+      };
+      const toScreenY = (density: number) => {
+        // density 0..1; plot from bottom (plotY1) upward
+        const margin = 0.1;
+        const scale = 1 - margin;
+        const yNorm = margin + density * scale;
+        return plotY1 - yNorm * plotH;
+      };
+
+      // Draw probability cloud as filled path + gradient
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(curve[0].x), plotY1);
+      for (let i = 0; i < curve.length; i++) {
+        ctx.lineTo(toScreenX(curve[i].x), toScreenY(curve[i].density));
+      }
+      ctx.lineTo(toScreenX(curve[curve.length - 1].x), plotY1);
+      ctx.closePath();
+
+      const cloudGrad = ctx.createLinearGradient(plotX0, plotY1, plotX1, plotY0);
+      cloudGrad.addColorStop(0, cloudGradientEnd);
+      cloudGrad.addColorStop(0.5, cloudGradientStart);
+      cloudGrad.addColorStop(1, cloudGradientEnd);
+      ctx.fillStyle = cloudGrad;
+      ctx.fill();
+
+      // Stroke the top edge of the cloud for clarity
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(curve[0].x), toScreenY(curve[0].density));
+      for (let i = 1; i < curve.length; i++) {
+        ctx.lineTo(toScreenX(curve[i].x), toScreenY(curve[i].density));
+      }
+      ctx.strokeStyle = cloudStroke;
+      ctx.lineWidth = 2 * dpr;
+      ctx.stroke();
+
+      // Optional: faint "state A" and "state B" Gaussians underneath (ghost curves)
+      const xA = -params.separation / 2;
+      const xB = params.separation / 2;
+      const alpha = Math.sqrt(params.probA);
+      const beta = Math.sqrt(1 - params.probA);
+      for (const [center, color, amp] of [
+        [xA, stateAColor, alpha] as const,
+        [xB, stateBColor, beta] as const,
+      ]) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(X_MIN), plotY1);
+        for (let i = 0; i <= N_SAMPLES; i++) {
+          const x = X_MIN + (i / N_SAMPLES) * (X_MAX - X_MIN);
+          const g = amp * amp * gaussian(x, center, params.spreadSigma) * gaussian(x, center, params.spreadSigma);
+          const norm = 1;
+          const density = (g / norm) * 0.6;
+          ctx.lineTo(toScreenX(x), toScreenY(density));
+        }
+        ctx.lineTo(toScreenX(X_MAX), plotY1);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+
+      // Axis labels
+      ctx.fillStyle = axis;
+      ctx.font = `${11 * dpr}px ui-sans-serif, system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText("x (position)", (plotX0 + plotX1) / 2, plotY1 + 12 * dpr);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.save();
+      ctx.translate(plotX0 - 8 * dpr, (plotY0 + plotY1) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("|ψ|² (probability density)", 0, 0);
+      ctx.restore();
+
+      // HUD
+      ctx.fillStyle = text;
+      ctx.font = `${12 * dpr}px ui-sans-serif, system-ui, sans-serif`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("Superposition: two states overlapping", plotX0, plotY0 - 2 * dpr);
+    };
+
+    draw();
+  }, [params]);
+
+  // Smooth 60fps refresh when params change (no game loop needed; redraw on param change)
+  return (
+    <div className="rounded-3xl border border-violet-500/40 bg-neutral-950/60 p-4 shadow-[0_0_40px_rgba(139,92,246,0.08)]">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-white">
+            Quantum Superposition – Probability cloud
+          </div>
+          <div className="text-xs text-neutral-400">
+            |ψ⟩ = α|A⟩ + β e^(iφ)|B⟩. Before measurement, the system is in both states at once.
+          </div>
+        </div>
+      </div>
+      <div
+        ref={containerRef}
+        className="relative w-full overflow-hidden rounded-2xl border border-violet-500/30 bg-[#050510]"
+        style={{ aspectRatio: "16/9" }}
+      >
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export default function QuantumSuperpositionSimulation() {
+  const [params, setParams] = useState<QuantumSuperpositionParams>(DEFAULT_PARAMS);
+
+  const resetDefaults = useCallback(() => {
+    setParams(DEFAULT_PARAMS);
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-neutral-950">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0f172a]" />
+
+      <section className="mx-auto max-w-7xl px-6 pt-10 pb-10">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Quantum Superposition
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
+            A quantum system can be in a combination of states until measured. Like Schrödinger&apos;s cat
+            (alive and dead &quot;at once&quot;), we show two states overlapping as a probability cloud—no fixed position until observation.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <div className="w-full lg:w-[60%]">
+            <CanvasSimulator params={params} />
+
+            <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-4 shadow-xl">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-white">
+                    Parameters
+                  </div>
+                  <div className="text-xs text-neutral-400">
+                    Change |α|², phase, spread, or separation to see how the probability cloud changes.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetDefaults}
+                  className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800"
+                >
+                  Reset defaults
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                <SliderRow
+                  label="|α|² (prob. state A)"
+                  value={params.probA}
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  unit=""
+                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow"
+                  onChange={(probA) => setParams((p) => ({ ...p, probA }))}
+                />
+                <SliderRow
+                  label="Phase φ"
+                  value={params.phaseDeg}
+                  min={0}
+                  max={360}
+                  step={5}
+                  unit="°"
+                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:shadow"
+                  onChange={(phaseDeg) => setParams((p) => ({ ...p, phaseDeg }))}
+                />
+                <SliderRow
+                  label="Spread σ"
+                  value={params.spreadSigma}
+                  min={0.2}
+                  max={1.5}
+                  step={0.05}
+                  unit=""
+                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow"
+                  onChange={(spreadSigma) => setParams((p) => ({ ...p, spreadSigma }))}
+                />
+                <SliderRow
+                  label="Separation d"
+                  value={params.separation}
+                  min={0.5}
+                  max={4}
+                  step={0.1}
+                  unit=""
+                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:shadow"
+                  onChange={(separation) => setParams((p) => ({ ...p, separation }))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <aside className="w-full lg:w-[40%]">
+            <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
+              <div className="text-sm font-semibold text-white">
+                Superposition &amp; probability clouds
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
+                Before measurement, a quantum system is in a linear combination of states. The plot shows
+                |ψ(x)|²—the probability density—as a cloud. Two peaks correspond to two possible outcomes;
+                the phase between them creates constructive or destructive interference, shifting probability.
+              </p>
+
+              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
+                  Key formulas
+                </div>
+                <div className="mt-3 space-y-2 text-sm text-neutral-200">
+                  <div className="font-mono">
+                    |ψ⟩ = α|A⟩ + β e^(iφ)|B⟩
+                    <span className="ml-2 text-neutral-400">(superposition)</span>
+                  </div>
+                  <div className="font-mono">
+                    |α|² + |β|² = 1
+                    <span className="ml-2 text-neutral-400">(normalization)</span>
+                  </div>
+                  <div className="font-mono">
+                    |ψ(x)|² = α²ψ_A² + β²ψ_B² + 2αβ ψ_A ψ_B cos(φ)
+                    <span className="ml-2 text-neutral-400">(interference)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
+                  Variables (with units)
+                </div>
+                <dl className="mt-3 grid gap-2 text-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <dt className="text-neutral-200">α, β</dt>
+                    <dd className="text-neutral-400">amplitudes (dimensionless)</dd>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <dt className="text-neutral-200">φ</dt>
+                    <dd className="text-neutral-400">relative phase (rad or °)</dd>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <dt className="text-neutral-200">σ</dt>
+                    <dd className="text-neutral-400">spread of each packet</dd>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <dt className="text-neutral-200">|ψ(x)|²</dt>
+                    <dd className="text-neutral-400">probability density (1/length)</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 text-xs text-neutral-400">
+                Schrödinger&apos;s cat: the system is in |alive⟩ and |dead⟩ until observed. Here we use two spatial wave packets; measurement &quot;collapses&quot; the cloud to one outcome.
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  );
+}

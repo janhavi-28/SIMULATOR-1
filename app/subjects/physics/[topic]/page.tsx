@@ -26,16 +26,27 @@ export default async function PhysicsTopicPage({ params }: PageProps) {
   const { topic } = await params;
   const meta = physicsTopicMeta[topic];
 
-  if (!meta || !(topic === "gravity" || topic === "rutherford-gold-foil")) {
+  if (!meta) {
     notFound();
   }
 
-  const displayTitle =
-    topic === "gravity"
-      ? "Gravity – Free fall & bounces"
-      : topic === "rutherford-gold-foil"
-        ? "Rutherford Gold Foil Experiment"
-        : topic;
+  const displayTitles: Record<string, string> = {
+    gravity: "Gravity – Free fall & bounces",
+    "rutherford-gold-foil": "Rutherford Gold Foil Experiment",
+    "projectile-motion": "Projectile Motion Simulator",
+    "velocity-time-position-time-graphs": "Velocity–Time and Position–Time Graphs",
+    "special-relativity": "Special Relativity – Time Dilation & Length Contraction",
+    "general-relativity": "General Relativity – Spacetime Curvature & Light Bending",
+    "black-holes": "Black Holes – Event Horizon, Light Bending & Time Dilation",
+    wormholes: "Wormholes – Shortcuts in Spacetime",
+    "time-travel": "Time Travel – Physics (CTCs) vs Sci‑Fi",
+    "double-slit": "Double Slit Experiment",
+    "quantum-superposition": "Quantum Superposition",
+    "quantum-entanglement": "Quantum Entanglement",
+    "quantum-tunneling": "Quantum Tunneling",
+    "wave-function-collapse": "Wave Function Collapse",
+  };
+  const displayTitle = displayTitles[topic] ?? meta.title;
 
   return (
     <>

@@ -4,11 +4,12 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // Use current project dir as root for file tracing (fixes multiple-lockfile warning)
   outputFileTracingRoot: process.cwd(),
   experimental: {
     serverComponentsHmrCache: true,
   },
+  // Avoid ESLint "Plugin '' not found" during build when using flat config with eslint-config-next
+  eslint: { ignoreDuringBuilds: true },
 };
 
 export default nextConfig;
