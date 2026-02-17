@@ -97,4 +97,182 @@ export const physicsTopicMeta: Record<
       "Interactive wave function collapse simulator: fuzzy probability distribution before measurement, sharp outcome after. Adjust P(A), spread, and peak separation; click Measure to see collapse. Measurement changes outcome.",
     keywords: ["wave function collapse", "quantum measurement", "probability", "quantum mechanics", "observation"],
   },
+  resonance: {
+    title: "Resonance – Driven Oscillator | Physics",
+    description:
+      "Interactive resonance simulator: drive a damped harmonic oscillator and watch amplitude peak when driving frequency matches natural frequency. Adjust f₀, driving frequency, damping, and force for dramatic resonance effects.",
+    keywords: ["resonance", "driven oscillator", "harmonic oscillator", "damping", "natural frequency", "oscillations and waves", "physics simulation"],
+  },
+  "physical-world-and-units": {
+    title: "Physical World & Units – Scattering Explorer | Physics",
+    description:
+      "See how physical quantities and units (MeV, femtometre, relative mass) control Rutherford-style scattering of alpha particles from a massive nucleus, with live equations and parameter history.",
+    keywords: [
+      "physical world",
+      "units",
+      "Rutherford scattering",
+      "measurement",
+      "MeV",
+      "fm",
+      "Class 11 physics",
+      "nuclear physics",
+    ],
+  },
+  "fundamental-forces": {
+    title: "Fundamental Forces of Nature | Physics",
+    description:
+      "Interactive scale explorer: slide from nuclear to atomic to planetary scale and see which fundamental force (strong, weak, electromagnetic, gravitational) dominates. Compare relative strengths with dynamic force bars.",
+    keywords: [
+      "fundamental forces",
+      "gravity",
+      "electromagnetic",
+      "strong force",
+      "weak force",
+      "physical world",
+      "measurement",
+      "scale",
+      "Class 11 physics",
+    ],
+  },
+  "frame-of-reference": {
+    title: "Frame of Reference | Physics",
+    description:
+      "Compare the same motion in two frames: ground (inertial) and train (moving). Adjust train velocity, ball speed and throw angle to see position and velocity transform by x′ = x − V·t and v′ = v − V.",
+    keywords: [
+      "frame of reference",
+      "kinematics",
+      "Galilean transformation",
+      "relative motion",
+      "inertial frame",
+      "Class 11 physics",
+      "Chapter 2",
+    ],
+  },
+  "motion-in-a-straight-line": {
+    title: "Motion in a Straight Line | Physics",
+    description:
+      "Interactive scale explorer: slide from nuclear to atomic to planetary scale and see which fundamental force dominates. Watch an object move in a straight line as the dominant force drives its motion. Dynamic force-strength comparison bars.",
+    keywords: [
+      "motion in a straight line",
+      "kinematics",
+      "rest and motion",
+      "displacement",
+      "velocity",
+      "fundamental forces",
+      "scale",
+      "Class 11 physics",
+      "Chapter 2",
+    ],
+  },
+  "newtons-second-law-force-acceleration-lab": {
+    title: "Newton's Second Law – Force & Acceleration Lab | Physics",
+    description:
+      "Apply variable force to a block, change mass, and see acceleration update live. Toggle friction and watch the free-body diagram and F vs a graph. F = ma in action.",
+    keywords: [
+      "Newton's second law",
+      "F equals ma",
+      "force",
+      "acceleration",
+      "mass",
+      "free body diagram",
+      "Laws of Motion",
+      "Class 11 physics",
+      "Chapter 3",
+    ],
+  },
+  "newtons-cradle": {
+    title: "Newton's Cradle | Physics",
+    description:
+      "Interactive Newton's Cradle: conservation of momentum and energy. Adjust ball count, mass, release angle, and gravity. Scale slider shows which fundamental force dominates from nuclear to planetary scales. Part of Work, Energy and Power.",
+    keywords: [
+      "Newton's Cradle",
+      "conservation of momentum",
+      "conservation of energy",
+      "elastic collision",
+      "pendulum",
+      "Work Energy and Power",
+      "Class 11 physics",
+      "Chapter 4",
+    ],
+  },
+  "banking-of-roads": {
+    title: "Banking of Roads | Physics",
+    description:
+      "Interactive banking of roads simulator: adjust speed, radius and banking angle. See tan θ = v²/(rg), design speed, and force vectors (mg, N, Fc) in real time. Part of Laws of Motion.",
+    keywords: [
+      "banking of roads",
+      "banked curve",
+      "centripetal force",
+      "normal force",
+      "Laws of Motion",
+      "uniform circular motion",
+      "Class 11 physics",
+      "Chapter 3",
+    ],
+  },
+  "inclined-plane-friction-force-analysis": {
+    title: "Inclined Plane & Friction – Force Analysis Lab | Physics",
+    description:
+      "Interactive inclined plane with friction: adjust angle, mass, coefficient of friction and gravity. See real-time free body diagram, force vectors, net force, acceleration and motion state (rest or sliding). F = ma and component resolution in action.",
+    keywords: [
+      "inclined plane",
+      "friction",
+      "force analysis",
+      "free body diagram",
+      "Laws of Motion",
+      "Newton",
+      "static friction",
+      "kinetic friction",
+      "Class 11 physics",
+      "Chapter 3",
+    ],
+  },
+  "motion-in-a-plane": {
+    title: "Motion in a Plane | Physics",
+    description:
+      "Interactive scale slider from nuclear to atomic to planetary scale: see which force dominates at each scale and watch 2D trajectories in the plane. Dynamic force-strength comparison bars and real-time trajectory.",
+    keywords: [
+      "motion in a plane",
+      "kinematics",
+      "two-dimensional motion",
+      "trajectory",
+      "fundamental forces",
+      "scale",
+      "Class 11 physics",
+      "Chapter 2",
+    ],
+  },
+  "work-energy-theorem": {
+    title: "The Work-Energy Theorem | Physics",
+    description:
+      "Interactive Work-Energy Theorem simulator: explore how friction stops a sliding block. Adjust mass, initial velocity, and friction to see stopping distance and work done. Net Work = ΔKE; −fₖ·d = 0 − ½mvᵢ². Senior Secondary Physics, Work, Energy and Power.",
+    keywords: [
+      "work-energy theorem",
+      "work energy and power",
+      "kinetic energy",
+      "friction",
+      "stopping distance",
+      "physics simulation",
+      "Class 11 physics",
+      "Chapter 4",
+      "Senior Secondary",
+    ],
+  },
+  "rotational-inertia-moment": {
+    title: "Rotational Inertia Moment | Physics",
+    description:
+      "Interactive Rotational Inertia Lab: solid disk vs ring rolling down an inclined plane. Same mass and radius—different mass distribution. Compare I = ½MR² (disk) and I = MR² (ring); see energy split (translational vs rotational KE) and why the disk wins.",
+    keywords: [
+      "rotational inertia",
+      "moment of inertia",
+      "rolling without slipping",
+      "inclined plane",
+      "disk",
+      "ring",
+      "rigid body",
+      "Motion of System of Particles and Rigid Body",
+      "Class 11 physics",
+      "Chapter 5",
+    ],
+  },
 };

@@ -4,6 +4,30 @@ export type PhysicsTopic = {
 };
 
 export const physicsTopicsByChapter: Record<string, PhysicsTopic[]> = {
+  "physical-world-and-measurement": [
+    {
+      id: "physical-world-and-units",
+      title: "Physical World & Units – Scattering Explorer",
+    },
+    {
+      id: "fundamental-forces",
+      title: "Fundamental Forces of Nature",
+    },
+  ],
+  "laws-of-motion": [
+    {
+      id: "newtons-second-law-force-acceleration-lab",
+      title: "Newton's Second Law – Force & Acceleration Lab",
+    },
+    {
+      id: "inclined-plane-friction-force-analysis",
+      title: "Inclined Plane & Friction – Force Analysis Lab",
+    },
+    {
+      id: "banking-of-roads",
+      title: "Banking of Roads",
+    },
+  ],
   kinematics: [
     { id: "frame-of-reference", title: "Frame of Reference" },
     {
@@ -31,6 +55,26 @@ export const physicsTopicsByChapter: Record<string, PhysicsTopic[]> = {
       title: "Uniform Circular Motion",
     },
   ],
-  // other chapters can be filled in gradually.
+  "work-energy-and-power": [
+    {
+      id: "work-energy-theorem",
+      title: "The Work-Energy Theorem",
+    },
+    { id: "newtons-cradle", title: "Newton's Cradle" },
+    {
+      id: "conservation-of-mechanical-energy",
+      title: "Conservation of Mechanical Energy",
+    },
+  ],
+
+  "oscillations-and-waves": [
+    { id: "simple-harmonic-motion", title: "Simple Harmonic Motion" },
+    { id: "oscillations-spring-and-pendulum", title: "Oscillations – Spring and Pendulum" },
+    { id: "resonance", title: "Resonance" },
+    { id: "wave-motion", title: "Wave Motion" },
+    { id: "longitudinal-and-transverse-waves", title: "Longitudinal and Transverse Waves" },
+    { id: "sound-waves", title: "Sound Waves" },
+    { id: "doppler-effect", title: "Doppler Effect" },
+  ],
 };
 

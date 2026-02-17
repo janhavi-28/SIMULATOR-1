@@ -57,9 +57,9 @@ export default async function SeniorSecondaryPhysicsTopicPage({ params }: PagePr
     { label: topic.title, href: `${base}/${topicId}` },
   ];
 
-  const hasSimulation =
-    chapterId === "kinematics" &&
-    (SENIOR_SECONDARY_PHYSICS_SIMS as readonly string[]).includes(topicId);
+  const hasSimulation = (SENIOR_SECONDARY_PHYSICS_SIMS as readonly string[]).includes(
+    topicId
+  );
 
   const meta = physicsTopicMeta[topicId];
   const canonicalUrl = `${SITE_URL}/senior-secondary/physics/${chapterId}/${topicId}`;

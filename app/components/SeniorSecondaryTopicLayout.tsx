@@ -32,7 +32,7 @@ export default function SeniorSecondaryTopicLayout({
   const subjectLabel = subjectLabels[subject] ?? subject;
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-x-hidden">
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-neutral-950 via-neutral-900 to-black" />
       <section
         className={

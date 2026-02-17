@@ -65,6 +65,7 @@ export default async function TrendingTopicsPhysicsTopicPage({ params }: PagePro
     "quantum-entanglement": "Quantum Entanglement",
     "quantum-tunneling": "Quantum Tunneling",
     "wave-function-collapse": "Wave Function Collapse",
+    resonance: "Resonance – Driven Oscillator",
   };
   const displayTitle = displayTitles[topic] ?? meta.title;
   const canonicalUrl = `${SITE_URL}/trending-topics/physics/${topic}`;

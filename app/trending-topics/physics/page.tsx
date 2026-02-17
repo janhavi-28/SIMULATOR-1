@@ -27,6 +27,7 @@ const simColors: Record<string, string> = {
   "quantum-entanglement": "fuchsia",
   "quantum-tunneling": "emerald",
   "wave-function-collapse": "cyan",
+  resonance: "amber",
 };
 
 export const metadata = {

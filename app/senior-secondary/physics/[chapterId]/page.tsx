@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { physicsChapters, physicsTopicsByChapter } from "@/lib/data/senior-secondary-physics";
 import SeniorSecondaryTopicLayout from "@/app/components/SeniorSecondaryTopicLayout";
+import PhysicalWorldMeasurementChapterContent from "@/app/components/PhysicalWorldMeasurementChapterContent";
+import WorkEnergyTheoremAccordion from "@/app/components/WorkEnergyTheoremAccordion";
 
 type ChapterPageProps = {
   params: Promise<{ chapterId: string }>;
@@ -35,20 +37,67 @@ export default async function SeniorSecondaryPhysicsChapterPage({
       breadcrumbs={breadcrumbs}
       title={chapter.title}
     >
+      {chapter.id === "physical-world-and-measurement" && (
+        <div className="mb-8">
+          <PhysicalWorldMeasurementChapterContent />
+        </div>
+      )}
+
       {topics.length === 0 ? (
-        <p className="text-sm text-neutral-400">Topics for this chapter will be added soon.</p>
+        <p className="text-sm text-neutral-400">
+          Topics for this chapter will be added soon.
+        </p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {topics.map((topic) => (
-            <Link
-              key={topic.id}
-              href={`${base}/${chapter.id}/${topic.id}`}
-              className="group rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4 transition hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900"
-            >
-              <div className="text-sm font-semibold text-white">{topic.title}</div>
-              <p className="mt-2 text-xs text-neutral-400">Open topic · illustration coming soon</p>
-            </Link>
-          ))}
+        <div className="mt-4">
+          {chapter.id === "work-energy-and-power" && (
+            <>
+              <h2 className="mb-3 text-sm font-semibold text-neutral-200">
+                Topics in this chapter
+              </h2>
+              <WorkEnergyTheoremAccordion />
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                {topics
+                  .filter((t) => t.id !== "work-energy-theorem")
+                  .map((topic) => (
+                    <Link
+                      key={topic.id}
+                      href={`${base}/${chapter.id}/${topic.id}`}
+                      className="group rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4 transition hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900"
+                    >
+                      <div className="text-sm font-semibold text-white">
+                        {topic.title}
+                      </div>
+                      <p className="mt-2 text-xs text-neutral-400">
+                        Open topic · illustration coming soon
+                      </p>
+                    </Link>
+                  ))}
+              </div>
+            </>
+          )}
+          {chapter.id !== "work-energy-and-power" && (
+            <>
+              <h2 className="mb-3 text-sm font-semibold text-neutral-200">
+                Topics in this chapter
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                {topics.map((topic) => (
+                  <Link
+                    key={topic.id}
+                    href={`${base}/${chapter.id}/${topic.id}`}
+                    className="group rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4 transition hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900"
+                  >
+                    <div className="text-sm font-semibold text-white">
+                      {topic.title}
+                    </div>
+                    <p className="mt-2 text-xs text-neutral-400">
+                      Open topic · illustration coming soon
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </SeniorSecondaryTopicLayout>
