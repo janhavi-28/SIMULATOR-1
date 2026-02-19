@@ -18,6 +18,14 @@ const GravitySimulation = dynamic(
   { ssr: false, loading: () => <SimulationLoading /> }
 );
 
+const PhysicalWorldUnitsSimulation = dynamic(
+  () =>
+    import(
+      "@/components/simulations/physics/PhysicalWorldUnitsSimulation"
+    ),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
 const RutherfordSimulation = dynamic(
   () => import("@/components/simulations/physics/RutherfordSimulation"),
   { ssr: false, loading: () => <SimulationLoading /> }
@@ -101,8 +109,76 @@ const WaveFunctionCollapseSimulation = dynamic(
   { ssr: false, loading: () => <SimulationLoading /> }
 );
 
+const ResonanceSimulation = dynamic(
+  () => import("@/components/simulations/physics/ResonanceSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const UniformCircularMotionSimulation = dynamic(
+  () =>
+    import(
+      "@/components/simulations/physics/UniformCircularMotionSimulation"
+    ),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const FundamentalForcesSimulation = dynamic(
+  () => import("@/components/simulations/physics/FundamentalForcesSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const FrameOfReferenceSimulation = dynamic(
+  () => import("@/components/simulations/physics/FrameOfReferenceSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const MotionInAStraightLineSimulation = dynamic(
+  () => import("@/components/simulations/physics/MotionInAStraightLineSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const MotionInAPlaneSimulation = dynamic(
+  () => import("@/components/simulations/physics/MotionInAPlaneSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const InclinedPlaneFrictionSimulation = dynamic(
+  () => import("@/components/simulations/physics/InclinedPlaneFrictionSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const NewtonsSecondLawForceAccelerationLabSimulation = dynamic(
+  () => import("@/components/simulations/physics/NewtonsSecondLawForceAccelerationLabSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const NewtonsCradleSimulation = dynamic(
+  () => import("@/components/simulations/physics/NewtonsCradleSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const BankingOfRoadsSimulation = dynamic(
+  () => import("@/components/simulations/physics/BankingOfRoadsSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const WorkEnergyTheoremSimulation = dynamic(
+  () => import("@/components/simulations/physics/WorkEnergyTheoremSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
+const RotationalInertiaMomentSimulation = dynamic(
+  () => import("@/components/simulations/physics/RotationalInertiaMomentSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
 const registry: Record<string, ComponentType> = {
   gravity: GravitySimulation,
+  "physical-world-and-units": PhysicalWorldUnitsSimulation,
+  "fundamental-forces": FundamentalForcesSimulation,
+  "frame-of-reference": FrameOfReferenceSimulation,
+  "motion-in-a-straight-line": MotionInAStraightLineSimulation,
+  "motion-in-a-plane": MotionInAPlaneSimulation,
   "rutherford-gold-foil": RutherfordSimulation,
   "projectile-motion": ProjectileSimulation,
   "velocity-time-position-time-graphs": VelocityTimePositionTimeGraphsSimulation,
@@ -117,6 +193,14 @@ const registry: Record<string, ComponentType> = {
   "quantum-entanglement": QuantumEntanglementSimulation,
   "quantum-tunneling": QuantumTunnelingSimulation,
   "wave-function-collapse": WaveFunctionCollapseSimulation,
+  resonance: ResonanceSimulation,
+  "uniform-circular-motion": UniformCircularMotionSimulation,
+  "newtons-second-law-force-acceleration-lab": NewtonsSecondLawForceAccelerationLabSimulation,
+  "inclined-plane-friction-force-analysis": InclinedPlaneFrictionSimulation,
+  "newtons-cradle": NewtonsCradleSimulation,
+  "banking-of-roads": BankingOfRoadsSimulation,
+  "work-energy-theorem": WorkEnergyTheoremSimulation,
+  "rotational-inertia-moment": RotationalInertiaMomentSimulation,
 };
 
 export default function PhysicsSimulationLoader({

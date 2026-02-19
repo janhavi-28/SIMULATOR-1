@@ -25,13 +25,25 @@ export const trendingTopicsPhysicsSimulations: SimulationLink[] = [
   { slug: "quantum-entanglement", title: "Quantum Entanglement – Instant correlation", description: "Two particles reacting together no matter the distance. Measure one and see the other correlate.", color: "fuchsia", href: "/trending-topics/physics/quantum-entanglement" },
   { slug: "quantum-tunneling", title: "Quantum Tunneling – Probability leak-through", description: "Energy barrier with E < V₀: particles tunnel through classically forbidden regions.", color: "emerald", href: "/trending-topics/physics/quantum-tunneling" },
   { slug: "wave-function-collapse", title: "Wave Function Collapse – Fuzzy → sharp on measurement", description: "Before measurement: fuzzy probability. After: one sharp outcome.", color: "cyan", href: "/trending-topics/physics/wave-function-collapse" },
+  { slug: "resonance", title: "Resonance – Driven oscillator", description: "Drive an oscillator at its natural frequency and watch the amplitude soar. Adjust damping and force for dramatic effects.", color: "amber", href: "/trending-topics/physics/resonance" },
 ];
 
 // Syllabus sims (Class 11/12) → Senior Secondary
 export const seniorSecondaryPhysicsSimulations: SimulationLink[] = [
+  {
+    slug: "physical-world-and-units",
+    title: "Physical World & Units – Scattering Explorer",
+    description:
+      "Alpha particles and a massive nucleus at nuclear scales. Adjust MeV, fm and mass units to see how they change scattering.",
+    color: "cyan",
+    href:
+      "/senior-secondary/physics/physical-world-and-measurement/physical-world-and-units",
+  },
   { slug: "projectile-motion", title: "Projectile Motion Simulator", description: "Visualize 2D projectile motion with adjustable speed, launch angle, height and gravity.", color: "amber", href: "/senior-secondary/physics/kinematics/projectile-motion" },
   { slug: "velocity-time-position-time-graphs", title: "Velocity–Time and Position–Time Graphs", description: "Interactive v–t and x–t graphs for kinematics.", color: "sky", href: "/senior-secondary/physics/kinematics/velocity-time-position-time-graphs" },
   { slug: "relations-for-uniformly-accelerated-motion", title: "Relations for Uniformly Accelerated Motion", description: "Explore v = u + at, s = ut + ½at² and v² = u² + 2as.", color: "violet", href: "/senior-secondary/physics/kinematics/relations-for-uniformly-accelerated-motion" },
+  { slug: "resonance", title: "Resonance", description: "Drive a damped oscillator and see amplitude peak at resonance when f ≈ f₀.", color: "amber", href: "/senior-secondary/physics/oscillations-and-waves/resonance" },
+  { slug: "work-energy-theorem", title: "The Work-Energy Theorem", description: "Explore how friction stops a sliding block. Adjust mass, initial velocity, and friction; see stopping distance and work done. Net Work = ΔKE.", color: "cyan", href: "/senior-secondary/physics/work-energy-and-power/work-energy-theorem" },
 ];
 
 // Combined for landing page (trending first, then senior secondary)
