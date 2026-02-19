@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concave Mirror Ray Diagram — Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050b14;
+      --bg-panel: #08111c;
+      --bg-card: #0c1826;
+      --bg-elevated: #0f1d2e;
+      --border: rgba(0, 210, 255, 0.18);
+      --border-focus: rgba(0, 210, 255, 0.45);
+      --cyan: #00d4ff;
+      --cyan-dim: rgba(0, 212, 255, 0.22);
+      --yellow: #ffd93d;
+      --yellow-dim: rgba(255, 217, 61, 0.22);
+      --pink: #ff6b9d;
+      --pink-dim: rgba(255, 107, 157, 0.22);
+      --gold: #f5b842;
+      --green: #3dd68c;
+      --violet: #b88aff;
+      --text: #f0f6fc;
+      --text-muted: rgba(200, 225, 255, 0.85);
+      --text-faint: rgba(160, 200, 255, 0.55);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Canvas takes 70% of viewport height */
+    .canvas-section {
+      flex: 0 0 70vh;
+      min-height: 400px;
+      position: relative;
+      background: var(--bg-panel);
+      overflow: hidden;
+    }
+    .canvas-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 30%, rgba(0, 210, 255, 0.05) 0%, transparent 55%),
+        linear-gradient(rgba(0, 210, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 210, 255, 0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+    }
+    #c {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #c:active { cursor: grabbing; }
+
+    #banner {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border: 2px solid var(--gold);
+      color: var(--gold);
+      background: rgba(5, 11, 20, 0.92);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 24px rgba(245, 184, 66, 0.2);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Image summary card — appears when image forms */
+    #imageSummary {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 16px 24px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+      border: 2px solid var(--green);
+      color: var(--text);
+      background: rgba(5, 11, 20, 0.95);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+    }
+    #imageSummary.visible { display: block; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    #imageSummary h3 { font-family: Syne, sans-serif; font-size: 16px; margin-bottom: 8px; color: var(--green); }
+    #imageSummary p { color: var(--text-muted); margin: 4px 0; }
+
+    /* Guided mode overlay */
+    #guidedOverlay {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      padding: 20px 24px;
+      border-radius: 14px;
+      background: rgba(5, 11, 20, 0.96);
+      border: 2px solid var(--cyan);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 20;
+      display: none;
+    }
+    #guidedOverlay.visible { display: block; animation: fadeIn 0.3s ease; }
+    #guidedOverlay .step-title { font-family: Syne, sans-serif; font-size: 15px; font-weight: 700; color: var(--cyan); margin-bottom: 8px; }
+    #guidedOverlay .step-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+    #guidedOverlay .step-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    #guidedOverlay .step-actions button {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-family: Syne, sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    #guidedOverlay .btn-next {
+      background: linear-gradient(135deg, var(--cyan), #007a9e);
+      color: #001a22;
+      box-shadow: 0 2px 12px rgba(0, 212, 255, 0.35);
+    }
+    #guidedOverlay .btn-next:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0, 212, 255, 0.5); }
+    #guidedOverlay .btn-exit {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    #guidedOverlay .btn-exit:hover { border-color: var(--border-focus); color: var(--text); }
+
+    /* Collapsible controls */
+    .controls-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      border-top: 2px solid var(--border);
+      background: var(--bg-panel);
+    }
+    .controls-wrap::-webkit-scrollbar { width: 6px; }
+    .controls-wrap::-webkit-scrollbar-thumb { background: var(--border-focus); border-radius: 6px; }
+
+    .cp-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .cp-toggle:hover { background: var(--bg-elevated); }
+    .cp-toggle span {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cp-toggle .chevron {
+      font-size: 18px;
+      color: var(--text-muted);
+      transition: transform 0.25s;
+    }
+    .cp-toggle.collapsed .chevron { transform: rotate(-90deg); }
+    .cp-body { padding: 0; }
+    .cp-body.collapsed { display: none; }
+
+    .cp {
+      padding: 0 20px 24px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .sec {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec:last-child { border-bottom: none; }
+    .sl {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sl::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Toggle buttons (replace checkboxes) */
+    .toggle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .toggle-btn {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toggle-btn:hover { border-color: var(--border-focus); color: var(--text); }
+    .toggle-btn.on {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+    }
+    .toggle-btn .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .toggle-btn[data-color="yellow"] .dot { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+    .toggle-btn[data-color="cyan"] .dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+    .toggle-btn[data-color="pink"] .dot { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+    .toggle-btn[data-color="violet"] .dot { background: var(--violet); }
+    .toggle-btn[data-color="green"] .dot { background: var(--green); }
+
+    .br { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .bp {
+      background: linear-gradient(135deg, var(--cyan), #007a9e);
+      color: #001a22;
+      box-shadow: 0 2px 14px rgba(0, 212, 255, 0.3);
+    }
+    .bp:hover { box-shadow: 0 4px 22px rgba(0, 212, 255, 0.45); transform: translateY(-2px); }
+    .bg2 {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 2px solid var(--border);
+    }
+    .bg2:hover { border-color: var(--border-focus); color: var(--text); }
+    .bg2.on {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: var(--cyan-dim);
+    }
+    .bd {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 2px solid var(--border);
+    }
+    .bd:hover { border-color: var(--pink); color: var(--pink); }
+
+    .pm { margin-bottom: 8px; }
+    .pt2 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .pname { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+    .chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 10px;
+      color: var(--gold);
+      background: var(--yellow-dim);
+      border: 1px solid rgba(255, 217, 61, 0.4);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+    }
+    input[type="range"].rg {
+      background: linear-gradient(to right, var(--gold) var(--p, 40%), rgba(245, 184, 66, 0.15) var(--p, 40%));
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      cursor: grab;
+      background: var(--gold);
+      box-shadow: 0 0 14px var(--gold);
+      transition: transform 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+    .rends {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-faint);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .obs-box {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-left: 5px solid var(--cyan);
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .obs-box strong { color: var(--text); }
+
+    .guided-entry {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+    .guided-entry:hover, .guided-entry.on {
+      border-color: var(--cyan);
+      background: var(--cyan-dim);
+    }
+    .guided-entry .ico { font-size: 28px; }
+    .guided-entry strong { display: block; font-size: 14px; margin-bottom: 4px; color: var(--text); }
+    .guided-entry small { font-size: 12px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="canvas-section" id="cvPane">
+    <canvas id="c"></canvas>
+    <div id="banner">Concave Mirror — Drag object or use slider</div>
+    <div style="position:absolute;top:16px;right:16px;z-index:15;padding:8px 14px;border-radius:8px;background:rgba(61,214,140,0.2);border:1px solid #3dd68c;font-size:11px;font-weight:600;color:#3dd68c;pointer-events:none;">v2 — Ray diagram</div>
+    <div id="imageSummary">
+      <h3>Image formed</h3>
+      <p id="imageProps"></p>
+    </div>
+    <div id="guidedOverlay">
+      <div class="step-title" id="guidedTitle">Step 1: Parallel ray</div>
+      <div class="step-desc" id="guidedDesc">A ray from the top of the object parallel to the principal axis reflects through the focus F.</div>
+      <div class="step-actions">
+        <button class="btn-exit" id="guidedExit">Exit guided mode</button>
+        <button class="btn-next" id="guidedNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-wrap">
+    <div class="cp-toggle" id="cpToggle" aria-expanded="true">
+      <span>Controls</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="cp-body" id="cpBody">
+      <div class="cp">
+        <div class="sec">
+          <div class="sl">Mode</div>
+          <div class="br">
+            <button class="btn bp" id="bLaunch" onclick="doLaunch()">▶ Launch</button>
+            <button class="btn bg2 on" id="bPause" onclick="doPlay()">⏸ Pause</button>
+            <button class="btn bd" onclick="doReset()">↺ Reset</button>
+          </div>
+          <div class="guided-entry" id="guidedRow" onclick="toggleGuided()">
+            <div class="ico">📘</div>
+            <div>
+              <strong>Guided mode</strong>
+              <small>Step-by-step rays with explanations</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sl">Object position</div>
+          <div class="pm">
+            <div class="pt2">
+              <span class="pname">Distance from mirror (× f)</span>
+              <span class="chip" id="vObj">2.0</span>
+            </div>
+            <input type="range" id="sObj" class="rg" min="15" max="95" value="50" step="1" oninput="onObjSlide()">
+            <div class="rends"><span>Close (1.2f)</span><span>Far (6f)</span></div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sl">Show rays</div>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn on" data-id="rayParallel" data-color="yellow" onclick="toggleRay(this)">
+              <span class="dot"></span> Parallel
+            </button>
+            <button type="button" class="toggle-btn on" data-id="rayFocus" data-color="cyan" onclick="toggleRay(this)">
+              <span class="dot"></span> Focus
+            </button>
+            <button type="button" class="toggle-btn on" data-id="rayCentre" data-color="pink" onclick="toggleRay(this)">
+              <span class="dot"></span> Centre
+            </button>
+            <button type="button" class="toggle-btn on" data-id="showAxis" data-color="violet" onclick="toggleRay(this)">
+              <span class="dot"></span> Axis
+            </button>
+            <button type="button" class="toggle-btn on" data-id="showLabels" data-color="green" onclick="toggleRay(this)">
+              <span class="dot"></span> Labels
+            </button>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sl">What’s happening?</div>
+          <div class="obs-box" id="obs">
+            Move the object to see real or virtual image. Beyond C: diminished, inverted. Between F and C: magnified, inverted. Inside F: magnified, upright (virtual).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const S = {
+      objectX: 0.5,
+      playing: true,
+      photon: 0,
+      pSpd: 0.008,
+      rays: { rayParallel: true, rayFocus: true, rayCentre: true, showAxis: true, showLabels: true },
+      guidedMode: false,
+      guidedStep: 0,
+      focus: 120,
+      centre: 240
+    };
+
+    const cv = document.getElementById('c');
+    const cx = cv.getContext('2d');
+    const pane = document.getElementById('cvPane');
+
+    function resize() {
+      cv.width = pane.clientWidth;
+      cv.height = pane.clientHeight;
+    }
+    resize();
+    new ResizeObserver(resize).observe(pane);
+
+    let drag = false, dragStartX = 0, dragStartVal = 0;
+    cv.addEventListener('mousedown', e => {
+      const r = cv.getBoundingClientRect();
+      const mx = (e.clientX - r.left) / r.width;
+      if (mx > 0.15 && mx < 0.85) {
+        drag = true;
+        dragStartX = e.clientX;
+        dragStartVal = S.objectX;
+      }
+    });
+    cv.addEventListener('mousemove', e => {
+      if (!drag) return;
+      const dx = (e.clientX - dragStartX) / pane.clientWidth;
+      S.objectX = Math.max(0.15, Math.min(0.85, dragStartVal - dx * 1.2));
+      const pct = (S.objectX - 0.15) / 0.7;
+      const val = 15 + pct * 80;
+      document.getElementById('sObj').value = Math.round(val);
+      onObjSlide();
+    });
+    window.addEventListener('mouseup', () => drag = false);
+    cv.addEventListener('touchstart', e => {
+      const r = cv.getBoundingClientRect();
+      const mx = (e.touches[0].clientX - r.left) / r.width;
+      if (mx > 0.15 && mx < 0.85) {
+        drag = true;
+        dragStartX = e.touches[0].clientX;
+        dragStartVal = S.objectX;
+      }
+    }, { passive: true });
+    cv.addEventListener('touchmove', e => {
+      if (!drag) return;
+      e.preventDefault();
+      const dx = (e.touches[0].clientX - dragStartX) / pane.clientWidth;
+      S.objectX = Math.max(0.15, Math.min(0.85, dragStartVal - dx * 1.2));
+      const pct = (S.objectX - 0.15) / 0.7;
+      document.getElementById('sObj').value = Math.round(15 + pct * 80);
+      onObjSlide();
+    }, { passive: false });
+    window.addEventListener('touchend', () => drag = false);
+
+    function doLaunch() {
+      S.playing = true;
+      S.photon = 0;
+      document.getElementById('bLaunch').textContent = '↺ Relaunch';
+      setBP(true);
+    }
+    function doPlay() {
+      S.playing = !S.playing;
+      setBP(S.playing);
+    }
+    function setBP(on) {
+      const b = document.getElementById('bPause');
+      b.textContent = on ? '⏸ Pause' : '▶ Play';
+      b.classList.toggle('on', on);
+    }
+    function doReset() {
+      S.objectX = 0.5;
+      S.photon = 0;
+      S.playing = true;
+      S.guidedMode = false;
+      S.guidedStep = 0;
+      document.getElementById('sObj').value = 50;
+      document.getElementById('cpBody').classList.remove('collapsed');
+      document.getElementById('cpToggle').classList.remove('collapsed');
+      document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.add('on');
+        S.rays[btn.dataset.id] = true;
+      });
+      document.getElementById('guidedOverlay').classList.remove('visible');
+      document.getElementById('guidedRow').classList.remove('on');
+      document.getElementById('bLaunch').textContent = '▶ Launch';
+      setBP(true);
+      refresh();
+    }
+    function toggleGuided() {
+      S.guidedMode = !S.guidedMode;
+      document.getElementById('guidedRow').classList.toggle('on', S.guidedMode);
+      if (S.guidedMode) {
+        S.guidedStep = 0;
+        document.getElementById('guidedOverlay').classList.add('visible');
+        updateGuidedContent();
+      } else {
+        document.getElementById('guidedOverlay').classList.remove('visible');
+      }
+    }
+    function updateGuidedContent() {
+      const steps = [
+        { title: 'Step 1: Parallel ray', desc: 'A ray from the top of the object, parallel to the principal axis, reflects through the focus F. (Yellow ray)' },
+        { title: 'Step 2: Focus ray', desc: 'A ray from the top of the object through the focus F reflects back parallel to the axis. (Cyan ray)' },
+        { title: 'Step 3: Centre ray', desc: 'A ray from the top of the object through the centre of curvature C reflects back along the same line. (Pink ray)' },
+        { title: 'Image', desc: 'Where the reflected rays meet (or appear to meet), the image of the object tip is formed. Real images form in front of the mirror; virtual images appear behind it.' }
+      ];
+      const idx = Math.min(S.guidedStep, steps.length - 1);
+      document.getElementById('guidedTitle').textContent = steps[idx].title;
+      document.getElementById('guidedDesc').textContent = steps[idx].desc;
+      document.getElementById('guidedNext').textContent = idx >= steps.length - 1 ? 'Finish' : 'Next →';
+    }
+    document.getElementById('guidedNext').onclick = () => {
+      if (S.guidedStep >= 3) {
+        toggleGuided();
+        return;
+      }
+      S.guidedStep++;
+      updateGuidedContent();
+    };
+    document.getElementById('guidedExit').onclick = () => toggleGuided();
+
+    document.getElementById('cpToggle').onclick = () => {
+      document.getElementById('cpBody').classList.toggle('collapsed');
+      document.getElementById('cpToggle').classList.toggle('collapsed');
+    };
+
+    function onObjSlide() {
+      const val = parseFloat(document.getElementById('sObj').value);
+      const pct = (val - 15) / 80;
+      S.objectX = 0.15 + pct * 0.7;
+      refresh();
+    }
+    function toggleRay(btn) {
+      const id = btn.dataset.id;
+      btn.classList.toggle('on');
+      S.rays[id] = btn.classList.contains('on');
+    }
+
+    function refresh() {
+      const val = 15 + (S.objectX - 0.15) / 0.7 * 80;
+      const timesF = (1.2 + (val - 15) / 80 * 4.8).toFixed(1);
+      document.getElementById('vObj').textContent = timesF;
+      document.getElementById('sObj').value = Math.round(val);
+      const el = document.getElementById('sObj');
+      el.style.setProperty('--p', ((val - 15) / 80) * 100 + '%');
+      updateObs();
+      updateBanner();
+    }
+
+    function updateBanner() {
+      const { u } = objectDistance();
+      let msg = 'Concave Mirror — ';
+      if (u > S.centre * 1.05) msg += 'Object beyond C';
+      else if (u > S.focus * 1.05) msg += 'Object between F and C';
+      else if (u > S.focus * 0.95) msg += 'Object near F';
+      else msg += 'Object inside F (virtual image)';
+      document.getElementById('banner').textContent = msg;
+    }
+
+    function objectDistance() {
+      const W = cv.width;
+      if (!W) return { u: 200, fPx: 120, cPx: 240 };
+      const originX = W * 0.12;
+      const axisLen = W * 0.76;
+      const objX = originX + S.objectX * axisLen;
+      const mirrorX = originX + axisLen;
+      const scale = axisLen / (S.centre + 80);
+      const uPx = mirrorX - objX;
+      const u = uPx / scale;
+      const fPx = S.focus * scale;
+      const cPx = S.centre * scale;
+      return { u, fPx, cPx, scale, mirrorX, Fx: mirrorX - fPx, Cx: mirrorX - cPx };
+    }
+
+    function updateObs() {
+      const { u } = objectDistance();
+      const f = S.focus;
+      const C = S.centre;
+      let msg, leftColor = 'var(--cyan)';
+      if (u > C * 1.05) {
+        msg = '<strong>Object beyond C:</strong> Image is real, inverted, diminished, and between F and C.';
+        leftColor = 'var(--green)';
+      } else if (u > C * 0.95) {
+        msg = '<strong>Object at C:</strong> Image is real, inverted, same size, at C.';
+        leftColor = 'var(--gold)';
+      } else if (u > f * 1.05) {
+        msg = '<strong>Object between F and C:</strong> Image is real, inverted, magnified, beyond C.';
+        leftColor = 'var(--cyan)';
+      } else if (u > f * 0.95) {
+        msg = '<strong>Object at F:</strong> Reflected rays are parallel — no image (at infinity).';
+        leftColor = 'var(--pink)';
+      } else {
+        msg = '<strong>Object inside F:</strong> Image is virtual, upright, magnified, behind the mirror.';
+        leftColor = 'var(--yellow)';
+      }
+      document.getElementById('obs').innerHTML = msg;
+      document.getElementById('obs').style.borderLeftColor = leftColor;
+    }
+
+    function rayLine(x1, y1, x2, y2, col, lineWidth, withGlow = true, arrowAtEnd = true) {
+      cx.save();
+      if (withGlow) {
+        cx.shadowColor = col;
+        cx.shadowBlur = 22;
+        cx.globalAlpha = 0.55;
+        cx.strokeStyle = col;
+        cx.lineWidth = lineWidth + 8;
+        cx.lineCap = 'round';
+        cx.beginPath();
+        cx.moveTo(x1, y1);
+        cx.lineTo(x2, y2);
+        cx.stroke();
+        cx.globalAlpha = 1;
+      }
+      cx.shadowBlur = 0;
+      cx.strokeStyle = col;
+      cx.lineWidth = lineWidth;
+      cx.lineCap = 'round';
+      cx.beginPath();
+      cx.moveTo(x1, y1);
+      cx.lineTo(x2, y2);
+      cx.stroke();
+      if (arrowAtEnd) {
+        const ang = Math.atan2(y2 - y1, x2 - x1);
+        const arrLen = 18;
+        cx.shadowColor = col;
+        cx.shadowBlur = 10;
+        cx.fillStyle = col;
+        cx.beginPath();
+        cx.moveTo(x2, y2);
+        cx.lineTo(x2 - arrLen * Math.cos(ang - 0.4), y2 - arrLen * Math.sin(ang - 0.4));
+        cx.lineTo(x2 - arrLen * 0.65 * Math.cos(ang), y2 - arrLen * 0.65 * Math.sin(ang));
+        cx.lineTo(x2 - arrLen * Math.cos(ang + 0.4), y2 - arrLen * Math.sin(ang + 0.4));
+        cx.closePath();
+        cx.fill();
+        cx.shadowBlur = 0;
+      }
+      cx.restore();
+    }
+
+    function dashedLine(x1, y1, x2, y2, col, w = 2) {
+      cx.save();
+      cx.setLineDash([10, 8]);
+      cx.strokeStyle = col;
+      cx.lineWidth = w;
+      cx.lineCap = 'round';
+      cx.beginPath();
+      cx.moveTo(x1, y1);
+      cx.lineTo(x2, y2);
+      cx.stroke();
+      cx.setLineDash([]);
+      cx.restore();
+    }
+
+    function label(txt, x, y, col, fontSize = 16) {
+      cx.save();
+      cx.font = `600 ${fontSize}px "DM Sans", sans-serif`;
+      cx.textAlign = 'center';
+      cx.textBaseline = 'middle';
+      const w = cx.measureText(txt).width;
+      const pad = 12;
+      cx.fillStyle = 'rgba(5,11,20,0.94)';
+      cx.strokeStyle = col.indexOf('rgba') === 0 ? col.replace(/[\d.]+\)$/, '0.65)') : col;
+      cx.lineWidth = 2;
+      cx.beginPath();
+      cx.roundRect(x - w/2 - pad, y - fontSize/2 - pad/2, w + pad*2, fontSize + pad, 8);
+      cx.fill();
+      cx.stroke();
+      cx.fillStyle = col;
+      cx.fillText(txt, x, y);
+      cx.restore();
+    }
+
+    function glowDot(x, y, col, r = 8) {
+      cx.save();
+      cx.shadowColor = col;
+      cx.shadowBlur = 20;
+      cx.fillStyle = col;
+      cx.beginPath();
+      cx.arc(x, y, r, 0, Math.PI * 2);
+      cx.fill();
+      cx.shadowBlur = 0;
+      cx.restore();
+    }
+
+    const YELLOW = '#ffd93d';
+    const CYAN = '#00d4ff';
+    const PINK = '#ff6b9d';
+    const VIOLET = 'rgba(184,138,255,0.9)';
+
+    function draw() {
+      const W = cv.width, H = cv.height;
+      cx.clearRect(0, 0, W, H);
+
+      const originX = W * 0.12;
+      const axisLen = W * 0.76;
+      const mirrorX = originX + axisLen;
+      const axisY = H * 0.5;
+      const f = S.focus;
+      const C = S.centre;
+      const scale = axisLen / (C + 80);
+      const Fx = mirrorX - (f * scale);
+      const Cx = mirrorX - (C * scale);
+      const objX = originX + S.objectX * axisLen;
+      const objH = H * 0.22;
+      const objTopY = axisY - objH;
+      const objBaseY = axisY;
+
+      const showParallel = S.rays.rayParallel;
+      const showFocus = S.rays.rayFocus;
+      const showCentre = S.rays.rayCentre;
+      const showAxis = S.rays.showAxis;
+      const showLabels = S.rays.showLabels;
+      const guided = S.guidedMode;
+      const step = S.guidedStep;
+
+      if (showAxis) {
+        dashedLine(originX, axisY, mirrorX + 20, axisY, VIOLET, 2);
+        if (showLabels) {
+          label('Principal axis', (originX + mirrorX) / 2, axisY + 32, VIOLET, 14);
+        }
+      }
+
+      const mirrorRadius = C * scale;
+      const mirrorLeft = mirrorX - mirrorRadius;
+      const mirrorTop = axisY - Math.sqrt(Math.max(0, mirrorRadius * mirrorRadius - (mirrorRadius - 20) * (mirrorRadius - 20)));
+      cx.save();
+      cx.strokeStyle = 'rgba(180,240,255,0.95)';
+      cx.lineWidth = 6;
+      cx.shadowColor = 'rgba(0,212,255,0.5)';
+      cx.shadowBlur = 24;
+      cx.beginPath();
+      cx.arc(mirrorX - mirrorRadius, axisY, mirrorRadius, 0, Math.PI * 0.55);
+      cx.stroke();
+      cx.restore();
+      if (showLabels) {
+        label('Mirror', mirrorX - mirrorRadius * 0.5, axisY - mirrorRadius * 0.4, 'rgba(200,240,255,0.95)', 15);
+      }
+
+      const objTipX = objX;
+      const objTipY = objTopY;
+
+      const drawParallel = showParallel && (!guided || step >= 0);
+      const drawFocus = showFocus && (!guided || step >= 1);
+      const drawCentre = showCentre && (!guided || step >= 2);
+
+      let imageY = null;
+      let imageX = null;
+
+      if (drawParallel) {
+        const rad2 = mirrorRadius * mirrorRadius - (objTipY - axisY) * (objTipY - axisY);
+        const hitX = rad2 > 0 ? mirrorX - mirrorRadius + Math.sqrt(rad2) : mirrorX - mirrorRadius * 0.5;
+        const hitY = objTipY;
+        if (hitX > objTipX && hitX < mirrorX) {
+          rayLine(objTipX, objTipY, hitX, hitY, YELLOW, 4, true, false);
+          const refDirX = Fx - hitX, refDirY = axisY - hitY;
+          const extX = Fx + refDirX * 1.5, extY = axisY + refDirY * 1.5;
+          rayLine(hitX, hitY, extX, extY, YELLOW, 4, true, true);
+          if (showLabels) label('Parallel → F', (objTipX + hitX) / 2 - 10, objTipY - 18, YELLOW, 13);
+          imageY = axisY + refDirY * 0.5;
+          imageX = Fx + refDirX * 0.5;
+        }
+      }
+
+      if (drawFocus) {
+        const cx_c = mirrorX - mirrorRadius, cy_c = axisY;
+        const dx = Fx - objTipX, dy = axisY - objTipY;
+        const ex = objTipX - cx_c, ey = objTipY - cy_c;
+        const a = dx*dx + dy*dy, b = 2*(ex*dx + ey*dy), c = ex*ex + ey*ey - mirrorRadius*mirrorRadius;
+        const disc = b*b - 4*a*c;
+        let fHitX, fHitY;
+        if (disc >= 0 && a > 1e-6) {
+          const t = (-b + Math.sqrt(disc)) / (2*a);
+          if (t > 0.01) {
+            fHitX = objTipX + t*dx;
+            fHitY = objTipY + t*dy;
+            if (fHitX < mirrorX && fHitX > mirrorX - mirrorRadius) {
+              rayLine(objTipX, objTipY, fHitX, fHitY, CYAN, 4, true, false);
+              const outX = fHitX + axisLen * 0.35;
+              rayLine(fHitX, fHitY, outX, fHitY, CYAN, 4, true, true);
+              if (showLabels) label('Through F → parallel', (objTipX + fHitX) / 2 + 20, (objTipY + fHitY) / 2, CYAN, 13);
+              if (imageY === null) { imageY = fHitY; imageX = fHitX + (outX - fHitX) * 0.3; } else { imageY = (imageY + fHitY) / 2; imageX = (imageX + (fHitX + (outX - fHitX) * 0.3)) / 2; }
+            }
+          }
+        }
+      }
+
+      if (drawCentre) {
+        const cx_c = mirrorX - mirrorRadius, cy_c = axisY;
+        const dx = Cx - objTipX, dy = axisY - objTipY;
+        const ex = objTipX - cx_c, ey = objTipY - cy_c;
+        const a = dx*dx + dy*dy, b = 2*(ex*dx + ey*dy), c = ex*ex + ey*ey - mirrorRadius*mirrorRadius;
+        const disc = b*b - 4*a*c;
+        if (disc >= 0 && a > 1e-6) {
+          const t = (-b + Math.sqrt(disc)) / (2*a);
+          if (t > 0.01) {
+            const hitX = objTipX + t*dx, hitY = objTipY + t*dy;
+            if (hitX < mirrorX && hitX > mirrorX - mirrorRadius) {
+              rayLine(objTipX, objTipY, hitX, hitY, PINK, 4, true, false);
+              const backX = objTipX - (hitX - objTipX) * 0.7;
+              const backY = objTipY - (hitY - objTipY) * 0.7;
+              rayLine(hitX, hitY, backX, backY, PINK, 4, true, true);
+              if (showLabels) label('Through C', (objTipX + hitX) / 2 - 18, (objTipY + hitY) / 2, PINK, 13);
+              if (imageY === null) { imageY = backY; imageX = backX; } else { imageY = (imageY + backY) / 2; imageX = (imageX + backX) / 2; }
+            }
+          }
+        }
+      }
+
+      cx.fillStyle = 'rgba(255,217,61,0.95)';
+      cx.strokeStyle = 'rgba(255,217,61,0.9)';
+      cx.lineWidth = 3;
+      cx.beginPath();
+      cx.moveTo(objX - 12, axisY);
+      cx.lineTo(objX - 8, objTopY);
+      cx.lineTo(objX + 8, objTopY);
+      cx.lineTo(objX + 12, axisY);
+      cx.closePath();
+      cx.fill();
+      cx.stroke();
+      glowDot(objX, objTopY, YELLOW, 6);
+      if (showLabels) label('Object', objX, objTopY - 28, YELLOW, 15);
+
+      glowDot(Fx, axisY, CYAN, 8);
+      if (showLabels) label('F', Fx, axisY + 28, CYAN, 16);
+      glowDot(Cx, axisY, PINK, 8);
+      if (showLabels) label('C', Cx, axisY + 28, PINK, 16);
+
+      const uPx = mirrorX - objX;
+      const uLogical = uPx / scale;
+      const realImage = uLogical > f * 0.95 && imageY !== null && imageX !== null && imageX < mirrorX && imageX > originX;
+      const virtualImage = uLogical <= f * 1.05 && uLogical > 0;
+
+      if (realImage && imageY !== null && (drawParallel || drawFocus || drawCentre)) {
+        cx.fillStyle = 'rgba(61,214,140,0.9)';
+        cx.strokeStyle = 'rgba(61,214,140,0.95)';
+        cx.lineWidth = 3;
+        const ih = Math.abs(imageY - axisY);
+        cx.beginPath();
+        cx.moveTo(imageX - 10, axisY);
+        cx.lineTo(imageX - 6, imageY);
+        cx.lineTo(imageX + 6, imageY);
+        cx.lineTo(imageX + 10, axisY);
+        cx.closePath();
+        cx.fill();
+        cx.stroke();
+        glowDot(imageX, imageY, '#3dd68c', 6);
+        if (showLabels) label('Image', imageX, imageY - 24, '#3dd68c', 15);
+      }
+
+      if (virtualImage && (drawParallel || drawFocus || drawCentre)) {
+        const vx = mirrorX + Math.min(80, axisLen * 0.2);
+        const vy = imageY !== null ? imageY : axisY - objH * 1.2;
+        cx.setLineDash([6, 6]);
+        cx.strokeStyle = 'rgba(61,214,140,0.75)';
+        cx.lineWidth = 2.5;
+        cx.beginPath();
+        cx.moveTo(vx - 10, axisY);
+        cx.lineTo(vx - 6, vy);
+        cx.lineTo(vx + 6, vy);
+        cx.lineTo(vx + 10, axisY);
+        cx.closePath();
+        cx.stroke();
+        cx.setLineDash([]);
+        if (showLabels) label('Image (virtual)', vx, vy - 24, '#3dd68c', 14);
+      }
+
+      const summaryEl = document.getElementById('imageSummary');
+      const propsEl = document.getElementById('imageProps');
+      if (realImage || virtualImage) {
+        summaryEl.classList.add('visible');
+        const m = Math.abs((imageY - axisY) / objH);
+        if (realImage) {
+          propsEl.innerHTML = `Real, inverted, ${m > 1 ? 'magnified' : m < 1 ? 'diminished' : 'same size'}. Image distance depends on object position.`;
+        } else {
+          propsEl.innerHTML = `Virtual, upright, magnified. Image appears behind the mirror.`;
+        }
+      } else {
+        summaryEl.classList.remove('visible');
+      }
+
+      if (S.playing && (drawParallel || drawFocus || drawCentre)) {
+        S.photon += S.pSpd;
+        if (S.photon > 1) S.photon = 0;
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    refresh();
+    draw();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Spherical Mirror Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a1628;
+            --bg-canvas: #0d1b2e;
+            --primary-cyan: #00d9ff;
+            --primary-teal: #00a896;
+            --accent-yellow: #ffd23f;
+            --text-light: #e8f4f8;
+            --text-dim: #8fa3b0;
+            --panel-bg: #1a2942;
+            --button-active: #00a896;
+            --button-inactive: #2d3e54;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f1f3a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 12px 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 0.9em;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 3fr 1fr;  /* 75% canvas : 25% control panel */
+            gap: 16px;
+            animation: fadeIn 1s ease-out 0.2s both;
+            width: 100%;
+            min-width: 0;  /* allow grid to shrink inside iframe */
+        }
+
+        .canvas-container {
+            min-width: 0;  /* allow column to shrink so 25% panel stays visible */
+            background: var(--bg-canvas);
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: 600px;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: radial-gradient(circle at 50% 50%, #0d1b2e 0%, #0a1628 100%);
+        }
+
+        .controls-panel {
+            min-width: 0;  /* allow column to shrink */
+            background: var(--panel-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 217, 255, 0.15);
+            animation: slideInRight 0.8s ease-out 0.4s both;
+            overflow-y: auto;  /* scroll controls if needed */
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary-cyan);
+            margin-bottom: 12px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-teal), var(--primary-cyan));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--button-inactive);
+            color: var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            background: #3a4f6a;
+        }
+
+        .btn-secondary.active {
+            background: linear-gradient(135deg, var(--primary-teal), var(--primary-cyan));
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .slider-label {
+            font-size: 0.9em;
+            color: var(--text-light);
+        }
+
+        .slider-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1em;
+            color: var(--primary-cyan);
+            font-weight: 700;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--button-inactive);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-teal));
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .object-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .object-type-btn {
+            padding: 10px;
+            background: var(--button-inactive);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .object-type-btn.active {
+            border-color: var(--primary-cyan);
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .ray-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ray-toggle {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ray-toggle:hover {
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .ray-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: var(--primary-cyan);
+        }
+
+        .ray-toggle label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .info-panel {
+            background: rgba(0, 217, 255, 0.05);
+            border-left: 3px solid var(--primary-cyan);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 6px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .info-panel h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            color: var(--primary-cyan);
+        }
+
+        .info-panel p {
+            font-size: 0.85em;
+            line-height: 1.5;
+            color: var(--text-dim);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 rgba(0, 217, 255, 0);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+            }
+        }
+
+        /* Only stack canvas above controls on very small screens (e.g. mobile) */
+        @media (max-width: 640px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Spherical Mirror Simulator</h1>
+            <p class="subtitle">Interactive Physics Laboratory</p>
+        </header>
+
+        <div class="main-content">
+            <div class="canvas-container">
+                <canvas id="mirrorCanvas"></canvas>
+            </div>
+
+            <div class="controls-panel">
+                <div class="control-group">
+                    <span class="control-label">Simulation Controls</span>
+                    <div class="button-group">
+                        <button class="btn-primary" id="launchBtn">Launch</button>
+                        <button class="btn-primary" id="playBtn">Play</button>
+                        <button class="btn-reset" id="resetBtn">Reset</button>
+                    </div>
+                    <button class="btn-secondary" id="demoBtn" style="width: 100%; margin-top: 10px;">Demo Mode</button>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Mirror Type</span>
+                    <div class="button-group">
+                        <button class="btn-secondary active" id="concaveBtn">Concave</button>
+                        <button class="btn-secondary" id="convexBtn">Convex</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Object Type</span>
+                    <div class="object-type-selector">
+                        <button class="object-type-btn active" data-type="arrow">Arrow ↑</button>
+                        <button class="object-type-btn" data-type="candle">Candle 🕯</button>
+                        <button class="object-type-btn" data-type="tree">Tree 🌲</button>
+                        <button class="object-type-btn" data-type="person">Person 👤</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span class="slider-label">Object Distance</span>
+                            <span class="slider-value" id="objectDistanceValue">50 cm</span>
+                        </div>
+                        <input type="range" id="objectDistance" min="10" max="100" value="50" step="1">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span class="slider-label">Focal Length</span>
+                            <span class="slider-value" id="focalLengthValue">30 cm</span>
+                        </div>
+                        <input type="range" id="focalLength" min="10" max="60" value="30" step="1">
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span class="slider-label">Object Height</span>
+                            <span class="slider-value" id="objectHeightValue">40 px</span>
+                        </div>
+                        <input type="range" id="objectHeight" min="20" max="80" value="40" step="5">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Rays (Concept Mode)</span>
+                    <div class="ray-toggles">
+                        <div class="ray-toggle">
+                            <input type="checkbox" id="parallelRay" checked>
+                            <label for="parallelRay">Parallel Ray</label>
+                        </div>
+                        <div class="ray-toggle">
+                            <input type="checkbox" id="focusRay" checked>
+                            <label for="focusRay">Focus Ray</label>
+                        </div>
+                        <div class="ray-toggle">
+                            <input type="checkbox" id="centerRay" checked>
+                            <label for="centerRay">Center Ray</label>
+                        </div>
+                        <div class="ray-toggle">
+                            <input type="checkbox" id="reflectedRays" checked>
+                            <label for="reflectedRays">Show Reflections</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>📐 Image Properties</h3>
+                    <p id="imageInfo">Adjust parameters to see image formation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mirrorCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas resolution
+        canvas.width = 1000;
+        canvas.height = 600;
+
+        // State
+        let state = {
+            mirrorType: 'concave',
+            objectType: 'arrow',
+            objectDistance: 50,
+            focalLength: 30,
+            objectHeight: 40,
+            showParallelRay: true,
+            showFocusRay: true,
+            showCenterRay: true,
+            showReflectedRays: true,
+            isDragging: false,
+            dragTarget: null,
+            isAnimating: false,
+            animationId: null,
+            demoMode: false,
+            demoStep: 0
+        };
+
+        // Mirror center position
+        const mirrorX = 800;
+        const mirrorY = canvas.height / 2;
+        const scale = 5; // pixels per cm
+
+        // Event Listeners
+        document.getElementById('launchBtn').addEventListener('click', () => {
+            // Launch animation: Animate rays shooting out one by one
+            if (state.isAnimating) return;
+            
+            state.isAnimating = true;
+            let rayProgress = 0;
+            const animate = () => {
+                rayProgress += 0.004; // Much slower animation for better visibility
+                if (rayProgress < 1.2) { // Extended duration to show all reflections
+                    state.animationId = requestAnimationFrame(animate);
+                    drawWithRayAnimation(rayProgress);
+                } else {
+                    state.isAnimating = false;
+                    draw();
+                }
+            };
+            animate();
+        });
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            // Play animation: Smoothly move object back and forth
+            if (state.isAnimating) {
+                state.isAnimating = false;
+                if (state.animationId) {
+                    cancelAnimationFrame(state.animationId);
+                    state.animationId = null;
+                }
+                document.getElementById('playBtn').textContent = 'Play';
+                return;
+            }
+            
+            state.isAnimating = true;
+            document.getElementById('playBtn').textContent = 'Stop';
+            let direction = -1;
+            const minDist = 15;
+            const maxDist = 90;
+            
+            const animate = () => {
+                if (!state.isAnimating) {
+                    document.getElementById('playBtn').textContent = 'Play';
+                    return;
+                }
+                
+                state.objectDistance += direction * 0.5;
+                
+                if (state.objectDistance <= minDist) {
+                    direction = -1;
+                    state.objectDistance = minDist;
+                } else if (state.objectDistance >= maxDist) {
+                    direction = 1;
+                    state.objectDistance = maxDist;
+                }
+                
+                document.getElementById('objectDistance').value = Math.round(state.objectDistance);
+                document.getElementById('objectDistanceValue').textContent = Math.round(state.objectDistance) + ' cm';
+                draw();
+                
+                state.animationId = requestAnimationFrame(animate);
+            };
+            animate();
+        });
+
+        document.getElementById('demoBtn').addEventListener('click', () => {
+            state.demoMode = !state.demoMode;
+            const btn = document.getElementById('demoBtn');
+            
+            if (state.demoMode) {
+                btn.classList.add('active');
+                btn.textContent = 'Exit Demo';
+                startDemo();
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = 'Demo Mode';
+                stopDemo();
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            // Stop any running animations
+            state.isAnimating = false;
+            state.demoMode = false;
+            if (state.animationId) {
+                cancelAnimationFrame(state.animationId);
+                state.animationId = null;
+            }
+            
+            document.getElementById('playBtn').textContent = 'Play';
+            document.getElementById('demoBtn').classList.remove('active');
+            document.getElementById('demoBtn').textContent = 'Demo Mode';
+            
+            state = {
+                mirrorType: 'concave',
+                objectType: 'arrow',
+                objectDistance: 50,
+                focalLength: 30,
+                objectHeight: 40,
+                showParallelRay: true,
+                showFocusRay: true,
+                showCenterRay: true,
+                showReflectedRays: true,
+                isDragging: false,
+                dragTarget: null,
+                isAnimating: false,
+                animationId: null,
+                demoMode: false,
+                demoStep: 0
+            };
+            
+            document.getElementById('objectDistance').value = 50;
+            document.getElementById('focalLength').value = 30;
+            document.getElementById('objectHeight').value = 40;
+            document.getElementById('objectDistanceValue').textContent = '50 cm';
+            document.getElementById('focalLengthValue').textContent = '30 cm';
+            document.getElementById('objectHeightValue').textContent = '40 px';
+            
+            document.getElementById('parallelRay').checked = true;
+            document.getElementById('focusRay').checked = true;
+            document.getElementById('centerRay').checked = true;
+            document.getElementById('reflectedRays').checked = true;
+            
+            updateButtonState('concaveBtn', 'convexBtn');
+            document.querySelectorAll('.object-type-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-type="arrow"]').classList.add('active');
+            
+            draw();
+        });
+
+        document.getElementById('concaveBtn').addEventListener('click', () => {
+            state.mirrorType = 'concave';
+            updateButtonState('concaveBtn', 'convexBtn');
+            draw();
+        });
+
+        document.getElementById('convexBtn').addEventListener('click', () => {
+            state.mirrorType = 'convex';
+            updateButtonState('convexBtn', 'concaveBtn');
+            draw();
+        });
+
+        document.querySelectorAll('.object-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.object-type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.objectType = btn.dataset.type;
+                draw();
+            });
+        });
+
+        document.getElementById('objectDistance').addEventListener('input', (e) => {
+            state.objectDistance = parseInt(e.target.value);
+            document.getElementById('objectDistanceValue').textContent = state.objectDistance + ' cm';
+            draw();
+        });
+
+        document.getElementById('focalLength').addEventListener('input', (e) => {
+            state.focalLength = parseInt(e.target.value);
+            document.getElementById('focalLengthValue').textContent = state.focalLength + ' cm';
+            draw();
+        });
+
+        document.getElementById('objectHeight').addEventListener('input', (e) => {
+            state.objectHeight = parseInt(e.target.value);
+            document.getElementById('objectHeightValue').textContent = state.objectHeight + ' px';
+            draw();
+        });
+
+        document.getElementById('parallelRay').addEventListener('change', (e) => {
+            state.showParallelRay = e.target.checked;
+            draw();
+        });
+
+        document.getElementById('focusRay').addEventListener('change', (e) => {
+            state.showFocusRay = e.target.checked;
+            draw();
+        });
+
+        document.getElementById('centerRay').addEventListener('change', (e) => {
+            state.showCenterRay = e.target.checked;
+            draw();
+        });
+
+        document.getElementById('reflectedRays').addEventListener('change', (e) => {
+            state.showReflectedRays = e.target.checked;
+            draw();
+        });
+
+        // Canvas interaction
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            
+            const objectX = mirrorX - state.objectDistance * scale;
+            const objectY = mirrorY;
+            
+            if (Math.abs(x - objectX) < 20 && Math.abs(y - objectY) < state.objectHeight) {
+                state.isDragging = true;
+                state.dragTarget = 'object';
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (state.isDragging && state.dragTarget === 'object') {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                
+                const newDistance = Math.round((mirrorX - x) / scale);
+                state.objectDistance = Math.max(10, Math.min(100, newDistance));
+                document.getElementById('objectDistance').value = state.objectDistance;
+                document.getElementById('objectDistanceValue').textContent = state.objectDistance + ' cm';
+                
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            state.isDragging = false;
+            state.dragTarget = null;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            state.isDragging = false;
+            state.dragTarget = null;
+        });
+
+        function updateButtonState(activeId, inactiveId) {
+            document.getElementById(activeId).classList.add('active');
+            document.getElementById(inactiveId).classList.remove('active');
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#0a1628';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw optical axis
+            ctx.strokeStyle = 'rgba(143, 163, 176, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, mirrorY);
+            ctx.lineTo(canvas.width, mirrorY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw mirror
+            drawMirror();
+
+            // Draw focal point and center of curvature
+            drawPoints();
+
+            // Calculate positions
+            const objectX = mirrorX - state.objectDistance * scale;
+            const objectY = mirrorY;
+
+            // Draw object
+            drawObject(objectX, objectY);
+
+            // Calculate and draw image
+            const imageData = calculateImage();
+            if (imageData) {
+                drawImage(imageData);
+                updateImageInfo(imageData);
+            }
+
+            // Draw rays
+            if (state.showReflectedRays) {
+                drawRays(objectX, objectY, imageData);
+            }
+        }
+
+        function drawMirror() {
+            const mirrorHeight = 200;
+            const mirrorCurve = state.mirrorType === 'concave' ? 30 : -30;
+
+            ctx.strokeStyle = '#00d9ff';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = 'rgba(0, 217, 255, 0.5)';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            ctx.moveTo(mirrorX, mirrorY - mirrorHeight / 2);
+            ctx.quadraticCurveTo(
+                mirrorX + mirrorCurve,
+                mirrorY,
+                mirrorX,
+                mirrorY + mirrorHeight / 2
+            );
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+        }
+
+        function drawPoints() {
+            const f = state.focalLength * scale;
+            const c = 2 * f;
+
+            // Focal point
+            ctx.fillStyle = '#ffd23f';
+            ctx.shadowColor = 'rgba(255, 210, 63, 0.5)';
+            ctx.shadowBlur = 10;
+            
+            const focalX = state.mirrorType === 'concave' ? mirrorX - f : mirrorX + f;
+            ctx.beginPath();
+            ctx.arc(focalX, mirrorY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffd23f';
+            ctx.font = 'bold 14px Orbitron';
+            ctx.fillText('F', focalX, mirrorY - 15);
+
+            // Center of curvature
+            ctx.fillStyle = '#00a896';
+            ctx.shadowColor = 'rgba(0, 168, 150, 0.5)';
+            ctx.shadowBlur = 10;
+            
+            const centerX = state.mirrorType === 'concave' ? mirrorX - c : mirrorX + c;
+            ctx.beginPath();
+            ctx.arc(centerX, mirrorY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#00a896';
+            ctx.fillText('C', centerX, mirrorY - 15);
+        }
+
+        function drawObject(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            switch (state.objectType) {
+                case 'arrow':
+                    drawArrow();
+                    break;
+                case 'candle':
+                    drawCandle();
+                    break;
+                case 'tree':
+                    drawTree();
+                    break;
+                case 'person':
+                    drawPerson();
+                    break;
+            }
+
+            ctx.restore();
+
+            // Highlight if draggable
+            ctx.strokeStyle = 'rgba(0, 217, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.strokeRect(x - 15, y - state.objectHeight - 5, 30, state.objectHeight + 10);
+            ctx.setLineDash([]);
+        }
+
+        function drawArrow() {
+            ctx.strokeStyle = '#00d9ff';
+            ctx.fillStyle = '#00d9ff';
+            ctx.lineWidth = 3;
+
+            // Shaft
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, -state.objectHeight);
+            ctx.stroke();
+
+            // Arrowhead
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight);
+            ctx.lineTo(-8, -state.objectHeight + 12);
+            ctx.lineTo(8, -state.objectHeight + 12);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawCandle() {
+            // Candle body
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(-6, -state.objectHeight + 10, 12, state.objectHeight - 10);
+
+            // Wick
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight + 10);
+            ctx.lineTo(0, -state.objectHeight);
+            ctx.stroke();
+
+            // Flame
+            ctx.fillStyle = '#ffd23f';
+            ctx.beginPath();
+            ctx.ellipse(0, -state.objectHeight - 5, 5, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawTree() {
+            // Trunk
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(-4, -state.objectHeight / 2, 8, state.objectHeight / 2);
+
+            // Foliage
+            ctx.fillStyle = '#2d5016';
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight);
+            ctx.lineTo(-15, -state.objectHeight / 2);
+            ctx.lineTo(15, -state.objectHeight / 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight + 10);
+            ctx.lineTo(-12, -state.objectHeight / 2 + 10);
+            ctx.lineTo(12, -state.objectHeight / 2 + 10);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawPerson() {
+            // Head
+            ctx.fillStyle = '#ffdbac';
+            ctx.beginPath();
+            ctx.arc(0, -state.objectHeight + 8, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            ctx.strokeStyle = '#4a90e2';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight + 16);
+            ctx.lineTo(0, -state.objectHeight / 2);
+            ctx.stroke();
+
+            // Arms
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight + 20);
+            ctx.lineTo(-10, -state.objectHeight + 30);
+            ctx.moveTo(0, -state.objectHeight + 20);
+            ctx.lineTo(10, -state.objectHeight + 30);
+            ctx.stroke();
+
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(0, -state.objectHeight / 2);
+            ctx.lineTo(-8, 0);
+            ctx.moveTo(0, -state.objectHeight / 2);
+            ctx.lineTo(8, 0);
+            ctx.stroke();
+        }
+
+        function calculateImage() {
+            const u = state.objectDistance;
+            const f = state.focalLength;
+            const h = state.objectHeight;
+
+            let v, imageHeight, type;
+
+            if (state.mirrorType === 'concave') {
+                if (Math.abs(u - f) < 0.5) {
+                    return null; // Image at infinity
+                }
+                v = (f * u) / (u - f);
+                imageHeight = -(v / u) * h;
+                type = v > 0 ? 'real' : 'virtual';
+            } else {
+                v = -(f * u) / (u + f);
+                imageHeight = -(v / u) * h;
+                type = 'virtual';
+            }
+
+            return {
+                distance: v,
+                height: imageHeight,
+                type: type,
+                magnification: Math.abs(v / u)
+            };
+        }
+
+        function drawImage(imageData) {
+            if (!imageData) return;
+
+            const imageX = mirrorX - imageData.distance * scale;
+            const imageY = mirrorY;
+
+            ctx.save();
+            ctx.translate(imageX, imageY);
+
+            // Draw image with transparency to show virtual/real
+            ctx.globalAlpha = imageData.type === 'virtual' ? 0.5 : 0.8;
+
+            const scaledHeight = imageData.height;
+
+            switch (state.objectType) {
+                case 'arrow':
+                    ctx.strokeStyle = imageData.type === 'real' ? '#ff6b6b' : '#00d9ff';
+                    ctx.fillStyle = imageData.type === 'real' ? '#ff6b6b' : '#00d9ff';
+                    ctx.lineWidth = 3;
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(0, -scaledHeight);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, -scaledHeight);
+                    ctx.lineTo(-8, -scaledHeight + (scaledHeight > 0 ? 12 : -12));
+                    ctx.lineTo(8, -scaledHeight + (scaledHeight > 0 ? 12 : -12));
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+
+                case 'candle':
+                    const candleScale = Math.abs(scaledHeight / state.objectHeight);
+                    ctx.fillStyle = imageData.type === 'real' ? '#ff6b6b' : 'rgba(255, 107, 107, 0.7)';
+                    ctx.fillRect(-6 * candleScale, -scaledHeight + 10 * candleScale, 12 * candleScale, Math.abs(scaledHeight) - 10 * candleScale);
+                    
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -scaledHeight + 10 * candleScale);
+                    ctx.lineTo(0, -scaledHeight);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffd23f';
+                    ctx.beginPath();
+                    ctx.ellipse(0, -scaledHeight - 5 * candleScale, 5 * candleScale, 8 * candleScale, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+
+                case 'tree':
+                    const treeScale = Math.abs(scaledHeight / state.objectHeight);
+                    ctx.fillStyle = '#8b4513';
+                    ctx.fillRect(-4 * treeScale, -scaledHeight / 2, 8 * treeScale, Math.abs(scaledHeight) / 2);
+
+                    ctx.fillStyle = imageData.type === 'real' ? '#2d5016' : 'rgba(45, 80, 22, 0.7)';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -scaledHeight);
+                    ctx.lineTo(-15 * treeScale, -scaledHeight / 2);
+                    ctx.lineTo(15 * treeScale, -scaledHeight / 2);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+
+                case 'person':
+                    const personScale = Math.abs(scaledHeight / state.objectHeight);
+                    ctx.fillStyle = '#ffdbac';
+                    ctx.beginPath();
+                    ctx.arc(0, -scaledHeight + 8 * personScale, 8 * personScale, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = imageData.type === 'real' ? '#4a90e2' : 'rgba(74, 144, 226, 0.7)';
+                    ctx.lineWidth = 3 * personScale;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -scaledHeight + 16 * personScale);
+                    ctx.lineTo(0, -scaledHeight / 2);
+                    ctx.stroke();
+                    break;
+            }
+
+            ctx.restore();
+
+            // Label
+            ctx.fillStyle = imageData.type === 'real' ? '#ff6b6b' : '#00d9ff';
+            ctx.font = 'bold 12px Orbitron';
+            ctx.fillText(imageData.type === 'real' ? 'REAL' : 'VIRTUAL', imageX - 20, imageY + 30);
+        }
+
+        function drawRays(objectX, objectY, imageData) {
+            if (!imageData) return;
+
+            const imageX = mirrorX - imageData.distance * scale;
+            const imageY = mirrorY - imageData.height;
+            const objectTop = objectY - state.objectHeight;
+
+            ctx.lineWidth = 2;
+
+            // Parallel ray
+            if (state.showParallelRay) {
+                ctx.strokeStyle = '#00d9ff';
+                ctx.setLineDash([]);
+                
+                ctx.beginPath();
+                ctx.moveTo(objectX, objectTop);
+                ctx.lineTo(mirrorX, objectTop);
+                ctx.stroke();
+
+                if (state.showReflectedRays) {
+                    const focalX = state.mirrorType === 'concave' ? mirrorX - state.focalLength * scale : mirrorX + state.focalLength * scale;
+                    
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(mirrorX, objectTop);
+                    
+                    if (state.mirrorType === 'concave') {
+                        ctx.lineTo(focalX, mirrorY);
+                        if (imageData.type === 'real') {
+                            ctx.lineTo(imageX, imageY);
+                        }
+                    } else {
+                        const slope = (mirrorY - objectTop) / (focalX - mirrorX);
+                        ctx.lineTo(0, objectTop - slope * mirrorX);
+                    }
+                    ctx.stroke();
+                }
+            }
+
+            // Focus ray
+            if (state.showFocusRay) {
+                ctx.strokeStyle = '#ffd23f';
+                ctx.setLineDash([]);
+                
+                const focalX = state.mirrorType === 'concave' ? mirrorX - state.focalLength * scale : mirrorX + state.focalLength * scale;
+                
+                ctx.beginPath();
+                ctx.moveTo(objectX, objectTop);
+                
+                const intersectY = objectTop + ((mirrorY - objectTop) / (focalX - objectX)) * (mirrorX - objectX);
+                ctx.lineTo(mirrorX, intersectY);
+                ctx.stroke();
+
+                if (state.showReflectedRays) {
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(mirrorX, intersectY);
+                    ctx.lineTo(0, intersectY);
+                    ctx.stroke();
+                }
+            }
+
+            // Center ray
+            if (state.showCenterRay) {
+                ctx.strokeStyle = '#00a896';
+                ctx.setLineDash([]);
+                
+                const centerX = state.mirrorType === 'concave' ? mirrorX - 2 * state.focalLength * scale : mirrorX + 2 * state.focalLength * scale;
+                
+                ctx.beginPath();
+                ctx.moveTo(objectX, objectTop);
+                
+                const intersectY = objectTop + ((mirrorY - objectTop) / (centerX - objectX)) * (mirrorX - objectX);
+                ctx.lineTo(mirrorX, intersectY);
+                ctx.stroke();
+
+                if (state.showReflectedRays) {
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(mirrorX, intersectY);
+                    
+                    const slope = (intersectY - mirrorY) / (mirrorX - centerX);
+                    const extendX = mirrorX - 1000;
+                    const extendY = intersectY - slope * 1000;
+                    ctx.lineTo(extendX, extendY);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.setLineDash([]);
+        }
+
+        function updateImageInfo(imageData) {
+            if (!imageData) {
+                document.getElementById('imageInfo').innerHTML = 'Image forms at infinity';
+                return;
+            }
+
+            const info = `
+                <strong>Type:</strong> ${imageData.type.toUpperCase()}<br>
+                <strong>Distance:</strong> ${Math.abs(imageData.distance).toFixed(1)} cm<br>
+                <strong>Magnification:</strong> ${imageData.magnification.toFixed(2)}×<br>
+                <strong>Orientation:</strong> ${imageData.height > 0 ? 'Upright' : 'Inverted'}
+            `;
+            document.getElementById('imageInfo').innerHTML = info;
+        }
+
+        function drawWithRayAnimation(progress) {
+            // Clear canvas
+            ctx.fillStyle = '#0a1628';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw optical axis
+            ctx.strokeStyle = 'rgba(143, 163, 176, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, mirrorY);
+            ctx.lineTo(canvas.width, mirrorY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw mirror
+            drawMirror();
+            drawPoints();
+
+            const objectX = mirrorX - state.objectDistance * scale;
+            const objectY = mirrorY;
+            drawObject(objectX, objectY);
+
+            const imageData = calculateImage();
+            
+            // Draw animated rays one by one
+            const objectTop = objectY - state.objectHeight;
+            const imageX = imageData ? mirrorX - imageData.distance * scale : 0;
+            const imageY = imageData ? mirrorY - imageData.height : 0;
+
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 15;
+
+            // Ray 1: Parallel ray (0 to 0.33 progress)
+            if (state.showParallelRay && progress > 0) {
+                const ray1Progress = Math.min(progress / 0.33, 1);
+                ctx.strokeStyle = '#00d9ff';
+                ctx.shadowColor = 'rgba(0, 217, 255, 0.8)';
+                
+                // Incident ray
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(objectX, objectTop);
+                const endX1 = objectX + (mirrorX - objectX) * ray1Progress;
+                ctx.lineTo(endX1, objectTop);
+                ctx.stroke();
+
+                // Reflected ray
+                if (ray1Progress >= 1 && state.showReflectedRays && imageData) {
+                    const reflectProgress1 = Math.min((progress - 0.33) / 0.17, 1);
+                    const focalX = state.mirrorType === 'concave' ? mirrorX - state.focalLength * scale : mirrorX + state.focalLength * scale;
+                    
+                    if (state.mirrorType === 'concave') {
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(mirrorX, objectTop);
+                        const targetX = imageData.type === 'real' ? imageX : focalX;
+                        const targetY = imageData.type === 'real' ? imageY : mirrorY;
+                        const reflectEndX = mirrorX + (targetX - mirrorX) * reflectProgress1;
+                        const reflectEndY = objectTop + (targetY - objectTop) * reflectProgress1;
+                        ctx.lineTo(reflectEndX, reflectEndY);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    } else {
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(mirrorX, objectTop);
+                        const slope = (mirrorY - objectTop) / (focalX - mirrorX);
+                        const extendX = mirrorX - (mirrorX * reflectProgress1);
+                        const extendY = objectTop - slope * mirrorX * reflectProgress1;
+                        ctx.lineTo(extendX, extendY);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                }
+            }
+
+            // Ray 2: Focus ray (0.33 to 0.66 progress)
+            if (state.showFocusRay && progress > 0.33) {
+                const ray2Progress = Math.min((progress - 0.33) / 0.33, 1);
+                ctx.strokeStyle = '#ffd23f';
+                ctx.shadowColor = 'rgba(255, 210, 63, 0.8)';
+                
+                const focalX = state.mirrorType === 'concave' ? mirrorX - state.focalLength * scale : mirrorX + state.focalLength * scale;
+                const intersectY = objectTop + ((mirrorY - objectTop) / (focalX - objectX)) * (mirrorX - objectX);
+                
+                // Incident ray
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(objectX, objectTop);
+                const endX2 = objectX + (mirrorX - objectX) * ray2Progress;
+                const endY2 = objectTop + (intersectY - objectTop) * ray2Progress;
+                ctx.lineTo(endX2, endY2);
+                ctx.stroke();
+
+                // Reflected ray
+                if (ray2Progress >= 1 && state.showReflectedRays) {
+                    const reflectProgress2 = Math.min((progress - 0.66) / 0.17, 1);
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(mirrorX, intersectY);
+                    const reflectEndX = mirrorX - (mirrorX * reflectProgress2);
+                    ctx.lineTo(reflectEndX, intersectY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Ray 3: Center ray (0.66 to 1.0 progress)
+            if (state.showCenterRay && progress > 0.66) {
+                const ray3Progress = Math.min((progress - 0.66) / 0.34, 1);
+                ctx.strokeStyle = '#00a896';
+                ctx.shadowColor = 'rgba(0, 168, 150, 0.8)';
+                
+                const centerX = state.mirrorType === 'concave' ? mirrorX - 2 * state.focalLength * scale : mirrorX + 2 * state.focalLength * scale;
+                const intersectY = objectTop + ((mirrorY - objectTop) / (centerX - objectX)) * (mirrorX - objectX);
+                
+                // Incident ray
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(objectX, objectTop);
+                const endX3 = objectX + (mirrorX - objectX) * ray3Progress;
+                const endY3 = objectTop + (intersectY - objectTop) * ray3Progress;
+                ctx.lineTo(endX3, endY3);
+                ctx.stroke();
+
+                // Reflected ray
+                if (ray3Progress >= 1 && state.showReflectedRays) {
+                    const reflectProgress3 = (progress - 1.0) / 0.2; // Extra time for reflection
+                    if (reflectProgress3 > 0) {
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(mirrorX, intersectY);
+                        const slope = (intersectY - mirrorY) / (mirrorX - centerX);
+                        const extendDist = 1000 * Math.min(reflectProgress3, 1);
+                        const extendX = mirrorX - extendDist;
+                        const extendY = intersectY - slope * extendDist;
+                        ctx.lineTo(extendX, extendY);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                }
+            }
+
+            ctx.shadowBlur = 0;
+            
+            // Show image only at the end
+            if (progress > 0.8 && imageData) {
+                ctx.globalAlpha = (progress - 0.8) / 0.2; // Fade in
+                drawImage(imageData);
+                ctx.globalAlpha = 1.0;
+                updateImageInfo(imageData);
+            }
+        }
+
+        function startDemo() {
+            state.demoStep = 0;
+            runDemoStep();
+        }
+
+        function stopDemo() {
+            if (state.animationId) {
+                cancelAnimationFrame(state.animationId);
+                state.animationId = null;
+            }
+        }
+
+        function runDemoStep() {
+            if (!state.demoMode) return;
+
+            const steps = [
+                // Step 1: Start with concave mirror, object beyond C
+                () => {
+                    state.mirrorType = 'concave';
+                    state.objectDistance = 70;
+                    updateButtonState('concaveBtn', 'convexBtn');
+                    animateToValue('objectDistance', 70, 1000);
+                },
+                // Step 2: Move object to C
+                () => {
+                    animateToValue('objectDistance', 60, 2000);
+                },
+                // Step 3: Move object between C and F
+                () => {
+                    animateToValue('objectDistance', 45, 2000);
+                },
+                // Step 4: Move object to F
+                () => {
+                    animateToValue('objectDistance', 30, 2000);
+                },
+                // Step 5: Move object between F and mirror
+                () => {
+                    animateToValue('objectDistance', 20, 2000);
+                },
+                // Step 6: Switch to convex mirror
+                () => {
+                    state.mirrorType = 'convex';
+                    state.objectDistance = 50;
+                    updateButtonState('convexBtn', 'concaveBtn');
+                    animateToValue('objectDistance', 50, 1000);
+                },
+                // Step 7: Move object closer in convex
+                () => {
+                    animateToValue('objectDistance', 25, 2000);
+                },
+                // Step 8: Move object farther in convex
+                () => {
+                    animateToValue('objectDistance', 70, 2000);
+                }
+            ];
+
+            if (state.demoStep < steps.length) {
+                steps[state.demoStep]();
+                state.demoStep++;
+                setTimeout(() => runDemoStep(), 3000);
+            } else {
+                state.demoStep = 0;
+                setTimeout(() => runDemoStep(), 2000);
+            }
+        }
+
+        function animateToValue(property, targetValue, duration) {
+            const startValue = state[property];
+            const startTime = Date.now();
+
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+
+                state[property] = startValue + (targetValue - startValue) * easeProgress;
+                
+                document.getElementById(property).value = Math.round(state[property]);
+                document.getElementById(property + 'Value').textContent = Math.round(state[property]) + ' cm';
+                draw();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            animate();
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>

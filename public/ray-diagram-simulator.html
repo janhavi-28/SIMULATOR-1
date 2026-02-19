@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ray Diagram Simulator | High School Physics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Slider: thicker track + cyan progress fill + live tooltip */
+        .slider-wrap { position: relative; }
+        .slider-tooltip {
+            position: absolute; left: var(--thumb-x, 50%); transform: translateX(-50%);
+            bottom: 100%; margin-bottom: 6px; padding: 4px 8px;
+            background: #0e7490; color: white; font-size: 0.75rem; font-weight: 600;
+            border-radius: 6px; white-space: nowrap; pointer-events: none;
+            opacity: var(--tooltip-opacity, 0); transition: opacity 0.15s;
+        }
+        .slider-wrap:hover .slider-tooltip, .slider-wrap:focus-within .slider-tooltip { --tooltip-opacity: 1; }
+        input[type="range"].ray-slider {
+            -webkit-appearance: none; width: 100%; height: 10px; border-radius: 9999px;
+            background: linear-gradient(to right, #06b6d4 0%, #06b6d4 var(--fill-pct), #334155 var(--fill-pct));
+            outline: none;
+        }
+        input[type="range"].ray-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+            background: #06b6d4; cursor: pointer; box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+            transition: transform 0.1s;
+        }
+        input[type="range"].ray-slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        input[type="range"].ray-slider::-moz-range-thumb {
+            width: 20px; height: 20px; border-radius: 50%; background: #06b6d4; cursor: pointer;
+            border: none; box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+        }
+        /* Status card animate on change */
+        .status-card.animate-in { animation: statusPop 0.35s ease; }
+        @keyframes statusPop {
+            0% { opacity: 0.7; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        /* Button press */
+        .btn-control:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-screen overflow-hidden font-sans antialiased">
+
+    <!-- Launch Overlay -->
+    <div id="launchOverlay" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center text-center bg-slate-900 transition-all duration-500 ease-out" style="transition-property: opacity, visibility;">
+        <div class="launch-content px-4">
+            <h1 class="text-4xl md:text-5xl font-semibold text-cyan-400 mb-4">Optics Pro</h1>
+            <p class="text-lg text-slate-400 mb-8 max-w-xl">Interactive Ray Diagram Simulator for Concave and Convex Mirrors. Perfect for visualizing real vs virtual images.</p>
+            <button type="button" onclick="UI.launch()" class="rounded-full bg-cyan-500 text-white px-10 py-4 text-lg font-semibold shadow-md shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105 transition-all duration-200">Launch Simulator</button>
+        </div>
+    </div>
+
+    <!-- SimulatorLayout: 12-column grid -->
+    <div class="app-container h-full w-full flex flex-col md:grid md:grid-cols-12">
+        <!-- CanvasViewport: col-span-9, min-h-[520px], radial gradient -->
+        <div class="CanvasViewport order-1 md:col-span-9 min-h-[520px] flex flex-col relative overflow-hidden bg-[radial-gradient(ellipse_80%_80%_at_50%_50%,_#1e293b,_#0f172a)]">
+            <!-- Optional grid overlay (drawn by canvas when showGrid) -->
+            <div id="canvasGridOverlay" class="absolute inset-0 pointer-events-none opacity-20 hidden" aria-hidden="true"></div>
+            <div class="relative flex-1 min-h-0 w-full">
+                <canvas id="simCanvas" class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing touch-none rounded-xl" style="min-height: 520px;"></canvas>
+            </div>
+            <!-- StatusCard: top-right, glassmorphism, tooltip -->
+            <div id="statusCard" class="StatusCard absolute top-5 left-5 w-[280px] max-w-[calc(100%-2rem)] rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/20 p-4 pointer-events-auto" title="Image type and position depend on object distance (u), focal length (f), and mirror type. Real images form on the same side as the object; virtual images form behind the mirror.">
+                <h2 id="classificationTitle" class="text-lg font-semibold text-cyan-400 mb-1">Real, Inverted, Diminished</h2>
+                <p id="positionText" class="text-sm text-slate-300 mb-2">Image is between C and F</p>
+                <div id="mathText" class="text-sm font-medium text-slate-200 font-mono">v = -30.0 cm | m = -0.50</div>
+            </div>
+        </div>
+
+        <!-- ControlPanel: col-span-3 -->
+        <aside class="ControlPanel order-2 md:col-span-3 flex flex-col bg-slate-800/90 border-l border-slate-600 shadow-md overflow-y-auto p-5 space-y-4">
+            <h2 class="text-lg font-semibold text-cyan-400 border-b border-slate-600 pb-2">Simulation Controls</h2>
+
+            <!-- ControlSection: Playback -->
+            <section class="ControlSection space-y-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-cyan-400">Playback</h3>
+                <div class="space-y-2">
+                    <div class="ButtonControl grid grid-cols-2 gap-2">
+                        <button type="button" id="btnPlayPause" class="btn-control w-full rounded-xl py-2.5 px-3 text-sm font-medium bg-slate-600 hover:bg-cyan-500/20 border border-slate-500 hover:border-cyan-400 hover:ring-2 hover:ring-cyan-400/50 transition-all">Pause</button>
+                        <button type="button" id="btnReset" class="btn-control w-full rounded-xl py-2.5 px-3 text-sm font-medium bg-slate-600 hover:bg-cyan-500/20 border border-slate-500 hover:border-cyan-400 hover:ring-2 hover:ring-cyan-400/50 transition-all">Reset</button>
+                    </div>
+                    <button type="button" id="btnDemo" class="btn-control w-full rounded-xl py-2.5 px-3 text-sm font-medium bg-slate-600 hover:bg-cyan-500/20 border border-slate-500 hover:border-cyan-400 transition-all">Demo: Off</button>
+                </div>
+            </section>
+
+            <!-- ControlSection: Optical Setup -->
+            <section class="ControlSection space-y-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-cyan-400">Optical Setup</h3>
+                <div class="space-y-2">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-slate-200 block">Mirror Type</label>
+                        <select id="ctrlMirrorType" class="w-full rounded-xl bg-slate-700/80 border border-slate-500 text-slate-100 py-2.5 px-3 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 outline-none transition-all">
+                            <option value="concave">Concave Mirror</option>
+                            <option value="convex">Convex Mirror</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-slate-200 block">Object Shape</label>
+                        <select id="ctrlObjectType" class="w-full rounded-xl bg-slate-700/80 border border-slate-500 text-slate-100 py-2.5 px-3 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 outline-none transition-all">
+                            <option value="arrow">Standard Arrow</option>
+                            <option value="apple">Apple 🍎</option>
+                            <option value="candle">Candle 🕯️</option>
+                            <option value="tree">Tree 🌲</option>
+                            <option value="human">Human 🧍</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ControlSection: Parameters -->
+            <section class="ControlSection space-y-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-cyan-400">Parameters</h3>
+                <div class="space-y-2">
+                    <div class="SliderControl slider-wrap space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <label class="font-medium text-slate-200">Object Distance (u)</label>
+                            <span id="valU" class="font-medium text-cyan-400">150 cm</span>
+                        </div>
+                        <span class="slider-tooltip" id="tooltipU">150 cm</span>
+                        <input type="range" id="ctrlU" class="ray-slider" min="10" max="400" value="150" step="1" data-unit=" cm">
+                    </div>
+                    <div class="SliderControl slider-wrap space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <label class="font-medium text-slate-200">Focal Length (f)</label>
+                            <span id="valF" class="font-medium text-cyan-400">100 cm</span>
+                        </div>
+                        <span class="slider-tooltip" id="tooltipF">100 cm</span>
+                        <input type="range" id="ctrlF" class="ray-slider" min="20" max="250" value="100" step="1" data-unit=" cm">
+                    </div>
+                    <div class="SliderControl slider-wrap space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <label class="font-medium text-slate-200">Object Height (h)</label>
+                            <span id="valH" class="font-medium text-cyan-400">50 cm</span>
+                        </div>
+                        <span class="slider-tooltip" id="tooltipH">50 cm</span>
+                        <input type="range" id="ctrlH" class="ray-slider" min="10" max="150" value="50" step="1" data-unit=" cm">
+                    </div>
+                </div>
+            </section>
+
+            <!-- ControlSection: View Controls -->
+            <section class="ControlSection space-y-2">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-cyan-400">View Controls</h3>
+                <div class="space-y-2">
+                    <div class="ButtonControl grid grid-cols-2 gap-2">
+                        <button type="button" id="btnZoomIn" class="btn-control w-full rounded-xl py-2.5 px-3 text-sm font-medium bg-slate-600 hover:bg-cyan-500/20 border border-slate-500 hover:border-cyan-400 hover:ring-2 hover:ring-cyan-400/50 transition-all">Zoom In</button>
+                        <button type="button" id="btnZoomOut" class="btn-control w-full rounded-xl py-2.5 px-3 text-sm font-medium bg-slate-600 hover:bg-cyan-500/20 border border-slate-500 hover:border-cyan-400 hover:ring-2 hover:ring-cyan-400/50 transition-all">Zoom Out</button>
+                    </div>
+                    <button type="button" id="btnGridToggle" class="btn-control w-full rounded-xl py-2.5 px-3 text-sm font-medium bg-slate-600 hover:bg-cyan-500/20 border border-slate-500 hover:border-cyan-400 transition-all" data-active="false">Grid: Off</button>
+                </div>
+            </section>
+
+            <!-- Legend -->
+            <div class="mt-auto pt-4 border-t border-slate-600 space-y-2 text-sm text-slate-400">
+                <div class="flex items-center gap-2"><span class="w-8 h-0.5 rounded bg-amber-400"></span> Incident</div>
+                <div class="flex items-center gap-2"><span class="w-8 h-0.5 rounded bg-lime-400"></span> Reflected</div>
+                <div class="flex items-center gap-2"><span class="w-8 border-b border-dashed border-slate-500"></span> Extension</div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+    const DEFAULT_STATE = {
+        mirrorType: 'concave',
+        objectType: 'arrow',
+        u: 150,
+        f: 100,
+        h: 50,
+        isPlaying: true,
+        isDemo: false,
+        zoom: 1.0,
+        showGrid: false,
+        mirrorFlashFrames: 0
+    };
+
+    let State = { ...DEFAULT_STATE };
+
+    const Physics = {
+        calculate: function(state) {
+            const ux = -state.u;
+            const fx = state.mirrorType === 'concave' ? -state.f : state.f;
+            const cx = 2 * fx;
+            let vx, m, isReal, isErect;
+            if (Math.abs(ux - fx) < 0.5) {
+                vx = Infinity;
+                m = Infinity;
+                isReal = false;
+                isErect = false;
+            } else {
+                vx = (fx * ux) / (ux - fx);
+                m = -vx / ux;
+                isReal = (vx < 0);
+                isErect = (m > 0);
+            }
+            return { ux, fx, cx, vx, m, isReal, isErect };
+        }
+    };
+
+    const Renderer = {
+        canvas: document.getElementById('simCanvas'),
+        ctx: null,
+        width: 0,
+        height: 0,
+
+        resize: function() {
+            const rect = this.canvas.parentElement.getBoundingClientRect();
+            this.canvas.width = rect.width;
+            this.canvas.height = rect.height;
+            this.width = rect.width;
+            this.height = rect.height;
+            this.ctx = this.canvas.getContext('2d');
+        },
+
+        draw: function(state, physics) {
+            if (!this.ctx) return;
+            this.ctx.clearRect(0, 0, this.width, this.height);
+            this.ctx.save();
+            this.ctx.translate(this.width / 2, this.height / 2);
+            this.ctx.scale(state.zoom, state.zoom);
+
+            if (state.showGrid) this.drawGrid();
+            this.drawAxis();
+            this.drawMirror(state);
+            this.drawPoints(physics);
+            this.drawItem(physics.ux, state.h, state.objectType, false);
+            this.drawRays(state, physics);
+            if (physics.vx !== Infinity && Math.abs(physics.vx) < 5000) {
+                this.drawItem(physics.vx, state.h * physics.m, state.objectType, !physics.isReal);
+            }
+            this.ctx.restore();
+        },
+
+        drawGrid: function() {
+            const step = 40;
+            this.ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+            this.ctx.lineWidth = 1;
+            for (let x = -2000; x <= 2000; x += step) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, -2000);
+                this.ctx.lineTo(x, 2000);
+                this.ctx.stroke();
+            }
+            for (let y = -2000; y <= 2000; y += step) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(-2000, y);
+                this.ctx.lineTo(2000, y);
+                this.ctx.stroke();
+            }
+        },
+
+        drawAxis: function() {
+            this.ctx.beginPath();
+            this.ctx.moveTo(-5000, 0);
+            this.ctx.lineTo(5000, 0);
+            this.ctx.strokeStyle = '#475569';
+            this.ctx.lineWidth = 1;
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+        },
+
+        drawMirror: function(state) {
+            const mirrorHeight = 250;
+            const bulge = state.mirrorType === 'concave' ? 30 : -30;
+            const flash = state.mirrorFlashFrames > 0 ? 1 + (state.mirrorFlashFrames / 30) * 0.5 : 1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -mirrorHeight);
+            this.ctx.quadraticCurveTo(bulge, 0, 0, mirrorHeight);
+            this.ctx.strokeStyle = '#06b6d4';
+            this.ctx.lineWidth = 4 * flash;
+            this.ctx.shadowColor = '#06b6d4';
+            this.ctx.shadowBlur = state.mirrorFlashFrames > 0 ? 25 : 12;
+            this.ctx.stroke();
+            this.ctx.shadowBlur = 0;
+            this.ctx.beginPath();
+            for (let y = -mirrorHeight + 10; y < mirrorHeight; y += 15) {
+                const t = (y + mirrorHeight) / (2 * mirrorHeight);
+                const xCurve = 2 * (1 - t) * t * bulge;
+                const hatchDir = state.mirrorType === 'concave' ? 1 : -1;
+                this.ctx.moveTo(xCurve, y);
+                this.ctx.lineTo(xCurve + (10 * hatchDir), y + 5);
+            }
+            this.ctx.strokeStyle = '#334155';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+        },
+
+        drawPoints: function(physics) {
+            const pts = [
+                { x: physics.fx, label: 'F' },
+                { x: physics.cx, label: 'C' },
+                { x: 0, label: 'P' }
+            ];
+            this.ctx.font = 'bold 14px system-ui, sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'top';
+            pts.forEach(p => {
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, 0, 4, 0, Math.PI * 2);
+                this.ctx.fillStyle = '#f8fafc';
+                this.ctx.fill();
+                this.ctx.fillStyle = '#000';
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeText(p.label, p.x, 18);
+                this.ctx.fillText(p.label, p.x, 18);
+                this.ctx.fillStyle = '#fff';
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeText(p.label, p.x, 18);
+                this.ctx.fillText(p.label, p.x, 18);
+            });
+        },
+
+        drawItem: function(x, h, type, isVirtual) {
+            this.ctx.save();
+            this.ctx.globalAlpha = isVirtual ? 0.6 : 1.0;
+            const scale = 1.6;
+            const yCanvas = -h;
+            if (type === 'arrow') {
+                const shaftH = h * scale;
+                const tip = -shaftH;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, 0);
+                this.ctx.lineTo(x, tip);
+                this.ctx.strokeStyle = isVirtual ? '#94a3b8' : '#2563eb';
+                this.ctx.lineWidth = 4;
+                this.ctx.stroke();
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, tip);
+                const dir = Math.sign(h) || 1;
+                this.ctx.lineTo(x - 8, tip + (dir * 14));
+                this.ctx.lineTo(x + 8, tip + (dir * 14));
+                this.ctx.closePath();
+                this.ctx.fillStyle = isVirtual ? '#94a3b8' : '#2563eb';
+                this.ctx.fill();
+            } else {
+                const emojis = { apple: '🍎', candle: '🕯️', tree: '🌲', human: '🧍' };
+                const size = Math.abs(h) * scale;
+                this.ctx.font = `${size}px sans-serif`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = h > 0 ? 'bottom' : 'top';
+                if (h < 0) {
+                    this.ctx.save();
+                    this.ctx.translate(x, 0);
+                    this.ctx.scale(1, -1);
+                    this.ctx.fillText(emojis[type], 0, 0);
+                    this.ctx.restore();
+                } else {
+                    this.ctx.fillText(emojis[type], x, 0);
+                }
+            }
+            this.ctx.restore();
+        },
+
+        drawRays: function(state, physics) {
+            if (physics.vx === Infinity) return;
+            const hMath = state.h;
+            const ux = physics.ux;
+            const fx = physics.fx;
+            const INCIDENT = '#f59e0b';
+            const REFLECTED = '#84cc16';
+            const EXTENSION = '#64748b';
+            const renderLine = (x1, y1Math, x2, y2Math, color, isDashed) => {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x1, -y1Math);
+                this.ctx.lineTo(x2, -y2Math);
+                this.ctx.strokeStyle = color;
+                this.ctx.lineWidth = 3;
+                if (isDashed) this.ctx.setLineDash([8, 6]);
+                else this.ctx.setLineDash([]);
+                this.ctx.stroke();
+            };
+            renderLine(ux, hMath, 0, hMath, INCIDENT, false);
+            const calcY_Ray1 = (x) => (-hMath / fx) * (x - fx);
+            renderLine(0, hMath, -2000, calcY_Ray1(-2000), REFLECTED, false);
+            renderLine(0, hMath, 2000, calcY_Ray1(2000), EXTENSION, true);
+            renderLine(ux, hMath, 0, 0, INCIDENT, false);
+            const calcY_Ray2 = (x) => -(hMath / ux) * x;
+            renderLine(0, 0, -2000, calcY_Ray2(-2000), REFLECTED, false);
+            renderLine(0, 0, 2000, calcY_Ray2(2000), EXTENSION, true);
+        }
+    };
+
+    const UI = {
+        init: function() {
+            this.ctrlMirrorType = document.getElementById('ctrlMirrorType');
+            this.ctrlObjectType = document.getElementById('ctrlObjectType');
+            this.ctrlU = document.getElementById('ctrlU');
+            this.ctrlF = document.getElementById('ctrlF');
+            this.ctrlH = document.getElementById('ctrlH');
+            this.valU = document.getElementById('valU');
+            this.valF = document.getElementById('valF');
+            this.valH = document.getElementById('valH');
+            this.titleText = document.getElementById('classificationTitle');
+            this.posText = document.getElementById('positionText');
+            this.mathText = document.getElementById('mathText');
+            this.statusCard = document.getElementById('statusCard');
+            this.btnPlayPause = document.getElementById('btnPlayPause');
+            this.btnReset = document.getElementById('btnReset');
+            this.btnDemo = document.getElementById('btnDemo');
+            this.btnZoomIn = document.getElementById('btnZoomIn');
+            this.btnZoomOut = document.getElementById('btnZoomOut');
+            this.btnGridToggle = document.getElementById('btnGridToggle');
+
+            this.ctrlMirrorType.addEventListener('change', () => {
+                State.mirrorFlashFrames = 24;
+                this.updateStateFromUI();
+            });
+            this.ctrlObjectType.addEventListener('change', () => this.updateStateFromUI());
+            [this.ctrlU, this.ctrlF, this.ctrlH].forEach((el, i) => {
+                el.addEventListener('input', () => this.updateStateFromUI());
+                el.addEventListener('input', () => this.updateSliderTooltip(el));
+            });
+
+            this.btnPlayPause.addEventListener('click', () => {
+                State.isPlaying = !State.isPlaying;
+                this.btnPlayPause.textContent = State.isPlaying ? 'Pause' : 'Play';
+            });
+            this.btnReset.addEventListener('click', () => {
+                State = { ...DEFAULT_STATE };
+                this.syncUI();
+                this.updateStateFromUI();
+            });
+            this.btnDemo.addEventListener('click', () => {
+                State.isDemo = !State.isDemo;
+                this.btnDemo.textContent = State.isDemo ? 'Demo: On' : 'Demo: Off';
+                this.btnDemo.classList.toggle('bg-cyan-500/30', State.isDemo);
+                this.btnDemo.classList.toggle('border-cyan-400', State.isDemo);
+            });
+            this.btnZoomIn.addEventListener('click', () => {
+                State.zoom = Math.min(State.zoom + 0.1, 2.5);
+            });
+            this.btnZoomOut.addEventListener('click', () => {
+                State.zoom = Math.max(State.zoom - 0.1, 0.3);
+            });
+            this.btnGridToggle.addEventListener('click', () => {
+                State.showGrid = !State.showGrid;
+                this.btnGridToggle.textContent = State.showGrid ? 'Grid: On' : 'Grid: Off';
+                this.btnGridToggle.classList.toggle('bg-cyan-500/30', State.showGrid);
+                this.btnGridToggle.classList.toggle('border-cyan-400', State.showGrid);
+            });
+
+            window.addEventListener('resize', () => Renderer.resize());
+            this.setupDragging();
+            this.setupSliderFill();
+            Renderer.resize();
+            this.updateStateFromUI();
+            this.startLoop();
+        },
+
+        launch: function() {
+            const overlay = document.getElementById('launchOverlay');
+            overlay.style.opacity = '0';
+            overlay.style.visibility = 'hidden';
+            overlay.classList.add('hidden');
+        },
+
+        updateSliderTooltip: function(slider) {
+            const id = slider.id.replace('ctrl', 'tooltip');
+            const el = document.getElementById(id);
+            if (el) el.textContent = slider.value + (slider.dataset.unit || '');
+        },
+
+        setupSliderFill: function() {
+            const updateFill = (slider) => {
+                const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+                slider.style.setProperty('--fill-pct', pct + '%');
+                const tooltip = document.getElementById('tooltip' + slider.id.replace('ctrl', ''));
+                if (tooltip) tooltip.textContent = slider.value + (slider.dataset.unit || '');
+            };
+            [this.ctrlU, this.ctrlF, this.ctrlH].forEach(s => {
+                updateFill(s);
+                s.addEventListener('input', () => updateFill(s));
+            });
+        },
+
+        syncUI: function() {
+            this.ctrlMirrorType.value = State.mirrorType;
+            this.ctrlObjectType.value = State.objectType;
+            this.ctrlU.value = State.u;
+            this.ctrlF.value = State.f;
+            this.ctrlH.value = State.h;
+            this.btnPlayPause.textContent = State.isPlaying ? 'Pause' : 'Play';
+            this.btnDemo.textContent = State.isDemo ? 'Demo: On' : 'Demo: Off';
+            this.btnDemo.classList.toggle('bg-cyan-500/30', State.isDemo);
+            this.btnGridToggle.textContent = State.showGrid ? 'Grid: On' : 'Grid: Off';
+            this.btnGridToggle.classList.toggle('bg-cyan-500/30', State.showGrid);
+        },
+
+        updateStateFromUI: function() {
+            State.mirrorType = this.ctrlMirrorType.value;
+            State.objectType = this.ctrlObjectType.value;
+            State.u = parseFloat(this.ctrlU.value);
+            State.f = parseFloat(this.ctrlF.value);
+            State.h = parseFloat(this.ctrlH.value);
+            this.valU.textContent = State.u + ' cm';
+            this.valF.textContent = State.f + ' cm';
+            this.valH.textContent = State.h + ' cm';
+            this.ctrlU.style.setProperty('--fill-pct', ((State.u - 10) / 390) * 100 + '%');
+            this.ctrlF.style.setProperty('--fill-pct', ((State.f - 20) / 230) * 100 + '%');
+            this.ctrlH.style.setProperty('--fill-pct', ((State.h - 10) / 140) * 100 + '%');
+        },
+
+        updateEducationalText: function(physics) {
+            let classification = '', pos = '';
+            if (physics.vx === Infinity) {
+                classification = 'Image at Infinity';
+                pos = 'Rays are parallel';
+            } else {
+                const nature = physics.isReal ? 'Real' : 'Virtual';
+                const orientation = physics.isErect ? 'Erect' : 'Inverted';
+                const mAbs = Math.abs(physics.m);
+                const size = mAbs > 1.05 ? 'Magnified' : (mAbs < 0.95 ? 'Diminished' : 'Same Size');
+                classification = `${nature}, ${orientation}, ${size}`;
+                if (State.mirrorType === 'concave') {
+                    if (State.u > 2 * State.f) pos = 'Image is between C and F';
+                    else if (Math.abs(State.u - 2 * State.f) < 2) pos = 'Image is at C';
+                    else if (State.u > State.f) pos = 'Image is beyond C';
+                    else pos = 'Image is behind the mirror';
+                } else {
+                    pos = 'Image is behind the mirror (Virtual)';
+                }
+            }
+            const vStr = physics.vx === Infinity ? '∞' : physics.vx.toFixed(1) + ' cm';
+            const mStr = physics.m === Infinity ? '∞' : physics.m.toFixed(2);
+            const newTitle = classification, newPos = pos, newMath = `v = ${vStr} | m = ${mStr}`;
+            if (this.titleText.textContent !== newTitle || this.posText.textContent !== newPos || this.mathText.textContent !== newMath) {
+                this.statusCard.classList.remove('animate-in');
+                this.statusCard.offsetHeight;
+                this.statusCard.classList.add('animate-in');
+                setTimeout(() => this.statusCard.classList.remove('animate-in'), 350);
+            }
+            this.titleText.textContent = newTitle;
+            this.posText.textContent = newPos;
+            this.mathText.textContent = newMath;
+        },
+
+        setupDragging: function() {
+            let isDragging = false;
+            const getLogicalX = (clientX) => {
+                const rect = Renderer.canvas.getBoundingClientRect();
+                return (clientX - rect.left) - (Renderer.width / 2);
+            };
+            const startDrag = (clientX) => {
+                if (Math.abs(getLogicalX(clientX) / State.zoom - (-State.u)) < 40) isDragging = true;
+            };
+            const moveDrag = (clientX) => {
+                if (!isDragging) return;
+                State.u = Math.max(10, Math.min(-getLogicalX(clientX) / State.zoom, 400));
+                this.ctrlU.value = Math.round(State.u);
+                this.updateStateFromUI();
+            };
+            Renderer.canvas.addEventListener('mousedown', (e) => startDrag(e.clientX));
+            window.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            Renderer.canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && Math.abs(getLogicalX(e.touches[0].clientX) / State.zoom - (-State.u)) < 40) {
+                    e.preventDefault();
+                    isDragging = true;
+                }
+            }, { passive: false });
+            window.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); moveDrag(e.touches[0].clientX); } }, { passive: false });
+            window.addEventListener('touchend', () => { isDragging = false; });
+        },
+
+        startLoop: function() {
+            const tick = (time) => {
+                if (State.mirrorFlashFrames > 0) State.mirrorFlashFrames--;
+                if (State.isPlaying) {
+                    if (State.isDemo) {
+                        State.u = 200 + Math.sin(time / 1000) * 150;
+                        this.ctrlU.value = Math.round(State.u);
+                        this.valU.textContent = Math.round(State.u) + ' cm';
+                        this.ctrlU.style.setProperty('--fill-pct', ((State.u - 10) / 390) * 100 + '%');
+                    }
+                    const physicsData = Physics.calculate(State);
+                    Renderer.draw(State, physicsData);
+                    this.updateEducationalText(physicsData);
+                }
+                requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+    };
+
+    window.onload = function() {
+        document.getElementById('launchOverlay').style.opacity = '1';
+        document.getElementById('launchOverlay').style.visibility = 'visible';
+        document.getElementById('launchOverlay').classList.remove('hidden');
+        UI.init();
+    };
+    </script>
+</body>
+</html>
