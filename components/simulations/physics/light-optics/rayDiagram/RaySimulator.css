@@ -1,0 +1,558 @@
+/* Ray Diagram Simulator — Redesigned (dark navy / blue accent) */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  --ray-bg-deep: #0c0f17;
+  --ray-bg-canvas: #12151f;
+  --ray-bg-panel: #161b28;
+  --ray-surface: #1c2233;
+  --ray-border: #2a3142;
+  --ray-accent: #3d7af5;
+  --ray-accent-hover: #2d6ae0;
+  --ray-cyan: #22b4c2;
+  --ray-text: #e8eaef;
+  --ray-text-muted: #8b92a3;
+  --ray-radius: 10px;
+  --ray-radius-sm: 6px;
+  --ray-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.ray-diagram-wrapper {
+  font-family: "Outfit", "Segoe UI", sans-serif;
+  background: var(--ray-bg-deep);
+  width: 100%;
+  min-height: 720px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.ray-diagram-container {
+  max-width: 1200px;
+  width: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  background: var(--ray-bg-panel);
+  border-radius: var(--ray-radius);
+  box-shadow: var(--ray-shadow);
+  border: 1px solid var(--ray-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.ray-diagram-header {
+  flex-shrink: 0;
+  background: var(--ray-surface);
+  border-bottom: 1px solid var(--ray-border);
+  padding: 18px 24px;
+  color: var(--ray-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ray-diagram-header h1 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: 0.02em;
+}
+
+.ray-diagram-header-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--ray-accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.ray-diagram-main {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 340px);
+  gap: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.ray-diagram-simulator-panel {
+  background: var(--ray-bg-canvas);
+  padding: 24px;
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ray-diagram-simulator-title {
+  flex-shrink: 0;
+  color: var(--ray-text);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Canvas area with optional overlay */
+.ray-diagram-canvas-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ray-diagram-edu-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: var(--ray-surface);
+  border: 1px solid var(--ray-border);
+  border-left: 4px solid var(--ray-accent);
+  padding: 14px 18px;
+  border-radius: var(--ray-radius-sm);
+  box-shadow: var(--ray-shadow);
+  pointer-events: none;
+  z-index: 10;
+  max-width: 300px;
+}
+
+.ray-diagram-edu-overlay h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ray-text);
+  margin-bottom: 4px;
+}
+
+.ray-diagram-edu-overlay p {
+  font-size: 0.85rem;
+  color: var(--ray-text-muted);
+  line-height: 1.5;
+}
+
+.ray-diagram-edu-overlay .ray-math-data {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: var(--ray-cyan);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.simCanvasWrapper,
+.ray-diagram-canvas-container {
+  height: min(700px, 65vh);
+  min-height: 520px;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: linear-gradient(180deg, rgba(28, 34, 51, 0.5) 0%, var(--ray-bg-canvas) 100%);
+  border-radius: var(--ray-radius);
+  padding: 16px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  flex: 1 1 auto;
+  border: 1px solid var(--ray-border);
+}
+
+.ray-diagram-canvas-container canvas {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  display: block;
+}
+
+.ray-diagram-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: var(--ray-radius-sm);
+}
+
+.ray-diagram-concept-box {
+  flex-shrink: 0;
+  background: rgba(61, 122, 245, 0.08);
+  border-left: 4px solid var(--ray-accent);
+  padding: 14px 16px;
+  margin-top: 14px;
+  border-radius: var(--ray-radius-sm);
+  color: var(--ray-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  border: 1px solid var(--ray-border);
+}
+
+.ray-diagram-concept-box strong {
+  color: var(--ray-accent);
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.ray-diagram-optical-feedback .ray-diagram-feedback-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
+/* Control Panel */
+.ray-diagram-control-panel {
+  background: var(--ray-bg-panel);
+  padding: 24px 22px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-left: 1px solid var(--ray-border);
+  min-width: 0;
+  min-height: 0;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.2);
+}
+
+.ray-diagram-control-section {
+  margin-bottom: 24px;
+}
+
+.ray-diagram-control-section h3 {
+  color: var(--ray-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--ray-border);
+  padding-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ray-diagram-section-letter {
+  background: var(--ray-accent);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.ray-diagram-button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ray-diagram-btn {
+  padding: 12px 18px;
+  border: none;
+  border-radius: var(--ray-radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: inherit;
+}
+
+.ray-diagram-btn-primary {
+  background: linear-gradient(145deg, var(--ray-accent), var(--ray-accent-hover));
+  color: white;
+}
+
+.ray-diagram-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(61, 122, 245, 0.35);
+}
+
+.ray-diagram-btn-secondary {
+  background: var(--ray-surface);
+  color: var(--ray-text);
+  border: 1px solid var(--ray-border);
+}
+
+.ray-diagram-btn-secondary:hover:not(:disabled) {
+  background: #232a3d;
+  border-color: var(--ray-text-muted);
+}
+
+.ray-diagram-btn-full {
+  grid-column: 1 / -1;
+}
+
+.ray-diagram-btn-active {
+  background: #10b981;
+  color: white;
+}
+
+.ray-diagram-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ray-diagram-slider-control {
+  margin-bottom: 18px;
+}
+
+.ray-diagram-slider-label {
+  color: var(--ray-text);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ray-diagram-slider-value {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  color: var(--ray-cyan);
+  font-weight: 500;
+}
+
+.ray-diagram-slider input[type="range"] {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ray-surface);
+  border: 1px solid var(--ray-border);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ray-diagram-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--ray-accent), var(--ray-accent-hover));
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(61, 122, 245, 0.4);
+  transition: transform 0.15s;
+}
+
+.ray-diagram-slider input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.ray-diagram-slider input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--ray-accent), var(--ray-accent-hover));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(61, 122, 245, 0.4);
+}
+
+.ray-diagram-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ray-diagram-toggle-btn {
+  padding: 8px 16px;
+  background: var(--ray-surface);
+  color: var(--ray-text-muted);
+  border: 1px solid var(--ray-border);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.ray-diagram-toggle-btn:hover {
+  border-color: var(--ray-text-muted);
+  color: var(--ray-text);
+}
+
+.ray-diagram-toggle-btn.active {
+  background: rgba(61, 122, 245, 0.15);
+  border-color: var(--ray-accent);
+  color: var(--ray-accent);
+}
+
+.ray-diagram-toggle-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ray-border);
+}
+
+.ray-diagram-toggle-btn.active .ray-diagram-toggle-indicator {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+/* Legend */
+.ray-diagram-ray-legend {
+  background: var(--ray-surface);
+  padding: 14px 16px;
+  border-radius: var(--ray-radius-sm);
+  margin-top: 16px;
+  border: 1px solid var(--ray-border);
+}
+
+.ray-diagram-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--ray-text-muted);
+  font-size: 0.85rem;
+}
+
+.ray-diagram-legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.ray-diagram-legend-line {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.ray-diagram-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--ray-surface);
+  color: var(--ray-text);
+  border: 1px solid var(--ray-border);
+  border-radius: var(--ray-radius-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-bottom: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.ray-diagram-select:hover {
+  border-color: var(--ray-text-muted);
+}
+
+.ray-diagram-select:focus {
+  outline: none;
+  border-color: var(--ray-accent);
+}
+
+.ray-diagram-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ray-diagram-select-object {
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.ray-diagram-select-object:focus {
+  border-color: var(--ray-accent);
+  box-shadow: 0 0 0 2px rgba(61, 122, 245, 0.2);
+}
+
+.ray-diagram-difficulty-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.ray-diagram-info-box {
+  background: rgba(234, 179, 8, 0.1);
+  border-left: 4px solid #eab308;
+  padding: 12px;
+  border-radius: var(--ray-radius-sm);
+  color: #eab308;
+  font-size: 0.85rem;
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+  .ray-diagram-main {
+    grid-template-columns: 1fr;
+  }
+
+  .ray-diagram-control-panel {
+    border-left: none;
+    border-top: 1px solid var(--ray-border);
+  }
+}
+
+@media (max-width: 768px) {
+  .ray-diagram-wrapper {
+    padding: 16px;
+  }
+
+  .ray-diagram-header {
+    padding: 14px 18px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ray-diagram-header h1 {
+    font-size: 1.15rem;
+  }
+
+  .ray-diagram-simulator-panel {
+    padding: 16px;
+  }
+
+  .ray-diagram-edu-overlay {
+    top: 10px;
+    left: 10px;
+    padding: 12px 14px;
+    max-width: 260px;
+  }
+
+  .ray-diagram-canvas-container {
+    padding: 12px;
+    min-height: 400px;
+  }
+
+  .ray-diagram-control-panel {
+    padding: 20px 16px;
+  }
+}
+
+@keyframes ray-diagram-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.ray-diagram-animating {
+  animation: ray-diagram-pulse 1.5s ease-in-out infinite;
+}

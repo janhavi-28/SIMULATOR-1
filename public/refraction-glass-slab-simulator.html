@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refraction — Glass Slab Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #080e1b;
+  --bg-panel:  #0b1220;
+  --bg-card:   #0f1a2e;
+  --border:    rgba(0,200,255,.11);
+  --border-hi: rgba(0,200,255,.32);
+  --cyan:      #00c8ff;
+  --cyan-d:    rgba(0,200,255,.13);
+  --gold:      #ffc947;
+  --gold-d:    rgba(255,201,71,.13);
+  --violet:    #a96eff;
+  --violet-d:  rgba(169,110,255,.13);
+  --green:     #3fffa0;
+  --red:       #ff5f6d;
+  --text:      #ddeeff;
+  --text-2:    rgba(180,215,255,.55);
+  --text-3:    rgba(130,175,220,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── wrapper ── */
+.sim{
+  display:grid;
+  grid-template-columns:75fr 25fr;
+  flex:1;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ══ CANVAS ══ */
+.cv-pane{
+  position:relative;
+  background:var(--bg-panel);
+  overflow:hidden;
+}
+.cv-pane::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,200,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,200,255,.045) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+}
+canvas{display:block;width:100%;height:100%}
+
+/* ══ CONTROL PANEL ══ */
+.cp{
+  background:var(--bg-panel);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.cp::-webkit-scrollbar{width:3px}
+.cp::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
+
+.cp-head{
+  padding:18px 16px 13px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.cp-head h2{
+  font-family:'Syne',sans-serif;
+  font-size:14.5px;font-weight:800;
+  letter-spacing:-.2px;line-height:1.25;
+}
+.cp-head p{
+  font-size:10.5px;color:var(--text-2);
+  margin-top:4px;line-height:1.5;
+}
+
+.sec{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.sec-lbl{
+  font-family:'Syne',sans-serif;
+  font-size:9px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:7px;
+}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── playback row ── */
+.btn-row{display:flex;gap:7px}
+.btn{
+  flex:1;padding:8px 4px;
+  border-radius:7px;
+  font-family:'Syne',sans-serif;
+  font-weight:700;font-size:11px;
+  letter-spacing:.02em;
+  cursor:pointer;border:none;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  transition:all .16s;white-space:nowrap;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--cyan),#0080aa);
+  color:#001820;
+  box-shadow:0 0 14px rgba(0,200,255,.25);
+}
+.btn-primary:hover{box-shadow:0 0 22px rgba(0,200,255,.5);transform:translateY(-1px)}
+.btn-ghost{
+  background:var(--bg-card);color:var(--text-2);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover{border-color:var(--border-hi);color:var(--text)}
+.btn-ghost.on{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-d)}
+.btn-danger{
+  background:var(--bg-card);color:var(--text-2);
+  border:1px solid var(--border);
+}
+.btn-danger:hover{border-color:var(--red);color:var(--red)}
+
+/* demo toggle row */
+.demo-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;margin-top:9px;
+  border-radius:8px;border:1px solid var(--border);
+  background:var(--bg-card);cursor:pointer;
+  transition:all .18s;
+}
+.demo-row:hover,.demo-row.on{border-color:var(--gold);background:var(--gold-d)}
+.demo-ico{font-size:16px}
+.demo-txt{flex:1}
+.demo-txt strong{display:block;font-size:11.5px;font-weight:500;color:var(--text)}
+.demo-txt small{font-size:10px;color:var(--text-2)}
+
+/* pill toggle */
+.pill{position:relative;width:35px;height:18px;flex-shrink:0}
+.pill input{opacity:0;width:0;height:0}
+.pill-t{
+  position:absolute;inset:0;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--border);
+  border-radius:9px;cursor:pointer;transition:.25s;
+}
+.pill-t::before{
+  content:'';position:absolute;
+  width:12px;height:12px;left:2px;top:2px;
+  background:var(--text-3);border-radius:50%;transition:.25s;
+}
+.pill input:checked+.pill-t{background:var(--cyan-d);border-color:var(--cyan)}
+.pill input:checked+.pill-t::before{transform:translateX(17px);background:var(--cyan);box-shadow:0 0 5px var(--cyan)}
+
+/* ── params ── */
+.param{margin-bottom:16px}
+.param:last-child{margin-bottom:0}
+.param-top{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+}
+.pname{font-size:11.5px;color:var(--text-2)}
+.pchip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:500;
+  padding:2px 7px;border-radius:5px;
+}
+.cg{color:var(--gold);background:var(--gold-d)}
+.cc{color:var(--cyan);background:var(--cyan-d)}
+.cv{color:var(--violet);background:var(--violet-d)}
+
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:4px;
+  border-radius:2px;cursor:pointer;outline:none;
+}
+input[type=range].rg{background:linear-gradient(to right,var(--gold) var(--p,40%),rgba(255,201,71,.1) var(--p,40%))}
+input[type=range].rc{background:linear-gradient(to right,var(--cyan) var(--p,40%),rgba(0,200,255,.1) var(--p,40%))}
+input[type=range].rv{background:linear-gradient(to right,var(--violet) var(--p,40%),rgba(169,110,255,.1) var(--p,40%))}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;
+  border-radius:50%;border:2px solid var(--bg);
+  transition:transform .14s;cursor:grab;
+}
+input[type=range]::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.2)}
+input[type=range].rg::-webkit-slider-thumb{background:var(--gold);box-shadow:0 0 6px var(--gold)}
+input[type=range].rc::-webkit-slider-thumb{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+input[type=range].rv::-webkit-slider-thumb{background:var(--violet);box-shadow:0 0 6px var(--violet)}
+.rends{display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+
+/* ── vis toggles ── */
+.vrow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid rgba(0,200,255,.05);
+}
+.vrow:last-child{border-bottom:none}
+.vlbl{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-2)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── readouts ── */
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ro{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:8px;padding:9px 11px;
+}
+.ro-lbl{
+  font-family:'Syne',sans-serif;font-size:8.5px;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:3px;
+}
+.ro-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:17px;font-weight:500;
+}
+.v-gold{color:var(--gold)}.v-cyan{color:var(--cyan)}
+.v-green{color:var(--green)}.v-red{color:var(--red)}
+
+/* ── formula ── */
+.fbox{
+  background:rgba(0,200,255,.04);border:1px solid var(--border);
+  border-radius:8px;padding:11px 13px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;line-height:1.9;color:var(--text-2);
+}
+.fbox .fc{color:var(--cyan)}.fbox .fg{color:var(--gold)}
+
+/* ── insight ── */
+.insight{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--cyan);
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:11px;color:var(--text-2);
+  line-height:1.65;transition:border-left-color .3s;
+}
+.insight strong{color:var(--text)}
+@keyframes pk{
+  0%{box-shadow:0 0 0 0 rgba(0,200,255,.4)}
+  70%{box-shadow:0 0 0 7px rgba(0,200,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,200,255,0)}
+}
+.pulse{animation:pk .5s}
+</style>
+</head>
+<body>
+<div class="sim">
+
+  <!-- ═══ CANVAS 75% ═══ -->
+  <div class="cv-pane" id="cvPane">
+    <canvas id="c"></canvas>
+  </div>
+
+  <!-- ═══ CONTROL PANEL 25% ═══ -->
+  <div class="cp">
+
+    <div class="cp-head">
+      <h2>Refraction through<br>Glass Slab</h2>
+      <p>Drag the ray directly on the canvas to change the angle of incidence.</p>
+    </div>
+
+    <!-- PLAYBACK -->
+    <div class="sec">
+      <div class="sec-lbl">Playback</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="bLaunch" onclick="doLaunch()">▶ Launch</button>
+        <button class="btn btn-ghost on" id="bPlay" onclick="doPlay()">⏸ Pause</button>
+        <button class="btn btn-danger" onclick="doReset()">↺ Reset</button>
+      </div>
+      <div class="demo-row" id="demoRow" onclick="doDemo()">
+        <div class="demo-ico">🎬</div>
+        <div class="demo-txt">
+          <strong>Demo Mode</strong>
+          <small>Auto-sweeps angle 0 → 85°</small>
+        </div>
+        <label class="pill" onclick="e=>e.stopPropagation()">
+          <input type="checkbox" id="demoChk" onchange="doDemo()">
+          <span class="pill-t"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- PARAMETERS -->
+    <div class="sec">
+      <div class="sec-lbl">Parameters</div>
+      <div class="param">
+        <div class="param-top">
+          <span class="pname">Angle of Incidence</span>
+          <span class="pchip cg" id="vA">40.0°</span>
+        </div>
+        <input type="range" id="sA" class="rg" min="0" max="85" value="40" step="0.5" oninput="onSlide()">
+        <div class="rends"><span>0°</span><span>85°</span></div>
+      </div>
+      <div class="param">
+        <div class="param-top">
+          <span class="pname">Refractive Index (n)</span>
+          <span class="pchip cc" id="vN">1.50</span>
+        </div>
+        <input type="range" id="sN" class="rc" min="1.0" max="2.5" value="1.5" step="0.01" oninput="onSlide()">
+        <div class="rends"><span>Air 1.0</span><span>Diamond 2.4</span></div>
+      </div>
+      <div class="param">
+        <div class="param-top">
+          <span class="pname">Slab Thickness</span>
+          <span class="pchip cv" id="vT">0.25</span>
+        </div>
+        <input type="range" id="sT" class="rv" min="0.05" max="0.6" value="0.25" step="0.01" oninput="onSlide()">
+        <div class="rends"><span>Thin</span><span>Thick</span></div>
+      </div>
+    </div>
+
+    <!-- VISIBILITY -->
+    <div class="sec">
+      <div class="sec-lbl">Visibility</div>
+      <div class="vrow">
+        <div class="vlbl"><span class="dot" style="background:var(--gold)"></span>Incident ray</div>
+        <label class="pill"><input type="checkbox" id="tI" checked onchange="onSlide()"><span class="pill-t"></span></label>
+      </div>
+      <div class="vrow">
+        <div class="vlbl"><span class="dot" style="background:var(--cyan)"></span>Refracted (inside)</div>
+        <label class="pill"><input type="checkbox" id="tR" checked onchange="onSlide()"><span class="pill-t"></span></label>
+      </div>
+      <div class="vrow">
+        <div class="vlbl"><span class="dot" style="background:var(--green)"></span>Emergent ray</div>
+        <label class="pill"><input type="checkbox" id="tE" checked onchange="onSlide()"><span class="pill-t"></span></label>
+      </div>
+      <div class="vrow">
+        <div class="vlbl"><span class="dot" style="background:var(--violet)"></span>Normal lines</div>
+        <label class="pill"><input type="checkbox" id="tN" onchange="onSlide()"><span class="pill-t"></span></label>
+      </div>
+      <div class="vrow">
+        <div class="vlbl"><span class="dot" style="background:var(--red)"></span>Lateral shift</div>
+        <label class="pill"><input type="checkbox" id="tL" checked onchange="onSlide()"><span class="pill-t"></span></label>
+      </div>
+      <div class="vrow">
+        <div class="vlbl"><span class="dot" style="background:linear-gradient(90deg,#ff3333,#8833ff)"></span>Dispersion</div>
+        <label class="pill"><input type="checkbox" id="tS" onchange="onSlide()"><span class="pill-t"></span></label>
+      </div>
+    </div>
+
+    <!-- LIVE READINGS -->
+    <div class="sec">
+      <div class="sec-lbl">Live Readings</div>
+      <div class="readouts">
+        <div class="ro"><div class="ro-lbl">θ₁ Incident</div><div class="ro-val v-gold" id="r1">40.0°</div></div>
+        <div class="ro"><div class="ro-lbl">θ₂ Refracted</div><div class="ro-val v-cyan" id="r2">25.4°</div></div>
+        <div class="ro"><div class="ro-lbl">θ₃ Emergent</div><div class="ro-val v-green" id="r3">40.0°</div></div>
+        <div class="ro"><div class="ro-lbl">Lateral Shift</div><div class="ro-val v-red" id="r4">0.140</div></div>
+      </div>
+    </div>
+
+    <!-- FORMULA -->
+    <div class="sec">
+      <div class="sec-lbl">Snell's Law</div>
+      <div class="fbox">
+        <div><span class="fc">n₁</span> sin θ₁ = <span class="fc">n₂</span> sin θ₂</div>
+        <div>L = d · sin(<span class="fg">θ₁−θ₂</span>) / cos <span class="fc">θ₂</span></div>
+      </div>
+    </div>
+
+    <!-- OBSERVATION -->
+    <div class="sec" style="border-bottom:none">
+      <div class="sec-lbl">Observation</div>
+      <div class="insight" id="obs">
+        <strong>Notice:</strong> The emergent ray is always <strong>parallel</strong> to the incident ray — the slab shifts it sideways without changing direction.
+      </div>
+    </div>
+
+  </div><!-- .cp -->
+</div><!-- .sim -->
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+const S={angle:40,n:1.5,thick:0.25,playing:true,photon:0,pSpd:.007,demo:false,demoDir:1};
+
+// ── Canvas setup ─────────────────────────────────────────────────────────────
+const cv=document.getElementById('c');
+const cx=cv.getContext('2d');
+const pane=document.getElementById('cvPane');
+
+function resize(){cv.width=pane.clientWidth;cv.height=pane.clientHeight;}
+resize();
+new ResizeObserver(resize).observe(pane);
+
+// ── Drag on canvas ───────────────────────────────────────────────────────────
+let drag=false;
+cv.addEventListener('mousedown',e=>{drag=true;onDrag(e)});
+cv.addEventListener('mousemove',e=>{if(drag)onDrag(e)});
+window.addEventListener('mouseup',()=>drag=false);
+cv.addEventListener('touchstart',e=>{drag=true;onDrag(e.touches[0])},{passive:true});
+cv.addEventListener('touchmove',e=>{if(drag){onDrag(e.touches[0]);e.preventDefault();}},{passive:false});
+window.addEventListener('touchend',()=>drag=false);
+
+function onDrag(e){
+  const r=cv.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(cv.width/r.width);
+  const my=(e.clientY-r.top)*(cv.height/r.height);
+  const H=cv.height;
+  const slabY1=H*(0.5-S.thick*0.43);
+  const entryX=cv.width*0.34;
+  const dx=mx-entryX, dy=slabY1-my;
+  if(dy>6){
+    S.angle=Math.max(0,Math.min(85,Math.atan2(Math.abs(dx),dy)*180/Math.PI));
+    document.getElementById('sA').value=S.angle;
+    refresh();
+  }
+}
+
+// ── Controls ─────────────────────────────────────────────────────────────────
+function doLaunch(){S.playing=true;S.photon=0;document.getElementById('bLaunch').textContent='↺ Relaunch';setBPlay(true);}
+function doPlay(){S.playing=!S.playing;setBPlay(S.playing);}
+function setBPlay(on){const b=document.getElementById('bPlay');b.textContent=on?'⏸ Pause':'▶ Play';b.classList.toggle('on',on);}
+function doReset(){
+  S.angle=40;S.n=1.5;S.thick=0.25;S.photon=0;S.playing=true;S.demo=false;S.demoDir=1;
+  ['sA','sN','sT'].forEach((id,i)=>document.getElementById(id).value=[40,1.5,0.25][i]);
+  ['tI','tR','tE','tL'].forEach(id=>document.getElementById(id).checked=true);
+  ['tN','tS'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('demoChk').checked=false;
+  document.getElementById('demoRow').classList.remove('on');
+  document.getElementById('bLaunch').textContent='▶ Launch';
+  setBPlay(true);refresh();
+}
+function doDemo(){
+  S.demo=document.getElementById('demoChk').checked;
+  document.getElementById('demoRow').classList.toggle('on',S.demo);
+}
+function onSlide(){
+  S.angle=parseFloat(document.getElementById('sA').value);
+  S.n=parseFloat(document.getElementById('sN').value);
+  S.thick=parseFloat(document.getElementById('sT').value);
+  refresh();
+}
+
+function refresh(){
+  const a1r=S.angle*Math.PI/180;
+  const a2r=Math.asin(Math.sin(a1r)/S.n);
+  const a2=a2r*180/Math.PI;
+  const L=S.thick*Math.sin((S.angle-a2)*Math.PI/180)/Math.cos(a2r);
+  document.getElementById('vA').textContent=S.angle.toFixed(1)+'°';
+  document.getElementById('vN').textContent=S.n.toFixed(2);
+  document.getElementById('vT').textContent=S.thick.toFixed(2);
+  document.getElementById('r1').textContent=S.angle.toFixed(1)+'°';
+  document.getElementById('r2').textContent=a2.toFixed(1)+'°';
+  document.getElementById('r3').textContent=S.angle.toFixed(1)+'°';
+  document.getElementById('r4').textContent=L.toFixed(3);
+  fillSliders();
+  updateObs(S.angle,a2,L);
+}
+
+function fillSliders(){
+  [['sA',0,85,'rg'],['sN',1,2.5,'rc'],['sT',.05,.6,'rv']].forEach(([id,mn,mx,cls])=>{
+    const el=document.getElementById(id);
+    const p=(parseFloat(el.value)-mn)/(mx-mn)*100;
+    el.style.setProperty('--p',p+'%');
+  });
+}
+
+function updateObs(a1,a2,L){
+  const el=document.getElementById('obs');
+  let msg,col='var(--cyan)';
+  if(a1<1){msg='<strong>Zero incidence!</strong> The ray passes straight through — no bending, no lateral shift. The baseline!';col='var(--green)';}
+  else if(a1>72){msg=`<strong>Grazing (${a1.toFixed(0)}°)!</strong> Lateral shift nears its maximum. The ray inside the slab is almost horizontal.`;col='var(--red)';}
+  else if(S.n>2.0){msg=`<strong>Dense glass (n=${S.n.toFixed(2)})!</strong> Like diamond — sharp bending toward the normal gives large lateral shift of ${L.toFixed(3)}.`;col='var(--violet)';}
+  else{msg=`<strong>Emergent ∥ Incident</strong> — always parallel for a parallel-sided slab. Lateral shift = <strong>${L.toFixed(3)}</strong>.`;}
+  el.innerHTML=msg;el.style.borderLeftColor=col;
+  el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse');
+}
+
+// ── Draw helpers ─────────────────────────────────────────────────────────────
+function gLine(x1,y1,x2,y2,col,w,alpha=1){
+  cx.save();cx.globalAlpha=alpha;cx.lineCap='round';
+  cx.shadowColor=col;cx.shadowBlur=16;
+  cx.strokeStyle=col+'44';cx.lineWidth=w+4;
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.shadowBlur=7;cx.strokeStyle=col;cx.lineWidth=w;
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.restore();
+}
+function arrowHead(x1,y1,x2,y2,col){
+  const t=.52,mx=x1+(x2-x1)*t,my=y1+(y2-y1)*t;
+  const ang=Math.atan2(y2-y1,x2-x1);
+  cx.save();cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=5;
+  cx.beginPath();
+  cx.moveTo(mx+9*Math.cos(ang),my+9*Math.sin(ang));
+  cx.lineTo(mx-5*Math.cos(ang-.42),my-5*Math.sin(ang-.42));
+  cx.lineTo(mx-5*Math.cos(ang+.42),my-5*Math.sin(ang+.42));
+  cx.closePath();cx.fill();cx.restore();
+}
+function circleDot(x,y,col){
+  cx.save();cx.shadowColor=col;cx.shadowBlur=10;
+  cx.fillStyle=col;cx.beginPath();cx.arc(x,y,4.5,0,Math.PI*2);cx.fill();cx.restore();
+}
+function dashed(x1,y1,x2,y2,col,w=1.5,dash=[5,5]){
+  cx.save();cx.setLineDash(dash);cx.strokeStyle=col;cx.lineWidth=w;
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.setLineDash([]);cx.restore();
+}
+
+// ── Main draw ─────────────────────────────────────────────────────────────────
+function draw(){
+  const W=cv.width,H=cv.height;
+  cx.clearRect(0,0,W,H);
+
+  const a1r=S.angle*Math.PI/180;
+  const a2r=Math.asin(Math.sin(a1r)/S.n);
+  const a2=a2r*180/Math.PI;
+
+  const slabH=S.thick*H*0.82;
+  const sY1=(H-slabH)/2, sY2=sY1+slabH;
+  const sX1=W*.06, sX2=W*.94;
+  const eX=W*.34;                        // entry x
+  const xX=eX+slabH*Math.tan(a2r);      // exit x
+  const rayL=H*.44;
+
+  const ix1=eX-rayL*Math.sin(a1r), iy1=sY1-rayL*Math.cos(a1r);  // incident start
+  const ex2=xX+rayL*Math.sin(a1r), ey2=sY2+rayL*Math.cos(a1r);  // emergent end
+
+  // ── slab ──
+  const sg=cx.createLinearGradient(sX1,0,sX2,0);
+  sg.addColorStop(0,'rgba(0,200,255,.04)');sg.addColorStop(.42,'rgba(0,200,255,.085)');
+  sg.addColorStop(.58,'rgba(0,200,255,.085)');sg.addColorStop(1,'rgba(0,200,255,.04)');
+  cx.save();cx.shadowColor='rgba(0,200,255,.08)';cx.shadowBlur=28;
+  cx.fillStyle=sg;cx.fillRect(sX1,sY1,sX2-sX1,slabH);cx.restore();
+  cx.strokeStyle='rgba(0,200,255,.38)';cx.lineWidth=1.5;
+  cx.strokeRect(sX1,sY1,sX2-sX1,slabH);
+
+  // labels
+  cx.font='400 11.5px DM Sans,sans-serif';cx.textAlign='center';
+  cx.fillStyle='rgba(0,200,255,.25)';
+  cx.fillText(`Glass  n = ${S.n.toFixed(2)}`,sX2-W*.1,sY1+slabH/2+5);
+  cx.fillStyle='rgba(180,215,255,.15)';
+  cx.font='400 10.5px DM Sans,sans-serif';
+  cx.fillText('Air  n₁ = 1.00',sX1+W*.09,sY1-16);
+  cx.fillText('Air  n₁ = 1.00',sX1+W*.09,sY2+20);
+
+  // ── normals ──
+  if(document.getElementById('tN').checked){
+    dashed(eX,sY1-H*.22,eX,sY1+H*.22,'rgba(169,110,255,.48)',1.5);
+    dashed(xX,sY2-H*.22,xX,sY2+H*.22,'rgba(169,110,255,.48)',1.5);
+    const R=38;
+    // θ1 arc (before entry, above slab)
+    cx.beginPath();cx.arc(eX,sY1,R,-Math.PI/2-a1r,-Math.PI/2);cx.strokeStyle='rgba(255,201,71,.6)';cx.lineWidth=1.5;cx.stroke();
+    cx.fillStyle='rgba(255,201,71,.85)';cx.font='500 10.5px JetBrains Mono,monospace';cx.textAlign='right';
+    cx.fillText('θ₁='+S.angle.toFixed(0)+'°',eX-R*Math.sin(a1r/2)-4,sY1-R*Math.cos(a1r/2)+4);
+    // θ2 arc (after entry, inside slab)
+    cx.beginPath();cx.arc(eX,sY1,R,-Math.PI/2,-Math.PI/2+a2r);cx.strokeStyle='rgba(0,200,255,.6)';cx.lineWidth=1.5;cx.stroke();
+    cx.fillStyle='rgba(0,200,255,.85)';cx.textAlign='left';
+    cx.fillText('θ₂='+a2.toFixed(1)+'°',eX+7,sY1+R*.75);
+    // θ3 arc (at exit, below slab)
+    cx.beginPath();cx.arc(xX,sY2,R,-Math.PI/2-a1r,-Math.PI/2);cx.strokeStyle='rgba(63,255,160,.6)';cx.lineWidth=1.5;cx.stroke();
+    cx.fillStyle='rgba(63,255,160,.85)';cx.textAlign='right';
+    cx.fillText('θ₃='+S.angle.toFixed(0)+'°',xX-5,sY2+R*.75);
+  }
+
+  // ── spectrum mode ──
+  const spec=[
+    {col:'#ff2222',dn:+.013},{col:'#ff7700',dn:+.007},{col:'#ffee00',dn:0},
+    {col:'#33ee66',dn:-.005},{col:'#0088ff',dn:-.009},{col:'#9933ff',dn:-.013},
+  ];
+  if(document.getElementById('tS').checked){
+    spec.forEach(sc=>{
+      const sn=S.n+sc.dn;
+      const sa2=Math.asin(Math.sin(a1r)/sn);
+      const sxX=eX+slabH*Math.tan(sa2);
+      gLine(ix1,iy1,eX,sY1,sc.col,1.3,.65);
+      gLine(eX,sY1,sxX,sY2,sc.col,1.3,.65);
+      gLine(sxX,sY2,sxX+rayL*Math.sin(a1r),sY2+rayL*Math.cos(a1r),sc.col,1.3,.65);
+    });
+  } else {
+    if(document.getElementById('tI').checked){
+      gLine(ix1,iy1,eX,sY1,'#ffc947',2.5);
+      arrowHead(ix1,iy1,eX,sY1,'#ffc947');
+    }
+    if(document.getElementById('tR').checked)
+      gLine(eX,sY1,xX,sY2,'#00c8ff',2.5);
+    if(document.getElementById('tE').checked){
+      gLine(xX,sY2,ex2,ey2,'#3fffa0',2.5);
+      arrowHead(xX,sY2,ex2,ey2,'#3fffa0');
+    }
+
+    // ── lateral shift ──
+    if(document.getElementById('tL').checked && S.angle>0.4){
+      // ghost extension of incident direction from slab bottom
+      const gX=eX+(sY2-sY1)*Math.tan(a1r);
+      const gex=gX+rayL*Math.sin(a1r), gey=sY2+rayL*Math.cos(a1r);
+      dashed(gX,sY2,gex,gey,'rgba(255,201,71,.17)',1.5);
+      // perpendicular bracket at 55% along the emergent segment
+      const t=.5;
+      const bY=sY2+rayL*t*Math.cos(a1r);
+      const bXe=xX+rayL*t*Math.sin(a1r);  // on emergent
+      const bXg=gX+rayL*t*Math.sin(a1r);  // on ghost
+      dashed(bXg,bY,bXe,bY,'rgba(255,95,109,.5)',2,[4,3]);
+      const L_v=S.thick*Math.sin((S.angle-a2)*Math.PI/180)/Math.cos(a2r);
+      cx.fillStyle='rgba(255,95,109,.8)';
+      cx.font='500 10.5px JetBrains Mono,monospace';cx.textAlign='center';
+      cx.fillText('L = '+L_v.toFixed(3),(bXg+bXe)/2,bY-9);
+    }
+
+    // ── animated photon ──
+    if(S.playing){
+      S.photon+=S.pSpd;
+      if(S.photon>1)S.photon=0;
+      const p=S.photon;
+      let px,py,pc;
+      if(p<.33){const t=p/.33;px=ix1+(eX-ix1)*t;py=iy1+(sY1-iy1)*t;pc='#ffc947';}
+      else if(p<.66){const t=(p-.33)/.33;px=eX+(xX-eX)*t;py=sY1+(sY2-sY1)*t;pc='#00c8ff';}
+      else{const t=(p-.66)/.34;px=xX+(ex2-xX)*t;py=sY2+(ey2-sY2)*t;pc='#3fffa0';}
+      cx.save();
+      const rg=cx.createRadialGradient(px,py,0,px,py,13);
+      rg.addColorStop(0,pc+'ff');rg.addColorStop(.3,pc+'66');rg.addColorStop(1,pc+'00');
+      cx.fillStyle=rg;cx.beginPath();cx.arc(px,py,13,0,Math.PI*2);cx.fill();
+      cx.fillStyle='#fff';cx.beginPath();cx.arc(px,py,3,0,Math.PI*2);cx.fill();
+      cx.restore();
+    }
+
+    circleDot(eX,sY1,'#ffc947');
+    circleDot(xX,sY2,'#00c8ff');
+  }
+}
+
+// ── Demo sweep ────────────────────────────────────────────────────────────────
+function demoStep(){
+  if(!S.demo)return;
+  S.angle+=S.demoDir*.18;
+  if(S.angle>=85){S.angle=85;S.demoDir=-1;}
+  if(S.angle<=0){S.angle=0;S.demoDir=1;}
+  document.getElementById('sA').value=S.angle;
+  refresh();
+}
+
+// ── Loop ──────────────────────────────────────────────────────────────────────
+function loop(){demoStep();draw();requestAnimationFrame(loop);}
+
+refresh();
+loop();
+</script>
+</body>
+</html>

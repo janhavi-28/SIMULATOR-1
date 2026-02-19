@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnification — Lens Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07101f;
+  --bg-p:#0a1628;
+  --bg-c:#0e1f38;
+  --bdr:rgba(0,210,255,.14);
+  --bhi:rgba(0,210,255,.36);
+
+  /* BRIGHT — boosted saturation */
+  --cyan:#00d4ff;
+  --cyd:rgba(0,212,255,.16);
+  --gold:#ffcc00;
+  --god:rgba(255,204,0,.16);
+  --vio:#cc66ff;
+  --vid:rgba(204,102,255,.16);
+  --grn:#00ff88;
+  --grd:rgba(0,255,136,.16);
+  --orn:#ff9500;
+  --ord:rgba(255,149,0,.16);
+  --red:#ff4d6a;
+  --rdd:rgba(255,77,106,.16);
+
+  --txt:#eef6ff;
+  --tx2:rgba(200,225,255,.72);
+  --tx3:rgba(140,180,230,.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);}
+
+.sim{display:grid;grid-template-columns:75fr 25fr;height:100%;min-height:0;}
+
+/* ─── CANVAS SIDE ─────────────────────────────── */
+.cv-wrap{position:relative;background:var(--bg-p);overflow:hidden;min-width:0;}
+.cv-wrap::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,210,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,210,255,.05) 1px,transparent 1px);
+  background-size:55px 55px;pointer-events:none;z-index:0;
+}
+canvas{display:block;width:100%;height:100%;position:relative;z-index:1;}
+
+/* image case banner — shown inside canvas at top */
+#caseBanner{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;
+  padding:7px 18px;border-radius:20px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.04em;border:1.5px solid;
+  backdrop-filter:blur(10px);z-index:10;
+  transition:all .35s;pointer-events:none;white-space:nowrap;
+}
+
+/* ─── CONTROL PANEL ──────────────────────────── */
+.cp{
+  background:var(--bg-p);border-left:1px solid var(--bdr);
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-width:0;
+}
+.cp::-webkit-scrollbar{width:3px}
+.cp::-webkit-scrollbar-thumb{background:var(--bhi);border-radius:2px}
+
+.cp-head{
+  padding:16px 16px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0;
+  background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(204,102,255,.04));
+}
+.cp-head h2{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.2;}
+.cp-head .sub{font-size:10.5px;color:var(--tx2);margin-top:5px;line-height:1.55;}
+.cp-head .formula-inline{
+  margin-top:8px;padding:7px 10px;border-radius:7px;
+  background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);
+}
+
+.sec{padding:12px 16px;border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.sl{
+  font-family:'Syne',sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx3);margin-bottom:10px;
+  display:flex;align-items:center;gap:7px;
+}
+.sl::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* buttons */
+.br{display:flex;gap:6px;}
+.btn{
+  flex:1;padding:9px 4px;border-radius:7px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:.02em;cursor:pointer;border:none;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  transition:all .16s;
+}
+.bp{background:linear-gradient(135deg,var(--cyan),#0080aa);color:#001a26;box-shadow:0 0 16px rgba(0,212,255,.3);}
+.bp:hover{box-shadow:0 0 26px rgba(0,212,255,.55);transform:translateY(-1px)}
+.bg2{background:var(--bg-c);color:var(--tx2);border:1px solid var(--bdr);}
+.bg2:hover{border-color:var(--bhi);color:var(--txt)}
+.bg2.on{border-color:var(--cyan);color:var(--cyan);background:var(--cyd)}
+.bd{background:var(--bg-c);color:var(--tx2);border:1px solid var(--bdr);}
+.bd:hover{border-color:var(--red);color:var(--red)}
+
+.demo-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;margin-top:9px;
+  border-radius:8px;border:1px solid var(--bdr);
+  background:var(--bg-c);cursor:pointer;transition:all .18s;
+}
+.demo-row:hover,.demo-row.on{border-color:var(--gold);background:var(--god)}
+.demo-ico{font-size:16px}
+.demo-txt strong{display:block;font-size:11.5px;font-weight:500;color:var(--txt)}
+.demo-txt small{font-size:10px;color:var(--tx2)}
+
+/* pill */
+.pill{position:relative;width:36px;height:19px;flex-shrink:0}
+.pill input{opacity:0;width:0;height:0}
+.pt{position:absolute;inset:0;background:rgba(255,255,255,.07);border:1px solid var(--bdr);border-radius:10px;cursor:pointer;transition:.25s;}
+.pt::before{content:'';position:absolute;width:13px;height:13px;left:2px;top:2px;background:var(--tx3);border-radius:50%;transition:.25s;}
+.pill input:checked+.pt{background:var(--cyd);border-color:var(--cyan)}
+.pill input:checked+.pt::before{transform:translateX(17px);background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+
+/* sliders */
+.pm{margin-bottom:14px}.pm:last-child{margin-bottom:0}
+.pt2{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.pname{font-size:12px;color:var(--tx2)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;padding:2px 8px;border-radius:5px;}
+.chg{color:var(--gold);background:var(--god);border:1px solid rgba(255,204,0,.3)}
+.chc{color:var(--cyan);background:var(--cyd);border:1px solid rgba(0,212,255,.3)}
+.chv{color:var(--vio);background:var(--vid);border:1px solid rgba(204,102,255,.3)}
+
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;cursor:pointer;outline:none;}
+input[type=range].rg{background:linear-gradient(to right,var(--gold) var(--p,30%),rgba(255,204,0,.12) var(--p,30%))}
+input[type=range].rc{background:linear-gradient(to right,var(--cyan) var(--p,50%),rgba(0,212,255,.12) var(--p,50%))}
+input[type=range].rv{background:linear-gradient(to right,var(--vio) var(--p,50%),rgba(204,102,255,.12) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--bg);transition:transform .14s;cursor:grab;}
+input[type=range]::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.25)}
+input[type=range].rg::-webkit-slider-thumb{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+input[type=range].rc::-webkit-slider-thumb{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+input[type=range].rv::-webkit-slider-thumb{background:var(--vio);box-shadow:0 0 8px var(--vio)}
+.rends{display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--tx3);font-family:'JetBrains Mono',monospace}
+
+/* visibility rows — BRIGHT colored labels */
+.vr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 10px;margin-bottom:5px;
+  border-radius:7px;border:1px solid transparent;
+  background:var(--bg-c);transition:all .15s;
+}
+.vr:last-child{margin-bottom:0}
+.vr:hover{border-color:var(--bdr)}
+.vl{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:500;}
+.ray-swatch{width:28px;height:3px;border-radius:2px;flex-shrink:0;}
+
+/* readouts — larger, brighter */
+.ros{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.ro{
+  background:var(--bg-c);border:1px solid var(--bdr);
+  border-radius:9px;padding:10px 12px;
+  transition:border-color .3s;
+}
+.ro:hover{border-color:var(--bhi)}
+.ro-lbl{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:4px;}
+.ro-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;line-height:1;}
+.ro-unit{font-size:11px;opacity:.55;margin-left:2px;}
+
+/* nature of image — full-width bright card */
+.nature-card{
+  background:var(--bg-c);border-radius:9px;
+  padding:11px 13px;border:1px solid var(--bdr);
+  transition:all .35s;
+}
+.nc-lbl{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;}
+.nc-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.nc-tag{
+  padding:4px 10px;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:10.5px;font-weight:700;
+  letter-spacing:.04em;
+}
+
+/* observation */
+.obs-box{
+  background:var(--bg-c);border-left:3px solid var(--cyan);
+  border:1px solid var(--bdr);border-left-width:3px;border-left-style:solid;
+  border-radius:8px;padding:10px 12px;
+  font-size:11.5px;color:var(--tx2);line-height:1.65;
+  transition:border-left-color .35s;
+}
+.obs-box strong{color:var(--txt)}
+@keyframes pk{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
+.flash{animation:pk .6s}
+</style>
+</head>
+<body>
+<div class="sim">
+
+  <!-- ═══ CANVAS 75% ═══ -->
+  <div class="cv-wrap" id="cvPane">
+    <canvas id="c"></canvas>
+    <div id="caseBanner">📐 u = 2f — Equal size image</div>
+  </div>
+
+  <!-- ═══ CONTROL PANEL 25% ═══ -->
+  <div class="cp">
+
+    <div class="cp-head">
+      <h2>Magnification<br>by Convex Lens</h2>
+      <p class="sub">Three principal rays show how a convex lens forms an image. Drag the <span style="color:var(--gold);font-weight:600">yellow object</span> on the canvas.</p>
+      <div class="formula-inline">1/v − 1/u = 1/f &nbsp;|&nbsp; m = v/u</div>
+    </div>
+
+    <!-- PLAYBACK -->
+    <div class="sec">
+      <div class="sl">Playback</div>
+      <div class="br">
+        <button class="btn bp" id="bL" onclick="doLaunch()">▶ Launch</button>
+        <button class="btn bg2 on" id="bP" onclick="doPlay()">⏸ Pause</button>
+        <button class="btn bd" onclick="doReset()">↺ Reset</button>
+      </div>
+      <div class="demo-row" id="dRow" onclick="doDemo()">
+        <div class="demo-ico">🎬</div>
+        <div class="demo-txt">
+          <strong>Demo Mode</strong>
+          <small>Auto-sweeps object distance u</small>
+        </div>
+        <label class="pill" onclick="event.stopPropagation()">
+          <input type="checkbox" id="dChk" onchange="doDemo()">
+          <span class="pt"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- PARAMETERS -->
+    <div class="sec">
+      <div class="sl">Parameters</div>
+      <div class="pm">
+        <div class="pt2">
+          <span class="pname">Object height hₒ</span>
+          <span class="chip chg" id="vH">18</span>
+        </div>
+        <input type="range" id="sH" class="rg" min="5" max="55" value="18" step="1" oninput="onSlide()">
+        <div class="rends"><span>5</span><span>55</span></div>
+      </div>
+      <div class="pm">
+        <div class="pt2">
+          <span class="pname">Object distance u</span>
+          <span class="chip chc" id="vU">40</span>
+        </div>
+        <input type="range" id="sU" class="rc" min="5" max="120" value="40" step="1" oninput="onSlide()">
+        <div class="rends"><span>5</span><span>120</span></div>
+      </div>
+      <div class="pm">
+        <div class="pt2">
+          <span class="pname">Focal length f</span>
+          <span class="chip chv" id="vF">20</span>
+        </div>
+        <input type="range" id="sF" class="rv" min="5" max="55" value="20" step="1" oninput="onSlide()">
+        <div class="rends"><span>5</span><span>55</span></div>
+      </div>
+    </div>
+
+    <!-- VISIBILITY — bright colored rows -->
+    <div class="sec">
+      <div class="sl">Show / Hide</div>
+
+      <div class="vr">
+        <div class="vl" style="color:var(--gold)">
+          <div class="ray-swatch" style="background:var(--gold);box-shadow:0 0 5px var(--gold)"></div>
+          Object (hₒ)
+        </div>
+        <label class="pill"><input type="checkbox" id="tO" checked onchange="onSlide()"><span class="pt"></span></label>
+      </div>
+      <div class="vr">
+        <div class="vl" style="color:var(--vio)">
+          <div class="ray-swatch" style="background:var(--vio);box-shadow:0 0 5px var(--vio)"></div>
+          Image (hᵢ)
+        </div>
+        <label class="pill"><input type="checkbox" id="tI" checked onchange="onSlide()"><span class="pt"></span></label>
+      </div>
+      <div class="vr">
+        <div class="vl" style="color:var(--cyan)">
+          <div class="ray-swatch" style="background:linear-gradient(90deg,var(--cyan),#0088aa);box-shadow:0 0 5px var(--cyan)"></div>
+          Ray 1 — Parallel → F′
+        </div>
+        <label class="pill"><input type="checkbox" id="t1" checked onchange="onSlide()"><span class="pt"></span></label>
+      </div>
+      <div class="vr">
+        <div class="vl" style="color:var(--grn)">
+          <div class="ray-swatch" style="background:linear-gradient(90deg,var(--grn),#00aa55);box-shadow:0 0 5px var(--grn)"></div>
+          Ray 2 — Through O
+        </div>
+        <label class="pill"><input type="checkbox" id="t2" checked onchange="onSlide()"><span class="pt"></span></label>
+      </div>
+      <div class="vr">
+        <div class="vl" style="color:var(--orn)">
+          <div class="ray-swatch" style="background:linear-gradient(90deg,var(--orn),#cc6600);box-shadow:0 0 5px var(--orn)"></div>
+          Ray 3 — Through F
+        </div>
+        <label class="pill"><input type="checkbox" id="t3" checked onchange="onSlide()"><span class="pt"></span></label>
+      </div>
+      <div class="vr">
+        <div class="vl" style="color:rgba(180,210,255,.7)">
+          <div class="ray-swatch" style="background:rgba(0,210,255,.4)"></div>
+          Axis & F-markers
+        </div>
+        <label class="pill"><input type="checkbox" id="tAF" checked onchange="onSlide()"><span class="pt"></span></label>
+      </div>
+    </div>
+
+    <!-- LIVE READINGS -->
+    <div class="sec">
+      <div class="sl">Live Readings</div>
+      <div class="ros">
+        <div class="ro" style="border-color:rgba(0,212,255,.3)">
+          <div class="ro-lbl">Object dist (u)</div>
+          <div class="ro-val" style="color:var(--cyan)" id="r1">40<span class="ro-unit">cm</span></div>
+        </div>
+        <div class="ro" style="border-color:rgba(204,102,255,.3)">
+          <div class="ro-lbl">Image dist (v)</div>
+          <div class="ro-val" style="color:var(--vio)" id="r2">40<span class="ro-unit">cm</span></div>
+        </div>
+        <div class="ro" style="border-color:rgba(255,204,0,.3)">
+          <div class="ro-lbl">Magnification (m)</div>
+          <div class="ro-val" style="color:var(--gold)" id="r3">−1.00</div>
+        </div>
+        <div class="ro" style="border-color:rgba(0,255,136,.3)">
+          <div class="ro-lbl">Image height (hᵢ)</div>
+          <div class="ro-val" style="color:var(--grn)" id="r4">−18<span class="ro-unit">cm</span></div>
+        </div>
+      </div>
+
+      <!-- nature of image tags -->
+      <div class="nature-card" id="natCard">
+        <div class="nc-lbl">Nature of Image</div>
+        <div class="nc-tags" id="natTags">
+          <span class="nc-tag" style="background:rgba(255,77,106,.2);color:#ff6b7a;border:1px solid rgba(255,77,106,.4)">Real</span>
+          <span class="nc-tag" style="background:rgba(255,77,106,.2);color:#ff6b7a;border:1px solid rgba(255,77,106,.4)">Inverted</span>
+          <span class="nc-tag" style="background:rgba(0,212,255,.15);color:var(--cyan);border:1px solid rgba(0,212,255,.3)">Same Size</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBSERVATION -->
+    <div class="sec" style="border-bottom:none">
+      <div class="sl">What's Happening?</div>
+      <div class="obs-box" id="obs">
+        <strong>u = 2f:</strong> Object is exactly at twice the focal length → Image forms at <strong>2f on the other side</strong>, same size, real and inverted. Magnification = −1.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const S={ho:18,u:40,f:20,playing:true,photon:0,pSpd:.0055,demo:false,demoDir:1};
+
+const cv=document.getElementById('c');
+const cx=cv.getContext('2d');
+const pane=document.getElementById('cvPane');
+
+function resize(){cv.width=pane.clientWidth;cv.height=pane.clientHeight;}
+resize();
+new ResizeObserver(resize).observe(pane);
+
+// ── drag object ──────────────────────────────────────────────────────────────
+let drag=false;
+cv.addEventListener('mousedown',e=>{drag=true;handleDrag(e)});
+cv.addEventListener('mousemove',e=>{if(drag)handleDrag(e)});
+window.addEventListener('mouseup',()=>drag=false);
+cv.addEventListener('touchstart',e=>{drag=true;handleDrag(e.touches[0])},{passive:true});
+cv.addEventListener('touchmove',e=>{if(drag){handleDrag(e.touches[0]);e.preventDefault();}},{passive:false});
+window.addEventListener('touchend',()=>drag=false);
+
+function handleDrag(e){
+  const r=cv.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(cv.width/r.width);
+  const lX=cv.width*.56;
+  const sc=cv.width*.0034;
+  const newU=Math.max(5,Math.min(120,Math.round((lX-mx)/sc)));
+  S.u=newU;
+  document.getElementById('sU').value=newU;
+  refresh();
+}
+
+// ── controls ─────────────────────────────────────────────────────────────────
+function doLaunch(){S.playing=true;S.photon=0;document.getElementById('bL').textContent='↺ Relaunch';setBP(true);}
+function doPlay(){S.playing=!S.playing;setBP(S.playing);}
+function setBP(on){const b=document.getElementById('bP');b.textContent=on?'⏸ Pause':'▶ Play';b.classList.toggle('on',on);}
+function doReset(){
+  S.ho=18;S.u=40;S.f=20;S.photon=0;S.playing=true;S.demo=false;S.demoDir=1;
+  document.getElementById('sH').value=18;
+  document.getElementById('sU').value=40;
+  document.getElementById('sF').value=20;
+  document.getElementById('dChk').checked=false;
+  document.getElementById('dRow').classList.remove('on');
+  ['tO','tI','t1','t2','t3','tAF'].forEach(id=>document.getElementById(id).checked=true);
+  document.getElementById('bL').textContent='▶ Launch';
+  setBP(true);refresh();
+}
+function doDemo(){
+  S.demo=document.getElementById('dChk').checked;
+  document.getElementById('dRow').classList.toggle('on',S.demo);
+}
+function onSlide(){
+  S.ho=parseFloat(document.getElementById('sH').value);
+  S.u=parseFloat(document.getElementById('sU').value);
+  S.f=parseFloat(document.getElementById('sF').value);
+  refresh();
+}
+
+// ── physics ───────────────────────────────────────────────────────────────────
+function calcLens(u,f){
+  if(Math.abs(u-f)<.5) return {v:Infinity,m:Infinity,hi:Infinity,virtual:false};
+  const v=(f*u)/(u-f);
+  const m=v/u;
+  return {v,m,hi:m*S.ho,virtual:v<0};
+}
+
+function refresh(){
+  const {v,m,hi,virtual}=calcLens(S.u,S.f);
+  const u=S.u,f=S.f;
+
+  document.getElementById('vH').textContent=S.ho;
+  document.getElementById('vU').textContent=u;
+  document.getElementById('vF').textContent=f;
+  document.getElementById('r1').innerHTML=u+'<span class="ro-unit">cm</span>';
+  document.getElementById('r2').innerHTML=isFinite(v)?v.toFixed(1)+'<span class="ro-unit">cm</span>':'∞';
+  document.getElementById('r3').textContent=isFinite(m)?m.toFixed(2):'∞';
+  document.getElementById('r4').innerHTML=isFinite(hi)?hi.toFixed(1)+'<span class="ro-unit">cm</span>':'∞';
+
+  fillSliders();
+  updateNature(u,f,v,m,hi,virtual);
+  updateBanner(u,f,v,m,virtual);
+}
+
+function fillSliders(){
+  [['sH',5,55],['sU',5,120],['sF',5,55]].forEach(([id,mn,mx])=>{
+    const el=document.getElementById(id);
+    el.style.setProperty('--p',(parseFloat(el.value)-mn)/(mx-mn)*100+'%');
+  });
+}
+
+function updateNature(u,f,v,m,hi,virtual){
+  const tags=document.getElementById('natTags');
+  const obs=document.getElementById('obs');
+  let tagHTML='',msg='',obsCol='var(--cyan)';
+
+  const mkTag=(txt,col,bg)=>`<span class="nc-tag" style="background:${bg};color:${col};border:1px solid ${col}66">${txt}</span>`;
+
+  if(!isFinite(v)){
+    tagHTML=mkTag('At Infinity','#ffcc00','rgba(255,204,0,.15)');
+    msg=`<strong>u = f (u=${u}):</strong> Object is exactly at the focal point → Rays emerge <strong>parallel</strong> after the lens. Image forms at infinity. Used in <strong>torches & projectors</strong>.`;
+    obsCol='var(--gold)';
+  } else if(virtual){
+    tagHTML=mkTag('Virtual','#00ff88','rgba(0,255,136,.15)')+mkTag('Erect','#00ff88','rgba(0,255,136,.15)')+mkTag('Magnified','#00ff88','rgba(0,255,136,.15)');
+    msg=`<strong>u < f (u=${u}, f=${f}):</strong> Object is inside the focal length → Image is <strong>virtual, erect, and magnified</strong>. The image appears on the same side as the object. This is how a <strong>magnifying glass</strong> works!`;
+    obsCol='var(--grn)';
+  } else {
+    const sizeTag=Math.abs(m)>1.05?mkTag('Magnified','#cc66ff','rgba(204,102,255,.15)'):Math.abs(m)<0.95?mkTag('Diminished','#ff9500','rgba(255,149,0,.15)'):mkTag('Same size','#00d4ff','rgba(0,212,255,.15)');
+    tagHTML=mkTag('Real','#ff4d6a','rgba(255,77,106,.15)')+mkTag('Inverted','#ff4d6a','rgba(255,77,106,.15)')+sizeTag;
+    if(u>2*f){
+      msg=`<strong>u > 2f (u=${u}):</strong> Image is real, inverted, and <strong>diminished</strong>. |m| = ${Math.abs(m).toFixed(2)}. This is how <strong>cameras and eyes</strong> work — distant objects form small images.`;
+      obsCol='var(--orn)';
+    } else if(Math.abs(u-2*f)<3){
+      msg=`<strong>u = 2f (u=${u}):</strong> Object at twice the focal length → Image is <strong>real, inverted, same size</strong> at exactly 2f. Magnification = −1. Special symmetric case!`;
+      obsCol='var(--cyan)';
+    } else {
+      msg=`<strong>f < u < 2f (u=${u}):</strong> Image is real, inverted, and <strong>magnified</strong>. |m| = ${Math.abs(m).toFixed(2)}. Used in <strong>projectors and microscopes</strong> — object just beyond focal point gives large image.`;
+      obsCol='var(--red)';
+    }
+  }
+  tags.innerHTML=tagHTML;
+  obs.innerHTML=msg;
+  obs.style.borderLeftColor=obsCol;
+  obs.classList.remove('flash');void obs.offsetWidth;obs.classList.add('flash');
+}
+
+function updateBanner(u,f,v,m,virtual){
+  const b=document.getElementById('caseBanner');
+  let txt,col,bg;
+  if(!isFinite(v)){
+    txt='⚡ u = f — Image at Infinity';col='#ffcc00';bg='rgba(255,204,0,.12)';
+  } else if(virtual){
+    txt='🔍 u < f — Virtual Image (Magnifying Glass)';col='#00ff88';bg='rgba(0,255,136,.1)';
+  } else if(u>2*f){
+    txt='📷 u > 2f — Diminished Real Image';col='#ff9500';bg='rgba(255,149,0,.1)';
+  } else if(Math.abs(u-2*f)<3){
+    txt='⚖️ u = 2f — Same Size Real Image';col='#00d4ff';bg='rgba(0,212,255,.1)';
+  } else {
+    txt='🔬 f < u < 2f — Magnified Real Image';col='#ff4d6a';bg='rgba(255,77,106,.1)';
+  }
+  b.textContent=txt;
+  b.style.color=col;b.style.borderColor=col+'88';b.style.background=bg;
+  b.style.backdropFilter='blur(12px)';
+}
+
+// ── draw helpers ──────────────────────────────────────────────────────────────
+function gLine(x1,y1,x2,y2,col,w,alpha=1){
+  cx.save();cx.globalAlpha=alpha;cx.lineCap='round';
+  cx.shadowColor=col;cx.shadowBlur=18;
+  cx.strokeStyle=col+'55';cx.lineWidth=w+5;
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.shadowBlur=8;cx.strokeStyle=col;cx.lineWidth=w;
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.restore();
+}
+function dashed(x1,y1,x2,y2,col,w=1.5,d=[6,4]){
+  cx.save();cx.setLineDash(d);cx.strokeStyle=col;cx.lineWidth=w;cx.lineCap='round';
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  cx.setLineDash([]);cx.restore();
+}
+function arrow(x1,y1,x2,y2,col,sz=10){
+  const ang=Math.atan2(y2-y1,x2-x1);
+  cx.save();cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=8;
+  cx.beginPath();
+  cx.moveTo(x2,y2);
+  cx.lineTo(x2-sz*Math.cos(ang-.35),y2-sz*Math.sin(ang-.35));
+  cx.lineTo(x2-sz*Math.cos(ang+.35),y2-sz*Math.sin(ang+.35));
+  cx.closePath();cx.fill();cx.restore();
+}
+function glowDot(x,y,col,r=5){
+  cx.save();cx.shadowColor=col;cx.shadowBlur=12;
+  cx.fillStyle=col;cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fill();cx.restore();
+}
+function label(txt,x,y,col,size=11,align='center'){
+  cx.save();
+  cx.shadowColor=col;cx.shadowBlur=8;
+  cx.fillStyle=col;
+  cx.font=`600 ${size}px 'JetBrains Mono',monospace`;
+  cx.textAlign=align;cx.textBaseline='middle';
+  cx.fillText(txt,x,y);cx.restore();
+}
+function bgLabel(txt,x,y,col,size=11){
+  // label with dark bg for readability
+  cx.save();
+  cx.font=`600 ${size}px 'JetBrains Mono',monospace`;
+  cx.textAlign='center';cx.textBaseline='middle';
+  const w=cx.measureText(txt).width;
+  cx.fillStyle='rgba(7,16,31,.75)';
+  cx.beginPath();cx.roundRect(x-w/2-5,y-size/2-4,w+10,size+8,4);cx.fill();
+  cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=6;
+  cx.fillText(txt,x,y);cx.restore();
+}
+function drawArrowObject(x,y,h,col,lbl){
+  // vertical arrow from axis upward
+  gLine(x,y,x,y-h,col,3);
+  arrow(x,y+5,x,y-h,col,11);
+  // base tick
+  cx.save();cx.strokeStyle=col;cx.lineWidth=2;
+  cx.beginPath();cx.moveTo(x-6,y);cx.lineTo(x+6,y);cx.stroke();cx.restore();
+  bgLabel(lbl,x-22,y-h/2,col,11);
+}
+
+// ── Main draw ─────────────────────────────────────────────────────────────────
+function draw(){
+  const W=cv.width, H=cv.height;
+  cx.clearRect(0,0,W,H);
+
+  const lX=W*.56;      // lens x
+  const aY=H*.52;      // axis y (slightly below center for labels above)
+  const sc=W*.0034;    // scale: px per unit
+
+  const u=S.u,f=S.f,ho=S.ho;
+  const {v,m,hi,virtual}=calcLens(u,f);
+
+  const objX=lX-u*sc;
+  const imgX=lX+v*sc;
+  const oH=ho*sc*1.6;    // object height in px
+  const iH=isFinite(hi)?hi*sc*1.6:0;
+  const oTipY=aY-oH;
+  const iTipY=aY-iH;
+
+  const fX2=lX+f*sc,fX1=lX-f*sc;
+  const f2X2=lX+2*f*sc,f2X1=lX-2*f*sc;
+  const lensH=H*.38;
+
+  // ── principal axis + F markers ──
+  const showAF=document.getElementById('tAF').checked;
+  if(showAF){
+    // axis
+    cx.strokeStyle='rgba(140,180,230,.2)';cx.lineWidth=1;cx.setLineDash([8,6]);
+    cx.beginPath();cx.moveTo(0,aY);cx.lineTo(W,aY);cx.stroke();
+    cx.setLineDash([]);
+
+    // 2F markers (larger, clearer)
+    [[f2X1,'2F',false],[fX1,'F',false],[fX2,"F′",true],[f2X2,"2F′",true]].forEach(([x,lbl,right])=>{
+      if(x<0||x>W) return;
+      dashed(x,aY-H*.28,x,aY+H*.1,'rgba(0,212,255,.15)',1,[3,4]);
+      glowDot(x,aY,'rgba(0,212,255,.65)',3.5);
+      bgLabel(lbl,x,aY+18,'rgba(0,212,255,.85)',10);
+    });
+  }
+
+  // ── LENS ── (double-arrow biconvex symbol)
+  const lc='rgba(0,212,255,.85)';
+  cx.save();
+  cx.shadowColor='rgba(0,212,255,.4)';cx.shadowBlur=24;
+  cx.strokeStyle=lc;cx.lineWidth=2.5;
+  cx.beginPath();cx.moveTo(lX,aY-lensH);cx.lineTo(lX,aY+lensH);cx.stroke();
+  // top arrow
+  cx.fillStyle=lc;
+  cx.beginPath();cx.moveTo(lX,aY-lensH);cx.lineTo(lX-9,aY-lensH+18);cx.lineTo(lX+9,aY-lensH+18);cx.closePath();cx.fill();
+  cx.beginPath();cx.moveTo(lX,aY+lensH);cx.lineTo(lX-9,aY+lensH-18);cx.lineTo(lX+9,aY+lensH-18);cx.closePath();cx.fill();
+  cx.restore();
+  bgLabel('Convex Lens  f='+f,lX,aY-lensH-16,'rgba(0,212,255,.7)',10);
+
+  // ── OBJECT arrow ──
+  if(document.getElementById('tO').checked && objX>8 && objX<W-8){
+    drawArrowObject(objX,aY,oH,'#ffcc00','hₒ='+ho);
+    // u distance label
+    bgLabel('u = '+u,objX+(lX-objX)/2,aY+34,'rgba(255,204,0,.75)',10);
+    // dashed ground line
+    dashed(objX,aY,lX,aY,'rgba(255,204,0,.15)',1,[5,5]);
+  }
+
+  // ── IMAGE arrow ──
+  if(document.getElementById('tI').checked && isFinite(v) && isFinite(hi)){
+    const ix=Math.max(lX+5,Math.min(W-8,imgX));
+    if(virtual){
+      // virtual: dashed, same side as object, erect
+      const vix=Math.max(8,Math.min(lX-8,imgX));
+      dashed(vix,aY,vix,aY-iH,'rgba(204,102,255,.75)',2.5,[5,3]);
+      cx.save();cx.strokeStyle='rgba(204,102,255,.75)';cx.lineWidth=2.5;
+      cx.beginPath();cx.moveTo(vix-8,aY-iH);cx.lineTo(vix,aY-iH-8);cx.lineTo(vix+8,aY-iH);cx.stroke();cx.restore();
+      bgLabel('Virtual Image  hᵢ='+Math.abs(hi).toFixed(1),vix,aY-iH-22,'rgba(204,102,255,.85)',10);
+    } else {
+      drawArrowObject(ix,aY,iH,'#cc66ff','hᵢ='+Math.abs(hi).toFixed(1));
+      bgLabel('v = '+v.toFixed(1),lX+(ix-lX)/2,aY+34,'rgba(204,102,255,.75)',10);
+      dashed(lX,aY,ix,aY,'rgba(204,102,255,.15)',1,[5,5]);
+    }
+  }
+
+  // ── 3 PRINCIPAL RAYS ──
+  if(objX>8 && isFinite(v)){
+    // RAY 1: parallel to axis → refracts through F′
+    if(document.getElementById('t1').checked){
+      gLine(objX,oTipY,lX,oTipY,'#00d4ff',2.5);       // horizontal to lens
+      if(isFinite(v)){
+        if(!virtual){
+          gLine(lX,oTipY,imgX,aY,'#00d4ff',2.5);       // through F' to image base
+          // extension beyond image
+          const ex=imgX+(imgX-lX)*.4, ey=aY+(aY-oTipY)*.4*(imgX-lX)/(lX>0?1:1);
+          gLine(imgX,aY,Math.min(ex,W),aY,'#00d4ff',1.5,.25);
+        } else {
+          // diverges — trace to right edge
+          gLine(lX,oTipY,W,aY+(W-lX)*(aY-oTipY)/(fX2-lX),'#00d4ff',2.5,.8);
+        }
+      }
+      bgLabel('Ray 1',objX+(lX-objX)*0.35,oTipY-13,'rgba(0,212,255,.85)',9);
+    }
+
+    // RAY 2: through optical centre O — straight, undeviated
+    if(document.getElementById('t2').checked){
+      const slope=(aY-oTipY)/(lX-objX);
+      gLine(objX,oTipY,lX,aY,'#00ff88',2.5);
+      gLine(lX,aY,W,aY+slope*(W-lX),'#00ff88',2,.35);
+      bgLabel('Ray 2',objX+(lX-objX)*.6,oTipY+(aY-oTipY)*.5-13,'rgba(0,255,136,.85)',9);
+    }
+
+    // RAY 3: aimed at F (object side) → parallel after lens
+    if(document.getElementById('t3').checked){
+      if(u>f){
+        // from obj tip, aimed toward F on left → exits parallel at iTipY
+        gLine(objX,oTipY,lX,iTipY,'#ff9500',2.5);
+        gLine(lX,iTipY,W,iTipY,'#ff9500',2.5);
+        bgLabel('Ray 3',objX+(lX-objX)*.7,oTipY+(iTipY-oTipY)*.4-12,'rgba(255,149,0,.85)',9);
+      } else {
+        // u < f: aimed away from F, still exits parallel
+        gLine(objX,oTipY,lX,iTipY,'#ff9500',2.5);
+        gLine(lX,iTipY,W,iTipY,'#ff9500',2.5);
+        bgLabel('Ray 3',objX+(lX-objX)*.6,oTipY+(iTipY-oTipY)*.3-12,'rgba(255,149,0,.85)',9);
+      }
+    }
+
+    // Convergence point dot (where real image forms)
+    if(isFinite(v) && !virtual && imgX>lX && imgX<W){
+      glowDot(imgX,aY,'#cc66ff',6);
+    }
+  }
+
+  // ── ANIMATED PHOTON ──
+  if(S.playing && isFinite(v) && objX>8){
+    S.photon+=S.pSpd;
+    if(S.photon>1) S.photon=0;
+
+    // alternate between ray 1 and ray 2
+    const p=S.photon;
+    let px,py,pc;
+    if(p<.48){
+      const t=p/.48;
+      // ray 1: obj→lens horizontal, then lens→image tip
+      const segs=[
+        {x1:objX,y1:oTipY,x2:lX,y2:oTipY},
+        {x1:lX,y1:oTipY,x2:virtual?W:imgX,y2:virtual?aY+(W-lX)*(aY-oTipY)/(fX2-lX):aY},
+      ];
+      let tot=0;segs.forEach(s=>{const dx=s.x2-s.x1,dy=s.y2-s.y1;s.l=Math.sqrt(dx*dx+dy*dy);tot+=s.l;});
+      let tgt=t*tot,acc=0;
+      for(const s of segs){if(acc+s.l>=tgt){const tt=(tgt-acc)/s.l;px=s.x1+(s.x2-s.x1)*tt;py=s.y1+(s.y2-s.y1)*tt;break;}acc+=s.l;}
+      pc='#00d4ff';
+    } else {
+      const t=(p-.52)/.48;
+      if(t<0){px=objX;py=oTipY;pc='#00ff88';}
+      else {
+        const slope=(aY-oTipY)/(lX-objX);
+        const segs=[
+          {x1:objX,y1:oTipY,x2:lX,y2:aY},
+          {x1:lX,y1:aY,x2:W,y2:aY+slope*(W-lX)},
+        ];
+        let tot=0;segs.forEach(s=>{const dx=s.x2-s.x1,dy=s.y2-s.y1;s.l=Math.sqrt(dx*dx+dy*dy);tot+=s.l;});
+        let tgt=Math.min(t,1)*tot,acc=0;
+        for(const s of segs){if(acc+s.l>=tgt){const tt=(tgt-acc)/s.l;px=s.x1+(s.x2-s.x1)*tt;py=s.y1+(s.y2-s.y1)*tt;break;}acc+=s.l;}
+        pc='#00ff88';
+      }
+    }
+
+    if(px!==undefined){
+      cx.save();
+      const rg=cx.createRadialGradient(px,py,0,px,py,14);
+      rg.addColorStop(0,pc+'ff');rg.addColorStop(.3,pc+'88');rg.addColorStop(1,pc+'00');
+      cx.fillStyle=rg;cx.beginPath();cx.arc(px,py,14,0,Math.PI*2);cx.fill();
+      cx.fillStyle='#fff';cx.shadowColor='#fff';cx.shadowBlur=6;
+      cx.beginPath();cx.arc(px,py,3,0,Math.PI*2);cx.fill();
+      cx.restore();
+    }
+  }
+}
+
+// ── Demo sweep ────────────────────────────────────────────────────────────────
+function demoStep(){
+  if(!S.demo)return;
+  S.u+=S.demoDir*.25;
+  const f=S.f;
+  if(S.u>=f-.8&&S.u<=f+.8&&S.demoDir>0){S.u=f+1.5;}
+  if(S.u>=115){S.u=115;S.demoDir=-1;}
+  if(S.u<=6){S.u=6;S.demoDir=1;}
+  document.getElementById('sU').value=Math.round(S.u);
+  refresh();
+}
+
+function loop(){demoStep();draw();requestAnimationFrame(loop);}
+refresh();
+loop();
+</script>
+</body>
+</html>
