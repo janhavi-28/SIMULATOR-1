@@ -515,7 +515,7 @@ function CanvasSimulator(props: {
   );
 }
 
-export default function GravitySimulation() {
+export default function GravitySimulation({ embedded }: { embedded?: boolean }) {
   const [params, setParams] = useState<GravityParams>(DEFAULT_PARAMS);
   const paramsRef = useLatestRef(params);
 
