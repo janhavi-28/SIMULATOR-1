@@ -7,6 +7,8 @@ type Props = {
   subject: string;
   breadcrumbs: BreadcrumbItem[];
   title: string;
+  titleClassName?: string;
+  contentClassName?: string;
   subtitle?: React.ReactNode;
   fullWidth?: boolean;
   children: React.ReactNode;
