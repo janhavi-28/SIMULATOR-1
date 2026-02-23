@@ -428,9 +428,9 @@ export default function LawsOfReflectionSimulation() {
                     borderRadius: 5,
                   }}
                   aria-label="Angle of incidence in degrees"
-                  aria-valuemin="10"
-                  aria-valuemax="80"
-                  aria-valuenow={String(incidentAngleDeg)}
+                  aria-valuemin={10}
+                  aria-valuemax={80}
+                  aria-valuenow={incidentAngleDeg}
                 />
                 <span className="absolute -top-0.5 left-0 right-0 text-center text-sm font-mono text-amber-300/95">
                   {incidentAngleDeg}°
