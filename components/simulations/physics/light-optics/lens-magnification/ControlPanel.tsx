@@ -89,7 +89,7 @@ export function ControlPanel({
               className={`lens-toggle ${isDemo ? "lens-toggle-on" : ""}`}
               onClick={onDemoToggle}
               title="Auto-sweep object distance"
-              aria-pressed={isDemo}
+              aria-pressed={isDemo ? "true" : "false"}
             >
               <span className="lens-toggle-thumb" />
             </button>
@@ -116,7 +116,7 @@ export function ControlPanel({
               type="button"
               className={`lens-dropdown-trigger ${lensesOpen ? "lens-dropdown-trigger-open" : ""}`}
               onClick={() => setLensesOpen((o) => !o)}
-              aria-expanded={lensesOpen}
+              aria-expanded={lensesOpen ? "true" : "false"}
             >
               Lenses
               <span className="lens-dropdown-chevron" aria-hidden>▼</span>
@@ -144,7 +144,7 @@ export function ControlPanel({
               type="button"
               className={`lens-dropdown-trigger ${objectsOpen ? "lens-dropdown-trigger-open" : ""}`}
               onClick={() => setObjectsOpen((o) => !o)}
-              aria-expanded={objectsOpen}
+              aria-expanded={objectsOpen ? "true" : "false"}
             >
               Objects
               <span className="lens-dropdown-chevron" aria-hidden>▼</span>

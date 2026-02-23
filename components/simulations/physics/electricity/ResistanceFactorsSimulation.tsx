@@ -102,7 +102,7 @@ export default function ResistanceFactorsSimulation() {
       <h3 className="text-sm font-semibold text-neutral-200 uppercase tracking-wider">Parameters</h3>
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Material</label>
-        <select value={material} onChange={(e) => setMaterial(e.target.value as keyof typeof RHO)} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={material} onChange={(e) => setMaterial(e.target.value as keyof typeof RHO)} aria-label="Material selection" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           {Object.keys(RHO).map((m) => (
             <option key={m} value={m}>{m}</option>
           ))}

@@ -371,10 +371,10 @@ export default function LawsOfReflectionSimulation() {
               </span>
             </div>
             <div className="absolute inset-0 pointer-events-auto" aria-hidden>
-              <button type="button" className="absolute w-[100px] h-10 left-[18%] top-[24%]" onMouseEnter={() => showLabel("incident")} />
-              <button type="button" className="absolute w-[100px] h-10 right-[18%] top-[24%]" onMouseEnter={() => showLabel("reflected")} />
-              <button type="button" className="absolute w-12 h-16 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" onMouseEnter={() => showLabel("normal")} />
-              <button type="button" className="absolute left-[15%] right-[15%] h-6 top-1/2 -translate-y-1/2" onMouseEnter={() => showLabel("mirror")} />
+              <button type="button" className="absolute w-[100px] h-10 left-[18%] top-[24%]" onMouseEnter={() => showLabel("incident")} aria-label="Show incident ray label" />
+              <button type="button" className="absolute w-[100px] h-10 right-[18%] top-[24%]" onMouseEnter={() => showLabel("reflected")} aria-label="Show reflected ray label" />
+              <button type="button" className="absolute w-12 h-16 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" onMouseEnter={() => showLabel("normal")} aria-label="Show normal label" />
+              <button type="button" className="absolute left-[15%] right-[15%] h-6 top-1/2 -translate-y-1/2" onMouseEnter={() => showLabel("mirror")} aria-label="Show mirror surface label" />
             </div>
           </div>
         </div>
@@ -422,15 +422,15 @@ export default function LawsOfReflectionSimulation() {
                   onChange={(e) => setIncidentAngleDeg(Number(e.target.value))}
                   className="w-full h-2.5 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-amber-500/50 [&::-webkit-slider-thumb]:shadow-lg"
                   style={{
-                    ...trackStyle,
+                    background: "linear-gradient(90deg, #facc15, #fb923c)",
                     WebkitAppearance: "none",
                     height: 10,
                     borderRadius: 5,
                   }}
                   aria-label="Angle of incidence in degrees"
-                  aria-valuemin={10}
-                  aria-valuemax={80}
-                  aria-valuenow={incidentAngleDeg}
+                  aria-valuemin="10"
+                  aria-valuemax="80"
+                  aria-valuenow={String(incidentAngleDeg)}
                 />
                 <span className="absolute -top-0.5 left-0 right-0 text-center text-sm font-mono text-amber-300/95">
                   {incidentAngleDeg}°
@@ -510,7 +510,7 @@ export default function LawsOfReflectionSimulation() {
           className={`px-4 py-2.5 text-sm font-medium transition-colors -mb-px ${
             activeTab === "concept" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-neutral-400 hover:text-neutral-200"
           }`}
-          aria-selected={activeTab === "concept"}
+          aria-selected={activeTab === "concept" ? "true" : "false"}
           role="tab"
           aria-controls="reflection-panel-concept"
           id="reflection-tab-concept"
@@ -523,7 +523,7 @@ export default function LawsOfReflectionSimulation() {
           className={`px-4 py-2.5 text-sm font-medium transition-colors -mb-px ${
             activeTab === "experiment" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-neutral-400 hover:text-neutral-200"
           }`}
-          aria-selected={activeTab === "experiment"}
+          aria-selected={activeTab === "experiment" ? "true" : "false"}
           role="tab"
           aria-controls="reflection-panel-experiment"
           id="reflection-tab-experiment"

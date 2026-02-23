@@ -38,6 +38,7 @@ export default function ResistanceFactorsSimulation() {
               step={0.5}
               value={resistivity * 1e8}
               onChange={(e) => setResistivity(Number(e.target.value) * 1e-8)}
+              title="Resistivity ρ (×10⁻⁸ Ω·m)"
               className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
             />
             <span className="text-xs text-cyan-300 tabular-nums">{(resistivity * 1e8).toFixed(1)} ×10⁻⁸</span>
@@ -51,6 +52,7 @@ export default function ResistanceFactorsSimulation() {
               step={0.1}
               value={length}
               onChange={(e) => setLength(Number(e.target.value))}
+              title="Length L (m)"
               className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
             />
             <span className="text-xs text-cyan-300 tabular-nums">{length} m</span>
@@ -64,6 +66,7 @@ export default function ResistanceFactorsSimulation() {
               step={0.1}
               value={area}
               onChange={(e) => setArea(Number(e.target.value))}
+              title="Cross-section A (mm²)"
               className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
             />
             <span className="text-xs text-cyan-300 tabular-nums">{area.toFixed(1)} mm²</span>

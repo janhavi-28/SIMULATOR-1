@@ -114,7 +114,7 @@ export default function WorkByForceSimulation() {
       <SliderControl label="Angle (F to s)" value={angleDeg} min={0} max={180} step={15} unit="°" onChange={setAngleDeg} color="violet" />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Surface</label>
-        <select value={surface} onChange={(e) => setSurface(e.target.value as "smooth" | "rough")} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={surface} onChange={(e) => setSurface(e.target.value as "smooth" | "rough")} aria-label="Surface type selection" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="smooth">Smooth</option>
           <option value="rough">Rough</option>
         </select>

@@ -708,6 +708,7 @@ export default function ImageFormationPlaneMirrorSimulation() {
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-neutral-300">Object type</label>
             <select
+              aria-label="Object type"
               value={objectType}
               onChange={(e) => setObjectType(e.target.value as ObjectType)}
               className="w-full rounded-lg border border-neutral-600 bg-neutral-800/80 px-3 py-2 text-sm text-neutral-200 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"

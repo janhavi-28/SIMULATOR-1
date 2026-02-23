@@ -142,10 +142,10 @@ function placeLabel(
       (a) => Math.hypot(cx - a.x, cy - a.y) > minClear
     );
     if (clear && cx >= 0 && cx <= cw && cy >= 0 && cy <= ch) {
-      return [cx, cy];
+      return { x: cx, y: cy };
     }
   }
-  return [x, y + LABEL_OFFSET_MIN];
+  return { x, y: y + LABEL_OFFSET_MIN };
 }
 
 export function drawScene(
@@ -307,31 +307,31 @@ export function drawScene(
   const imageBase = { x: data.image && data.imageX != null ? t(data.imageX, 0)[0] : oX, y: imgBaseY };
   const avoidAll = [...rayPoints, objectBase, objectTip, imageBase];
   if (data.image && data.imageX != null) {
-    const [, iTy] = t(data.imageX, data.imageTopY);
+    const [, iTy] = t(data.imageX, data.imageTopY!);
     avoidAll.push({ x: imageBase.x, y: iTy });
   }
 
   ctx.fillStyle = COLORS.label;
   ctx.font = "bold 14px Arial";
 
-  const [fLx, fLy] = placeLabel(ctx, fX, fY, "F", avoidAll, canvasWidth, canvasHeight);
+  const { x: fLx, y: fLy } = placeLabel(ctx, fX, fY, "F", avoidAll, canvasWidth, canvasHeight);
   ctx.fillText("F", fLx, fLy);
 
   if (mirrorType !== "plane") {
-    const [cLx, cLy] = placeLabel(ctx, cX, cY, "C", [...avoidAll, { x: fLx, y: fLy }], canvasWidth, canvasHeight);
+    const { x: cLx, y: cLy } = placeLabel(ctx, cX, cY, "C", [...avoidAll, { x: fLx, y: fLy }], canvasWidth, canvasHeight);
     ctx.fillText("C", cLx, cLy);
   }
 
-  const [pLx, pLy] = placeLabel(ctx, pX, pY, "P", avoidAll, canvasWidth, canvasHeight);
+  const { x: pLx, y: pLy } = placeLabel(ctx, pX, pY, "P", avoidAll, canvasWidth, canvasHeight);
   ctx.fillText("P", pLx, pLy);
 
-  const [oLx, oLy] = placeLabel(ctx, oX, oY + 10, "Object", avoidAll, canvasWidth, canvasHeight);
+  const { x: oLx, y: oLy } = placeLabel(ctx, oX, oY + 10, "Object", avoidAll, canvasWidth, canvasHeight);
   ctx.fillText("Object", oLx, oLy);
 
   if (data.image && data.imageX !== null) {
     const iX = imageBase.x;
     const imgLabel = data.image.isReal ? "Image (Real)" : "Image (Virtual)";
-    const [iLx, iLy] = placeLabel(ctx, iX, imgBaseY + 10, imgLabel, [...avoidAll, { x: oLx, y: oLy }], canvasWidth, canvasHeight);
+    const { x: iLx, y: iLy } = placeLabel(ctx, iX, imgBaseY + 10, imgLabel, [...avoidAll, { x: oLx, y: oLy }], canvasWidth, canvasHeight);
     ctx.fillText(imgLabel, iLx, iLy);
   }
 }

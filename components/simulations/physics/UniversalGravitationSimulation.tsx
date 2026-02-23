@@ -193,6 +193,7 @@ export default function UniversalGravitationSimulation() {
           max={max}
           value={value}
           onChange={(e) => set(Number(e.target.value))}
+          title={label}
           className="flex-1 h-2.5 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-300"
         />
         <span className="text-sm text-cyan-300 font-mono w-14">{value}</span>

@@ -67,6 +67,7 @@ export default function MotorSimulator(){
        step="0.1"
        value={current}
        onChange={e=>setCurrent(parseFloat(e.target.value))}
+       title="Adjust the current value"
       />
 
       <br/><br/>

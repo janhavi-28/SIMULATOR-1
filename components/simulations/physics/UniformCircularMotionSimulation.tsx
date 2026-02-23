@@ -99,6 +99,11 @@ function ParameterSlider({
   const dramaticEnd =
     dramaticRange != null ? ((dramaticRange[1] - min) / (max - min)) * 100 : 0;
 
+  const dramaticRangeStyle = dramaticRange != null ? {
+    '--dramatic-start': `${dramaticStart}%`,
+    '--dramatic-width': `${dramaticEnd - dramaticStart}%`,
+  } as React.CSSProperties : {};
+
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between mb-1">
@@ -130,18 +135,12 @@ function ParameterSlider({
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          onInput={(e) =>
-            onChange(Number((e.target as HTMLInputElement).value))
-          }
           className="physics-range w-full"
           aria-label={`${label}: ${value.toFixed(2)} ${unit}`}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
           aria-valuetext={`${value.toFixed(2)} ${unit}`}
-          style={{
-            background: `linear-gradient(to right, #3B82F6 0%, #60A5FA ${pct}%, #E5E7EB ${pct}%, #E5E7EB 100%)`,
-          }}
         />
       </div>
       <div className="flex justify-between text-[11px] text-gray-500 mt-0.5">

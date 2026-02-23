@@ -157,7 +157,7 @@ export default function WorkEnergyPowerPlayground() {
       <SliderControl label="Incline angle" value={angleDeg} min={0} max={60} step={5} unit="°" onChange={setAngleDeg} color="violet" />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Gravity</label>
-        <select value={gravityMode} onChange={(e) => setGravityMode(e.target.value as "earth" | "moon")} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={gravityMode} onChange={(e) => setGravityMode(e.target.value as "earth" | "moon")} aria-label="Gravity" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="earth">Earth</option>
           <option value="moon">Moon</option>
         </select>

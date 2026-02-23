@@ -301,7 +301,7 @@ export default function ChargeInteractionPlayground() {
       <SliderControl label="Charge q₂" value={q2} min={-5} max={5} step={0.5} unit="μC" onChange={setQ2} color="violet" title="Charge of second particle in microcoulombs" />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Medium</label>
-        <select value={medium} onChange={(e) => setMedium(e.target.value as "air" | "vacuum")} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={medium} onChange={(e) => setMedium(e.target.value as "air" | "vacuum")} aria-label="Select medium" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="air">Air</option>
           <option value="vacuum">Vacuum</option>
         </select>

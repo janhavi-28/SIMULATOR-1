@@ -132,7 +132,7 @@ export default function ReflectionRefractionSimulator() {
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     const { w: W, h: H } = displaySizeRef.current;
     if (W <= 0 || H <= 0) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d")!;
     if (!ctx) return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, W, H);

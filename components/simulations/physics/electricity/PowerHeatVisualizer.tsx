@@ -102,7 +102,7 @@ export default function PowerHeatVisualizer() {
       <h3 className="text-sm font-semibold text-neutral-200 uppercase tracking-wider">Parameters</h3>
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Use</label>
-        <select value={mode} onChange={(e) => setMode(e.target.value as "V,I" | "I,R" | "V,R")} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={mode} onChange={(e) => setMode(e.target.value as "V,I" | "I,R" | "V,R")} aria-label="Parameter mode selection" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="V,I">V & I</option>
           <option value="I,R">I & R</option>
           <option value="V,R">V & R</option>

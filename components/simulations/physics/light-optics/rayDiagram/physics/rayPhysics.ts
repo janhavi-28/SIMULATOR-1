@@ -368,7 +368,7 @@ export function getRayPaths(state: SimState): RayPhysicsResult {
         },
       ];
     } else {
-      rays = buildRays(ox, oy, fx, cx, ix, iy, type, mirrorType);
+      rays = buildRays(ox, oy, fx, cx, ix, iy, type as "real" | "virtual", mirrorType);
     }
   }
 

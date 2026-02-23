@@ -108,7 +108,7 @@ export default function EnergyConsumptionTracker() {
       <SliderControl label="Current I" value={current} min={0.1} max={15} step={0.1} unit="A" onChange={setCurrent} color="cyan" />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Appliance</label>
-        <select value={appliance} onChange={(e) => setAppliance(e.target.value as Appliance)} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={appliance} onChange={(e) => setAppliance(e.target.value as Appliance)} aria-label="Appliance" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="fan">Fan</option>
           <option value="bulb">Bulb</option>
           <option value="heater">Heater</option>

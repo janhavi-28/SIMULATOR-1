@@ -132,7 +132,6 @@ function ParameterSlider({
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
-          aria-valuetext={`${value} ${unit}`}
         />
       </div>
       <div className="flex justify-between text-xs text-neutral-500">

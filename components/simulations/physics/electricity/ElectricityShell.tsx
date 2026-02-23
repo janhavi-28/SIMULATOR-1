@@ -132,7 +132,7 @@ export function SliderControl({
           {typeof value === "number" && step < 1 ? value.toFixed(2) : value} {unit}
         </span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className={`w-full h-2.5 rounded-full appearance-none bg-neutral-600 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:ring-2 ${thumb}`} />
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} title={title || label} className={`w-full h-2.5 rounded-full appearance-none bg-neutral-600 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:ring-2 ${thumb}`} />
     </div>
   );
 }

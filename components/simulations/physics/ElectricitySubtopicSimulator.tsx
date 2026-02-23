@@ -41,6 +41,11 @@ const PowerHeatVisualizer = dynamic(
   { ssr: false, loading: () => <div className="min-h-[320px] rounded-xl border border-neutral-700 bg-neutral-900 flex items-center justify-center text-neutral-400">Loading simulator…</div> }
 );
 
+// Placeholder for subtopics without a dedicated simulator yet
+const ElectricMotorSimulator: React.FC = () => (
+  <div className="min-h-[320px] rounded-xl border border-neutral-700 bg-neutral-900 flex items-center justify-center text-neutral-400">Simulator coming soon…</div>
+);
+
 const ELECTRICITY_SIM_MAP: Record<ElectricitySubtopicSlug, React.ComponentType> = {
   "electric-charge": ChargeInteractionPlayground,
   "electric-current": FlowOfChargesSimulation,
@@ -51,6 +56,7 @@ const ELECTRICITY_SIM_MAP: Record<ElectricitySubtopicSlug, React.ComponentType> 
   "electric-circuit": CircuitBuilderSimulation,
   "electrical-energy": EnergyConsumptionTracker,
   "electric-power": PowerHeatVisualizer,
+  "electric-motor": ElectricMotorSimulator,
 };
 
 type Props = { slug: ElectricitySubtopicSlug };

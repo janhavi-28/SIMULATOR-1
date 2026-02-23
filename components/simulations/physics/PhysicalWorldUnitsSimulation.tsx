@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import React, {
   useCallback,
@@ -725,8 +725,26 @@ const PhysicalWorldUnitsSimulation: React.FC = () => {
     const panelH = 70 * dpr;
     const panelX = left + 10 * dpr;
     const panelY = top + 10 * dpr;
-    ctx.beginPath();
-    ctx.roundRect(panelX, panelY, panelW, panelH, 10 * dpr);
+    // helper for rounded rect (ensure compatibility with TS DOM lib)
+    const drawRoundedRect = (
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r: number
+    ) => {
+      const radius = Math.max(0, r);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    };
+
+    drawRoundedRect(ctx, panelX, panelY, panelW, panelH, 10 * dpr);
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.strokeStyle = "#E5E7EB";

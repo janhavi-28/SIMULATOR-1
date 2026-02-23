@@ -681,8 +681,26 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
     ctx.fillStyle = "rgba(15,23,42,0.85)";
     ctx.strokeStyle = "rgba(51,65,85,0.9)";
     ctx.lineWidth = 1 * dpr;
-    ctx.beginPath();
-    ctx.roundRect(panelX, panelY, panelW, panelH, 10 * dpr);
+    // draw rounded panel (helper because `roundRect` isn't available on all TS DOM libs)
+    const drawRoundedRect = (
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r: number
+    ) => {
+      const radius = Math.max(0, r);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    };
+
+    drawRoundedRect(ctx, panelX, panelY, panelW, panelH, 10 * dpr);
     ctx.fill();
     ctx.stroke();
 

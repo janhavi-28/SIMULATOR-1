@@ -417,7 +417,11 @@ export default function NonRenewableSourcesSimulation() {
         animationSpeed={uiState.animationSpeed}
         selectedComponent={selectedComponent}
         onSelectComponent={setSelectedComponent}
-        tooltipData={tooltipData ?? null}
+        tooltipData={
+          tooltipData
+            ? { id: selectedComponent ?? "", name: tooltipData.name, role: tooltipData.role, formula: tooltipData.formula, analogy: tooltipData.analogy }
+            : null
+        }
       />
     </SimulatorCanvas>
   );

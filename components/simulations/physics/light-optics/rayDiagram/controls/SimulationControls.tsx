@@ -55,6 +55,7 @@ export function SimulationControls({
           className="ray-diagram-select"
           value={simState.mirrorType}
           onChange={handleMirrorChange}
+          aria-label="Mirror type"
         >
           <option value="concave">Concave Mirror</option>
           <option value="convex">Convex Mirror</option>
@@ -100,6 +101,7 @@ export function SimulationControls({
               step={1}
               onChange={(e) => onUpdate({ objectDistance: parseInt(e.target.value, 10) })}
               disabled={!simState.launched}
+              title="Adjust object distance (10-80 cm)"
             />
           </div>
         </div>
@@ -117,6 +119,7 @@ export function SimulationControls({
               step={1}
               onChange={(e) => onUpdate({ objectHeight: parseInt(e.target.value, 10) })}
               disabled={!simState.launched}
+              title="Adjust object height (10-60 px)"
             />
           </div>
         </div>
@@ -141,6 +144,7 @@ export function SimulationControls({
               step={1}
               onChange={(e) => onUpdate({ focalLength: parseInt(e.target.value, 10) })}
               disabled={simState.mirrorType === "plane"}
+              title="Adjust focal length (10-50 cm)"
             />
           </div>
         </div>

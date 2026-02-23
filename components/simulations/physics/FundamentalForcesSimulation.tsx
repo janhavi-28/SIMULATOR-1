@@ -317,6 +317,7 @@ export default function FundamentalForcesSimulation() {
                 type="range" min="-18" max="15" step="0.1" value={scale}
                 onChange={(e) => setScale(parseFloat(e.target.value))}
                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                title="Universal Scale (Zoom)"
               />
               <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-400">
                 <span>Nuclear</span>
@@ -332,6 +333,7 @@ export default function FundamentalForcesSimulation() {
                 type="range" min="0" max="3" step="0.1" value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-400"
+                title="Simulation Speed"
               />
             </div>
 
@@ -349,13 +351,19 @@ export default function FundamentalForcesSimulation() {
             {/* Play/Pause Buttons */}
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
+                aria-label={isPlaying ? 'Pause simulation' : 'Play simulation'}
+                title={isPlaying ? 'Pause simulation' : 'Play simulation'}
                 className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
               >
                 {isPlaying ? <Pause size={20} className="text-slate-700" fill="currentColor" /> : <Play size={20} className="text-slate-700" fill="currentColor" />}
               </button>
               <button
+                type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
+                aria-label={isPlaying ? 'Pause simulation' : 'Play simulation'}
+                title={isPlaying ? 'Pause simulation' : 'Play simulation'}
                 className="flex-1 bg-slate-100 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 hover:bg-slate-200 transition-colors"
               >
                 Play/Pause

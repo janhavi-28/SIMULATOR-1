@@ -161,7 +161,7 @@ export function PipelineStage({
                   stroke: strokeColor,
                   filter: filter ?? "none",
                   animation: isActive ? "flow-dash 0.6s linear infinite" : "none",
-                  animationDirection: p?.reverse ? "reverse" : "normal",
+                  animationDirection: (p as FlowPathState).reverse ? "reverse" : "normal",
                 }}
               />
             );

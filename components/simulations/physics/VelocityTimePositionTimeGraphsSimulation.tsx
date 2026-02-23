@@ -67,6 +67,8 @@ function SliderRow({ label, value, min, max, step, unit, onChange }: SliderProps
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        title={label}
+        aria-label={label}
         className="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-700 outline-none
           [&::-webkit-slider-thumb]:appearance-none
           [&::-webkit-slider-thumb]:h-4
