@@ -151,6 +151,7 @@ export default function ThrustPressureSimulation() {
         max={max}
         value={value}
         onChange={(e) => set(Number(e.target.value))}
+        aria-label={label}
         className="w-full h-2.5 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-300"
       />
       <span className="text-sm text-cyan-300 font-mono">{value}</span>

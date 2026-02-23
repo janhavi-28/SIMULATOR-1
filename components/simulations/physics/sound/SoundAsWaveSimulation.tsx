@@ -97,7 +97,7 @@ export default function SoundAsWaveSimulation() {
       <SliderControl label="Frequency" value={frequency} min={0.5} max={5} step={0.25} unit="Hz" onChange={setFrequency} color="cyan" />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">View</label>
-        <select value={viewMode} onChange={(e) => setViewMode(e.target.value as "wave" | "particle")} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={viewMode} onChange={(e) => setViewMode(e.target.value as "wave" | "particle")}  aria-label="Toggle reflection insight"className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="wave">Wave (displacement)</option>
           <option value="particle">Particle motion</option>
         </select>

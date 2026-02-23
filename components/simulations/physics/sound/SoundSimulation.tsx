@@ -150,6 +150,7 @@ export default function SoundSimulation() {
         <select
           value={viewMode}
           onChange={(e) => setViewMode(e.target.value as "wave" | "particle")}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="wave">Wave (displacement)</option>
@@ -161,6 +162,7 @@ export default function SoundSimulation() {
         <select
           value={medium}
           onChange={(e) => setMedium(e.target.value as Medium)}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="gas">Gas (e.g. air)</option>

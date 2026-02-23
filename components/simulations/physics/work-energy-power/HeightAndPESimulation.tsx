@@ -102,7 +102,7 @@ export default function HeightAndPESimulation() {
       <SliderControl label="Height" value={height} min={0.5} max={10} step={0.5} unit="m" onChange={setHeight} color="amber" />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Planet</label>
-        <select value={planet} onChange={(e) => setPlanet(e.target.value as "earth" | "moon")} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={planet} onChange={(e) => setPlanet(e.target.value as "earth" | "moon")}  aria-label="Toggle reflection insight"className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="earth">Earth</option>
           <option value="moon">Moon</option>
         </select>

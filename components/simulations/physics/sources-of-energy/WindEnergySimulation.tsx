@@ -130,6 +130,7 @@ export default function WindEnergySimulation() {
           step={0.5}
           value={wind}
           onChange={(e) => setWind(parseFloat(e.target.value))}
+          aria-label="Toggle reflection insight"
           className="w-full accent-cyan-400 cursor-pointer"
         />
         <div className="flex justify-between font-mono text-sm text-cyan-400 mt-2">
@@ -147,6 +148,7 @@ export default function WindEnergySimulation() {
           step={0.5}
           value={load}
           onChange={(e) => setLoad(parseFloat(e.target.value))}
+          aria-label="Toggle reflection insight"
           className="w-full accent-cyan-400 cursor-pointer"
         />
         <div className="flex justify-between font-mono text-sm text-cyan-400 mt-2">

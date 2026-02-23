@@ -594,6 +594,8 @@ export default function ReflectionOfLightSimulation() {
             step={0.5}
             value={angle}
             onChange={(e) => setAngle(parseFloat(e.target.value))}
+              aria-label="Toggle reflection insight"
+
             className="reflection-slider h-1.5 w-full cursor-pointer appearance-none rounded"
             style={{ ["--p" as string]: `${(angle / 85) * 100}%` }}
           />
@@ -646,7 +648,8 @@ export default function ReflectionOfLightSimulation() {
                 {label}
               </div>
               <label className="relative inline-block h-5 w-[38px] cursor-pointer">
-                <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} className="sr-only" />
+                <input type="checkbox" checked={checked}   aria-label="Toggle reflection insight"
+ onChange={(e) => set(e.target.checked)} className="sr-only" />
                 <span className={`block h-full rounded-full border transition ${checked ? "border-[#00d4ff] bg-[rgba(0,212,255,0.18)]" : "border-[rgba(0,210,255,0.12)] bg-white/[0.06]"}`}>
                   <span className={`absolute left-0.5 top-0.5 h-3.5 w-3.5 rounded-full transition ${checked ? "translate-x-[18px] bg-[#00d4ff] shadow-[0_0_8px_#00d4ff]" : "bg-[rgba(140,180,230,0.45)]"}`} />
                 </span>

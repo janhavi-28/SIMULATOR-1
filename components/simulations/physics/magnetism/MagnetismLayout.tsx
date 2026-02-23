@@ -304,6 +304,7 @@ export function MagnetismSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-label="Toggle reflection insight"
         className={`slider-track w-full h-2 rounded-full bg-slate-700 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:transition-shadow ${thumbRing}`}
       />
     </div>

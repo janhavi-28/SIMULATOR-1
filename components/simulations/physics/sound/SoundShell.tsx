@@ -124,6 +124,7 @@ export function SliderControl({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-label="Toggle reflection insight"
         className={`w-full h-2.5 rounded-full appearance-none bg-neutral-600 outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:ring-2 ${thumb}`}
       />
     </div>

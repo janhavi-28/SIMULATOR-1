@@ -273,6 +273,7 @@ export function SliderControl({
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
+          aria-label="Toggle reflection insight"
           className={`absolute inset-0 w-full h-full cursor-pointer appearance-none bg-transparent outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200 [&::-webkit-slider-thumb]:hover:scale-105 [&::-webkit-slider-runnable-track]:bg-transparent ${thumb}`}
         />
       </div>

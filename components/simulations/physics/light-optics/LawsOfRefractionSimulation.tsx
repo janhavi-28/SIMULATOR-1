@@ -644,9 +644,9 @@ export default function LawsOfRefractionSimulation() {
                     boxShadow: "inset 0 0 8px rgba(251,191,36,0.1)",
                   }}
                   aria-label="Angle of incidence in degrees"
-                  aria-valuemin={5}
-                  aria-valuemax={88}
-                  aria-valuenow={incidentAngleDeg}
+                  //aria-valuemin={5}
+                 // aria-valuemax={88}
+                  //aria-valuenow={incidentAngleDeg}
                 />
               </div>
             </div>
@@ -685,9 +685,9 @@ export default function LawsOfRefractionSimulation() {
                       boxShadow: "inset 0 0 6px rgba(34,211,238,0.08)",
                     }}
                     aria-label="Refractive index of medium 1"
-                    aria-valuemin={1}
-                    aria-valuemax={1.6}
-                    aria-valuenow={n1}
+                    //aria-valuemin={1}
+                    //aria-valuemax={1.6}
+                    //aria-valuenow={n1}
                   />
                 </div>
               </div>
@@ -721,9 +721,9 @@ export default function LawsOfRefractionSimulation() {
                       boxShadow: "inset 0 0 6px rgba(139,92,246,0.08)",
                     }}
                     aria-label="Refractive index of medium 2"
-                    aria-valuemin={1}
-                    aria-valuemax={1.6}
-                    aria-valuenow={n2}
+                    //aria-valuemin={1}
+                    //aria-valuemax={1.6}
+                    //aria-valuenow={n2}
                   />
                 </div>
               </div>

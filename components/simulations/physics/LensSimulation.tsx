@@ -209,19 +209,19 @@ export default function LensSimulation() {
         <div className="w-full sm:w-56 flex flex-col gap-3">
           <div>
             <label className="text-xs font-medium text-neutral-300">Lens</label>
-            <select value={lensType} onChange={(e) => setLensType(e.target.value as "convex" | "concave")} className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 text-neutral-200 text-sm px-2 py-1.5">
+            <select value={lensType} onChange={(e) => setLensType(e.target.value as "convex" | "concave")}  aria-label="Toggle reflection insight"className="mt-1 w-full rounded-lg border border-neutral-600 bg-neutral-800 text-neutral-200 text-sm px-2 py-1.5">
               <option value="convex">Convex (converging)</option>
               <option value="concave">Concave (diverging)</option>
             </select>
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-300">|u| object distance</label>
-            <input type="range" min={25} max={90} value={objectDist} onChange={(e) => setObjectDist(Number(e.target.value))} className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
+            <input type="range" min={25} max={90} value={objectDist} onChange={(e) => setObjectDist(Number(e.target.value))}  aria-label="Toggle reflection insight"className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
             <span className="text-xs text-cyan-300 tabular-nums">{objectDist}</span>
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-300">|f| focal length</label>
-            <input type="range" min={20} max={45} value={focalLength} onChange={(e) => setFocalLength(Number(e.target.value))} className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
+            <input type="range" min={20} max={45} value={focalLength} onChange={(e) => setFocalLength(Number(e.target.value))} aria-label="Toggle reflection insight" className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
             <span className="text-xs text-cyan-300 tabular-nums">{focalLength}</span>
           </div>
           <p className="text-[11px] text-neutral-400">1/v − 1/u = 1/f. Magnification m = v/u.</p>

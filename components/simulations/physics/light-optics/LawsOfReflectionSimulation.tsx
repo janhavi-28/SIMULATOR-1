@@ -420,6 +420,7 @@ export default function LawsOfReflectionSimulation() {
                   step={1}
                   value={incidentAngleDeg}
                   onChange={(e) => setIncidentAngleDeg(Number(e.target.value))}
+                  
                   className="w-full h-2.5 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-amber-500/50 [&::-webkit-slider-thumb]:shadow-lg"
                   style={{
                     background: "linear-gradient(90deg, #facc15, #fb923c)",
@@ -428,9 +429,9 @@ export default function LawsOfReflectionSimulation() {
                     borderRadius: 5,
                   }}
                   aria-label="Angle of incidence in degrees"
-                  aria-valuemin={10}
-                  aria-valuemax={80}
-                  aria-valuenow={incidentAngleDeg}
+                  //aria-valuemin={10}
+                  //aria-valuemax={80}
+                  //aria-valuenow={incidentAngleDeg}
                 />
                 <span className="absolute -top-0.5 left-0 right-0 text-center text-sm font-mono text-amber-300/95">
                   {incidentAngleDeg}°
@@ -484,9 +485,11 @@ export default function LawsOfReflectionSimulation() {
         <button
           type="button"
           onClick={() => setInsightOpen((o) => !o)}
+        
           className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500/50"
           aria-expanded={insightOpen}
           aria-controls="reflection-insight-content"
+          aria-label="Toggle reflection insight"
         >
           <span className="text-base font-semibold text-white">Why does reflection obey i = r?</span>
           <span className="text-neutral-400 text-sm" aria-hidden>{insightOpen ? "−" : "+"}</span>
@@ -513,6 +516,7 @@ export default function LawsOfReflectionSimulation() {
           aria-selected={activeTab === "concept" ? "true" : "false"}
           role="tab"
           aria-controls="reflection-panel-concept"
+          aria-label="Toggle reflection insight"
           id="reflection-tab-concept"
         >
           Concept

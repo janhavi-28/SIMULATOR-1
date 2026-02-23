@@ -93,7 +93,7 @@ export default function SpeedOfSoundSimulation() {
       <h3 className="text-sm font-semibold text-neutral-200 uppercase tracking-wider">Parameters</h3>
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-300">Medium</label>
-        <select value={medium} onChange={(e) => setMedium(e.target.value as Medium)} className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
+        <select value={medium} onChange={(e) => setMedium(e.target.value as Medium)}aria-label="Toggle reflection insight" className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200">
           <option value="air">Air</option>
           <option value="water">Water</option>
           <option value="steel">Steel</option>

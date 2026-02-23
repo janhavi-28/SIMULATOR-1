@@ -76,6 +76,7 @@ function ParamRow({
           step={step}
           value={value}
           onChange={(e) => { onChange(Number(e.target.value)); setInputStr(e.target.value); }}
+          aria-label="Toggle reflection insight"
           className="flex-1 h-2 rounded-full bg-slate-700 accent-slate-400"
         />
         <input
@@ -84,6 +85,7 @@ function ParamRow({
           onChange={(e) => setInputStr(e.target.value)}
           onBlur={apply}
           onKeyDown={(e) => e.key === "Enter" && apply()}
+          aria-label="Toggle reflection insight"
           className="w-14 rounded border border-slate-600 bg-slate-800 px-2 py-1 text-right text-xs font-mono text-slate-200"
         />
       </div>

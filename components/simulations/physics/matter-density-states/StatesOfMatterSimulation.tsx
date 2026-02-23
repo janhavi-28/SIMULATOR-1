@@ -217,6 +217,7 @@ export default function StatesOfMatterSimulation() {
         <select
           value={phase}
           onChange={(e) => setPhase(e.target.value as Phase)}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="solid">Solid</option>

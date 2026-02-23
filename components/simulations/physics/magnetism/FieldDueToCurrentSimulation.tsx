@@ -382,6 +382,7 @@ export default function FieldDueToCurrentSimulation() {
         <select
           value={direction}
           onChange={(e) => setDirection(e.target.value as "up" | "down")}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="up">Up (thumb ↑)</option>

@@ -203,6 +203,7 @@ export default function PlaneMirrorSimulation() {
             max={70}
             value={incidentAngleDeg}
             onChange={(e) => setIncidentAngleDeg(Number(e.target.value))}
+            aria-label="Toggle reflection insight"
             className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
           />
           <span className="text-xs text-cyan-300 tabular-nums">{incidentAngleDeg}°</span>

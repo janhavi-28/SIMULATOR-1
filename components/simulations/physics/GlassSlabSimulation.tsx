@@ -179,12 +179,12 @@ export default function GlassSlabSimulation() {
         <div className="w-full sm:w-56 flex flex-col gap-3">
           <div>
             <label className="text-xs font-medium text-neutral-300">Incident angle</label>
-            <input type="range" min={15} max={65} value={incidentAngleDeg} onChange={(e) => setIncidentAngleDeg(Number(e.target.value))} className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
+            <input type="range" min={15} max={65} value={incidentAngleDeg} onChange={(e) => setIncidentAngleDeg(Number(e.target.value))}aria-label="Toggle reflection insight" className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
             <span className="text-xs text-cyan-300 tabular-nums">{incidentAngleDeg}°</span>
           </div>
           <div>
             <label className="text-xs font-medium text-neutral-300">Refractive index n</label>
-            <input type="range" min={1.2} max={1.8} step={0.05} value={nGlass} onChange={(e) => setNGlass(Number(e.target.value))} className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
+            <input type="range" min={1.2} max={1.8} step={0.05} value={nGlass} onChange={(e) => setNGlass(Number(e.target.value))}aria-label="Toggle reflection insight" className="w-full h-2 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400" />
             <span className="text-xs text-cyan-300 tabular-nums">{nGlass.toFixed(2)}</span>
           </div>
           <p className="text-[11px] text-neutral-400">Emergent ray is parallel to incident. Lateral shift shown in yellow.</p>

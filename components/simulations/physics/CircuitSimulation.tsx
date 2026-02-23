@@ -523,7 +523,9 @@ export default function CircuitSimulation() {
             <label className="text-xs font-medium text-neutral-300">Circuit mode</label>
             <select
               value={circuitMode}
+
               onChange={(e) => setCircuitMode(e.target.value as CircuitMode)}
+              aria-label="Toggle reflection insight"
               className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
             >
               <option value="simple">Simple loop</option>
@@ -541,6 +543,7 @@ export default function CircuitSimulation() {
                 min={1}
                 max={24}
                 value={voltage}
+                aria-label="Toggle reflection insight"
                 onChange={(e) => handleVoltageChange(Number(e.target.value))}
                 className="flex-1 h-2.5 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-400"
               />
@@ -560,6 +563,7 @@ export default function CircuitSimulation() {
                   max={100}
                   value={resistance}
                   onChange={(e) => handleResistanceChange(Number(e.target.value))}
+                  aria-label="Toggle reflection insight"
                   className="flex-1 h-2.5 rounded-full appearance-none bg-neutral-600 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-orange-400"
                 />
                 <span className="text-[10px] text-neutral-500 w-7 text-right">100</span>
@@ -577,6 +581,7 @@ export default function CircuitSimulation() {
                   max={100}
                   value={resistance1}
                   onChange={(e) => handleR1Change(Number(e.target.value))}
+                  aria-label="Toggle reflection insight"
                   className="w-full h-2 rounded-full bg-neutral-600 [&::-webkit-slider-thumb]:bg-orange-400"
                 />
                 <div className="text-sm text-orange-300 font-mono">{resistance1} Ω</div>
@@ -589,6 +594,7 @@ export default function CircuitSimulation() {
                   max={100}
                   value={resistance2}
                   onChange={(e) => handleR2Change(Number(e.target.value))}
+                  aria-label="Toggle reflection insight"
                   className="w-full h-2 rounded-full bg-neutral-600 [&::-webkit-slider-thumb]:bg-orange-400"
                 />
                 <div className="text-sm text-orange-300 font-mono">{resistance2} Ω</div>

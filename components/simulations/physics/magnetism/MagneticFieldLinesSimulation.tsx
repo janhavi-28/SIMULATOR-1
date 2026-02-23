@@ -351,6 +351,7 @@ export default function MagneticFieldLinesSimulation() {
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value as Mode)}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="single">Single magnet</option>
@@ -363,6 +364,7 @@ export default function MagneticFieldLinesSimulation() {
         <select
           value={viewMode}
           onChange={(e) => setViewMode(e.target.value as ViewMode)}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="field-lines">Field lines</option>

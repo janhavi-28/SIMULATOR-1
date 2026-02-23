@@ -181,9 +181,9 @@ const SliderRow: React.FC<SliderProps> = ({
           onChange={(e) => onChange(Number(e.target.value))}
           className="relative z-10 h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200"
           aria-label={`${label}: ${value} ${unit}`}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
+          //aria-valuemin={min}
+          //aria-valuemax={max}
+         // aria-valuenow={value}
           aria-valuetext={`${value} ${unit}`}
           style={{
             backgroundImage:

@@ -165,6 +165,7 @@ export default function ChangeOfStateSimulation() {
         <select
           value={substance}
           onChange={(e) => setSubstance(e.target.value as Substance)}
+          aria-label="Toggle reflection insight"
           className="w-full rounded-lg border border-neutral-600 bg-neutral-800 px-2.5 py-1.5 text-sm text-neutral-200"
         >
           <option value="water">Water</option>

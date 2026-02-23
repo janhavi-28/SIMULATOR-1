@@ -126,9 +126,9 @@ function ParameterSlider({
           onChange={(e) => onChange(Number(e.target.value))}
           className="h-3 w-full cursor-pointer appearance-none rounded-full bg-[#E5E7EB] accent-[#3B82F6] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:shadow"
           aria-label={`${label}: ${value} ${unit}`}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
+          //aria-valuemin={min}
+          //aria-valuemax={max}
+         // aria-valuenow={value}
           aria-valuetext={`${value} ${unit}`}
         />
         <span className="text-xs text-[#6B7280] tabular-nums">{fmt(max)}</span>

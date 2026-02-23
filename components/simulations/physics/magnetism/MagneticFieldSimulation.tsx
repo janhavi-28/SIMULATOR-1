@@ -312,6 +312,7 @@ export default function MagneticFieldSimulation() {
           <select
             value={viewMode}
             onChange={(e) => setViewMode(e.target.value as ViewMode)}
+            aria-label="Toggle reflection insight"
             className="w-full rounded-lg border border-slate-600 bg-slate-800/80 px-2.5 py-1.5 text-sm text-slate-200 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
           >
             <option value="vectors">Vectors + compass</option>
