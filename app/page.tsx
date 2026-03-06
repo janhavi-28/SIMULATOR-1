@@ -1,9 +1,5 @@
 import Link from "next/link";
-import {
-  highSchoolPhysicsSimulations,
-  seniorSecondaryPhysicsSimulations,
-  trendingTopicsPhysicsSimulations,
-} from "@/lib/data/simulations";
+import { landingPageSimulations } from "@/lib/data/simulations";
 import { SITE_URL } from "@/lib/seo";
 
 export const metadata = {
@@ -30,14 +26,6 @@ const colorClasses: Record<string, string> = {
   fuchsia: "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 group-hover:border-fuchsia-400 group-hover:bg-fuchsia-500/15",
 };
 
-const EXCLUDED_SENIOR_SLUGS = new Set([
-  "work-energy-theorem",
-  "newtons-second-law-force-acceleration-lab",
-]);
-
-const seniorSecondaryFiltered = seniorSecondaryPhysicsSimulations.filter(
-  (sim) => !EXCLUDED_SENIOR_SLUGS.has(sim.slug)
-);
 
 export default function HomePage() {
   return (
@@ -92,15 +80,14 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* High School Simulations */}
+        {/* Interactive Simulations (Trending Topics) */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-2xl font-bold text-white">High School Physics</h2>
-            <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-0.5 text-xs font-medium text-sky-300">Grades 9–10</span>
+            <h2 className="text-2xl font-bold text-white">Interactive Simulations</h2>
           </div>
-          <p className="text-neutral-400 mb-6">Foundational physics with interactive simulators for each chapter.</p>
+          <p className="text-neutral-400 mb-6">Try these demos. Understanding begins with seeing.</p>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {highSchoolPhysicsSimulations.map((sim) => (
+            {landingPageSimulations.map((sim) => (
               <Link
                 key={sim.slug}
                 href={sim.href}
@@ -116,53 +103,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Senior Secondary Simulations */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-2xl font-bold text-white">Senior Secondary Physics</h2>
-            <span className="rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-0.5 text-xs font-medium text-violet-300">Class 11–12</span>
-          </div>
-          <p className="text-neutral-400 mb-6">Syllabus-mapped simulations for Class 11 and 12 physics topics.</p>
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {seniorSecondaryFiltered.map((sim) => (
-              <Link
-                key={sim.slug}
-                href={sim.href}
-                className="group rounded-2xl border border-neutral-800 bg-neutral-900/80 p-6 transition hover:-translate-y-0.5 hover:border-neutral-600 hover:bg-neutral-900 text-left"
-              >
-                <div className="text-lg font-semibold text-white">{sim.title}</div>
-                <p className="mt-2 text-sm text-neutral-400 line-clamp-2">{sim.description}</p>
-                <span className={`mt-4 inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium ${colorClasses[sim.color]}`}>
-                  Live simulation · Open
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Trending Topics Simulations */}
-        <div className="mb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-2xl font-bold text-white">Trending Topics</h2>
-            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-0.5 text-xs font-medium text-emerald-300">Advanced</span>
-          </div>
-          <p className="text-neutral-400 mb-6">Quantum physics, relativity, black holes, and more — visual explainers for curious minds.</p>
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {trendingTopicsPhysicsSimulations.map((sim) => (
-              <Link
-                key={sim.slug}
-                href={sim.href}
-                className="group rounded-2xl border border-neutral-800 bg-neutral-900/80 p-6 transition hover:-translate-y-0.5 hover:border-neutral-600 hover:bg-neutral-900 text-left"
-              >
-                <div className="text-lg font-semibold text-white">{sim.title}</div>
-                <p className="mt-2 text-sm text-neutral-400 line-clamp-2">{sim.description}</p>
-                <span className={`mt-4 inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium ${colorClasses[sim.color]}`}>
-                  Live simulation · Open
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* FEATURES - Why Illustrate */}

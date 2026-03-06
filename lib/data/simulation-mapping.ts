@@ -11,6 +11,7 @@ export const SENIOR_SECONDARY_PHYSICS_SIMS = [
   "motion-in-a-plane",
   "projectile-motion",
   "velocity-time-position-time-graphs",
+  "relations-for-uniformly-accelerated-motion",
   "uniform-circular-motion",
   "resonance",
   "newtons-second-law-force-acceleration-lab",

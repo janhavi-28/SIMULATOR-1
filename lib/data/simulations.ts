@@ -40,7 +40,8 @@ export const seniorSecondaryPhysicsSimulations: SimulationLink[] = [
   },
   { slug: "projectile-motion", title: "Projectile Motion Simulator", description: "Visualize 2D projectile motion with adjustable speed, launch angle, height and gravity.", color: "amber", href: "/senior-secondary/physics/kinematics/projectile-motion" },
   { slug: "velocity-time-position-time-graphs", title: "Velocity–Time and Position–Time Graphs", description: "Interactive v–t and x–t graphs for kinematics.", color: "sky", href: "/senior-secondary/physics/kinematics/velocity-time-position-time-graphs" },
-  { slug: "resonance", title: "Resonance", description: "Drive a damped oscillator and see amplitude peak at resonance when f ≈ f₀.", color: "amber", href: "/senior-secondary/physics/oscillations-and-waves/resonance" },
+  { slug: "relations-for-uniformly-accelerated-motion", title: "Relations for Uniformly Accelerated Motion", description: "Explore v = u + at, s = ut + ½at² and v² = u² + 2as with an interactive 1D motion simulator.", color: "teal", href: "/senior-secondary/physics/kinematics/relations-for-uniformly-accelerated-motion" },
+  { slug: "resonance", title: "Resonance – Driven oscillator", description: "Drive an oscillator at its natural frequency and watch the amplitude soar. Adjust damping and force for dramatic effects.", color: "amber", href: "/senior-secondary/physics/oscillations-and-waves/resonance" },
   { slug: "work-energy-theorem", title: "The Work-Energy Theorem", description: "Explore how friction stops a sliding block. Adjust mass, initial velocity, and friction; see stopping distance and work done. Net Work = ΔKE.", color: "cyan", href: "/senior-secondary/physics/work-energy-and-power/work-energy-theorem" },
   { slug: "escape-velocity", title: "Escape Velocity", description: "Explore the escape velocity of celestial bodies. Adjust mass and radius to see how they affect escape velocity.", color: "violet", href: "/senior-secondary/physics/gravitation/escape-velocity" },
   { slug: "universal-law-of-gravitation", title: "Universal Law of Gravitation", description: "Explore Newton's law F = Gm₁m₂/r² with a live orbital simulator, auto-scaling trajectories, and force-dominance scale bars.", color: "sky", href: "/senior-secondary/physics/gravitation/universal-law-of-gravitation" },
@@ -72,5 +73,20 @@ export const highSchoolPhysicsSimulations: SimulationLink[] = [
 export const physicsSimulations: SimulationLink[] = [
   ...trendingTopicsPhysicsSimulations,
   ...seniorSecondaryPhysicsSimulations,
+];
+
+// Curated landing page list: all trending topics + selected senior secondary
+const LANDING_SENIOR_SLUGS = new Set([
+  "resonance",
+  "physical-world-and-units",
+  "projectile-motion",
+  "velocity-time-position-time-graphs",
+  "relations-for-uniformly-accelerated-motion",
+  "work-energy-theorem",
+]);
+
+export const landingPageSimulations: SimulationLink[] = [
+  ...trendingTopicsPhysicsSimulations,
+  ...seniorSecondaryPhysicsSimulations.filter((s) => LANDING_SENIOR_SLUGS.has(s.slug)),
 ];
 
