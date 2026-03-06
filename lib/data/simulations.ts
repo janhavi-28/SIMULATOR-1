@@ -55,6 +55,19 @@ export const seniorSecondaryPhysicsSimulations: SimulationLink[] = [
   { slug: "torque-and-rotational-dynamics", title: "Torque and Rotational Dynamics Simulation", description: "Explore torque and rotational dynamics with adjustable force, lever arm, and moment of inertia. See how these parameters affect angular acceleration.", color: "violet", href: "/senior-secondary/physics/motion-of-system-of-particles-and-rigid-body/torque-and-rotational-dynamics" },
 ];
 
+// High School sims → high-school physics chapters
+export const highSchoolPhysicsSimulations: SimulationLink[] = [
+  { slug: "hs-motion", title: "Motion & Mechanics", description: "Kinematics, force, Newton's laws, inertia, and momentum with an interactive speed–time simulator.", color: "cyan", href: "/high-school/physics/motion" },
+  { slug: "hs-electricity", title: "Electricity", description: "Build intuition for charge, current, voltage, resistance, and basic circuit behaviour. Interactive DC circuit simulator.", color: "sky", href: "/high-school/physics/electricity" },
+  { slug: "hs-gravitation-fluids", title: "Gravitation & Fluids", description: "Explore gravity, pressure, buoyancy, and Archimedes' principle through visual simulations.", color: "teal", href: "/high-school/physics/gravitation-fluids" },
+  { slug: "hs-magnetism", title: "Magnetism", description: "Understand magnetic fields, electromagnetic effects, and generator concepts interactively.", color: "violet", href: "/high-school/physics/magnetism" },
+  { slug: "hs-light", title: "Light & Optics", description: "Reflection, refraction, lenses, and optics concepts with interactive chapter content.", color: "amber", href: "/high-school/physics/light" },
+  { slug: "hs-sound", title: "Sound", description: "Wave properties, pitch, wavelength, and reflection of sound with guided simulators.", color: "emerald", href: "/high-school/physics/sound" },
+  { slug: "hs-work-energy-power", title: "Work, Energy & Power", description: "Energy transfer, conservation, and power in everyday and lab-style scenarios.", color: "indigo", href: "/high-school/physics/work-energy-power" },
+  { slug: "hs-matter-density-states", title: "Matter, Density & States", description: "Particle-level understanding of states of matter, density, and related properties.", color: "fuchsia", href: "/high-school/physics/matter-density-states" },
+  { slug: "hs-sources-of-energy", title: "Sources of Energy", description: "Renewable and non-renewable energy sources with process-focused visual explainers.", color: "sky", href: "/high-school/physics/sources-of-energy" },
+];
+
 // Combined for landing page (trending first, then senior secondary)
 export const physicsSimulations: SimulationLink[] = [
   ...trendingTopicsPhysicsSimulations,
