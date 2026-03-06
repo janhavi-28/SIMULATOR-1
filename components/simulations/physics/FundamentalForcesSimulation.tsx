@@ -38,6 +38,48 @@ const FORCES = [
   { id: 'gravity', name: 'Gravitational', color: '#a855f7', textColor: 'text-purple-600' }
 ];
 
+function SliderRow({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
+  color = "#38bdf8",
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string | React.ReactNode;
+  onChange: (v: number) => void;
+  color?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">{label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {unit}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor: color }}
+        aria-label={label}
+      />
+    </div>
+  );
+}
+
 export default function FundamentalForcesSimulation() {
   // --- State ---
   const [scale, setScale] = useState<number>(-10);
@@ -140,10 +182,10 @@ export default function FundamentalForcesSimulation() {
 
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
     // 1. Clear & Background Grid
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#0a0f1e';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     for (let x = 0; x < ctx.canvas.width; x += 30) { ctx.moveTo(x, 0); ctx.lineTo(x, ctx.canvas.height); }
@@ -174,7 +216,7 @@ export default function FundamentalForcesSimulation() {
       // Draw Orbit Path
       if (p.orbitRadius && p.type !== 'quark') {
         ctx.setLineDash([5, 5]);
-        ctx.strokeStyle = '#cbd5e1';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
         ctx.beginPath();
         ctx.ellipse(cx, cy, p.orbitRadius, p.orbitRadius * 0.7, 0, 0, Math.PI * 2);
         ctx.stroke();
@@ -255,183 +297,164 @@ export default function FundamentalForcesSimulation() {
   }, [animate]);
 
   return (
-    <div className="flex flex-col w-full h-full bg-[#f1f5f9] p-6 font-sans antialiased text-slate-800">
-      {/* Header */}
-      <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Fundamental Forces of Nature Simulator</h1>
-      </div>
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      {/* Main Grid: Top Section (Canvas + Controls) */}
-      <div className="grid grid-cols-12 gap-6 h-[500px] mb-6">
-        {/* Left: Simulation Canvas (8 columns) */}
-        <div className="col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-          <canvas ref={canvasRef} className="w-full h-full" />
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-          {/* Top-Left Badge */}
-          <div className="absolute top-4 left-4 bg-white/80 backdrop-blur border border-slate-100 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
-            <Atom className="text-blue-500" size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dominant:</span>
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-tighter">{currentZone}</span>
-          </div>
+          {/* Top Row: Simulation Canvas (2 columns) */}
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="text-sm text-neutral-400 flex items-center gap-4">
+                <span>Fundamental Forces Simulation</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${!isPlaying ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isPlaying ? "⏸ Pause" : "▶ Play"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setScale(-10); setSpeed(1); setShowVectors(true); }}
+                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                >
+                  ↺ Reset
+                </button>
+              </div>
+            </div>
 
-          {/* Bottom-Left Panel (Force Strengths) */}
-          <div className="absolute bottom-4 left-4 w-64 bg-white/95 border border-slate-100 p-4 rounded-2xl shadow-lg">
-            <h3 className="text-xs font-bold text-slate-600 mb-4 px-1">Force Strength (Relative)</h3>
-            <div className="space-y-3">
-              {[
-                { label: 'Strong Nuclear', val: forceWeights.strong, color: 'bg-red-500' },
-                { label: 'Electromagnetic', val: forceWeights.em, color: 'bg-blue-500' },
-                { label: 'Weak Nuclear', val: forceWeights.weak, color: 'bg-green-500' },
-                { label: 'Gravitational', val: forceWeights.gravity, color: 'bg-purple-500' },
-              ].map(f => (
-                <div key={f.label} className="flex items-center gap-3">
-                  <div className="w-full h-7 bg-slate-100 rounded-lg overflow-hidden relative">
-                    <div className={`h-full ${f.color} transition-all duration-500 ease-out`} style={{ width: `${f.val}%` }} />
-                    <div className="absolute inset-0 flex justify-between items-center px-3">
-                      <span className="text-[9px] font-bold text-white drop-shadow-sm">{f.label}</span>
-                      <span className="text-[9px] font-mono text-slate-400">{f.val.toFixed(0)}%</span>
+            <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#0A0F1E] aspect-video group">
+              <canvas ref={canvasRef} className="w-full h-full block object-cover" />
+
+              {/* Top-Left Badge */}
+              <div className="absolute top-4 left-4 bg-neutral-900/80 backdrop-blur border border-neutral-700 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+                <Atom className="text-cyan-400" size={16} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Dominant:</span>
+                <span className="text-xs font-bold text-cyan-400 uppercase tracking-tighter">{currentZone}</span>
+              </div>
+
+              {/* Bottom-Left Panel (Force Strengths) */}
+              <div className="absolute bottom-4 left-4 w-64 bg-neutral-950/90 border border-neutral-800 p-4 rounded-2xl shadow-lg">
+                <h3 className="text-xs font-bold text-neutral-400 mb-4 px-1">Force Strength (Relative)</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Strong Nuclear', val: forceWeights.strong, from: 'from-red-500/50', to: 'to-red-500' },
+                    { label: 'Electromagnetic', val: forceWeights.em, from: 'from-blue-500/50', to: 'to-blue-500' },
+                    { label: 'Weak Nuclear', val: forceWeights.weak, from: 'from-green-500/50', to: 'to-green-500' },
+                    { label: 'Gravitational', val: forceWeights.gravity, from: 'from-purple-500/50', to: 'to-purple-500' },
+                  ].map(f => (
+                    <div key={f.label} className="w-full h-7 bg-neutral-900 rounded-lg overflow-hidden relative border border-neutral-800">
+                      <div className={`h-full bg-gradient-to-r ${f.from} ${f.to} transition-all duration-500 ease-out`} style={{ width: `${f.val}%` }} />
+                      <div className="absolute inset-0 flex justify-between items-center px-3">
+                        <span className="text-[9px] font-bold text-white drop-shadow-sm">{f.label}</span>
+                        <span className="text-[9px] font-mono text-neutral-300">{f.val.toFixed(0)}%</span>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Controls Panel (4 columns) */}
-        <div className="col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="bg-gradient-to-r from-[#0ea5e9] to-[#06b6d4] px-6 py-4">
-            <h2 className="text-white font-bold flex items-center gap-2">
-              <Settings size={18} /> Controls
-            </h2>
-          </div>
-
-          <div className="p-6 flex-1 flex flex-col gap-6">
-            {/* Scale Slider */}
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-              <div className="flex justify-between mb-3">
-                <span className="text-xs font-bold text-slate-700">Universal Scale (Zoom)</span>
-                <span className="text-xs font-mono text-slate-400 px-2 py-0.5 bg-white border border-slate-200 rounded">10<sup>{scale.toFixed(0)}</sup> m</span>
-              </div>
-              <input
-                type="range" min="-18" max="15" step="0.1" value={scale}
-                onChange={(e) => setScale(parseFloat(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                title="Universal Scale (Zoom)"
-              />
-              <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-400">
-                <span>Nuclear</span>
-                <span>Atomic</span>
-                <span>Planetary</span>
               </div>
             </div>
+          </div>
 
-            {/* Speed Slider */}
+          {/* Controls Panel (1 column) */}
+          <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
             <div>
-              <label className="text-xs font-bold text-slate-500 mb-2 block">Simulation Speed</label>
-              <input
-                type="range" min="0" max="3" step="0.1" value={speed}
-                onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-400"
-                title="Simulation Speed"
-              />
+              <h3 className="mb-4 text-lg font-semibold text-white">Controls</h3>
+              <div className="flex flex-col gap-5">
+                <SliderRow
+                  label="🔭 Universal Scale (Zoom)"
+                  value={scale} min={-18} max={15} step={0.1}
+                  unit={<span>10<sup className="ml-0.5">{scale.toFixed(0)}</sup> m</span>}
+                  color="#38bdf8"
+                  onChange={(v) => setScale(v)}
+                />
+
+                <div className="flex justify-between text-[10px] font-bold text-neutral-500 px-2 mt-[-10px]">
+                  <span>Nuclear</span>
+                  <span>Atomic</span>
+                  <span>Planetary</span>
+                </div>
+
+                <SliderRow
+                  label="⏱ Simulation Speed"
+                  value={speed} min={0} max={3} step={0.1}
+                  unit={`${speed.toFixed(1)}x`}
+                  color="#a855f7"
+                  onChange={(v) => setSpeed(v)}
+                />
+
+                <div className="flex items-center justify-between rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 shadow-sm">
+                  <span className="text-sm font-medium text-neutral-200">Show Force Vectors</span>
+                  <button
+                    onClick={() => setShowVectors(!showVectors)}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${showVectors ? 'bg-cyan-500' : 'bg-neutral-600'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${showVectors ? 'left-1 translate-x-6' : 'left-1'}`} />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Toggles */}
-            <div className="flex items-center justify-between py-2">
-              <span className="text-xs font-bold text-slate-700">Show Force Vectors</span>
-              <button
-                onClick={() => setShowVectors(!showVectors)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${showVectors ? 'bg-blue-500' : 'bg-slate-300'}`}
-              >
-                <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${showVectors ? 'translate-x-6' : ''}`} />
-              </button>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-2 pb-2 border-b border-neutral-800">
+                <LineChart className="text-cyan-400" size={16} />
+                <h3 className="text-sm font-bold text-white">Live Data</h3>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold text-neutral-500 uppercase">Scale:</span>
+                <span className="font-mono text-cyan-400 font-bold">10<sup className="ml-0.5">{scale.toFixed(0)}</sup> m</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold text-neutral-500 uppercase">Relative Strength:</span>
+                <span className="font-mono text-purple-400 font-bold">{activeMetadata.strength}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold text-neutral-500 uppercase">Force Range:</span>
+                <span className="font-mono text-emerald-400 font-bold">{activeMetadata.range}</span>
+              </div>
             </div>
 
-            {/* Play/Pause Buttons */}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setIsPlaying(!isPlaying)}
-                aria-label={isPlaying ? 'Pause simulation' : 'Play simulation'}
-                title={isPlaying ? 'Pause simulation' : 'Play simulation'}
-                className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
-              >
-                {isPlaying ? <Pause size={20} className="text-slate-700" fill="currentColor" /> : <Play size={20} className="text-slate-700" fill="currentColor" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsPlaying(!isPlaying)}
-                aria-label={isPlaying ? 'Pause simulation' : 'Play simulation'}
-                title={isPlaying ? 'Pause simulation' : 'Play simulation'}
-                className="flex-1 bg-slate-100 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 hover:bg-slate-200 transition-colors"
-              >
-                Play/Pause
-              </button>
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
+              <div className="flex items-center gap-2 font-bold text-amber-400 mb-2">
+                <Lightbulb size={16} /> Try This!
+              </div>
+              <p className="text-amber-100/80 text-xs leading-relaxed">
+                Drag the zoom slider from Nuclear to Planetary scales. Watch how vectors flip from subatomic bonds to gravitational pulls, and note the strength changes!
+              </p>
             </div>
-
-            {/* Reset Button */}
-            <button
-              onClick={() => { setScale(-10); setSpeed(1); setShowVectors(true); }}
-              className="w-full py-4 bg-[#0e7490] text-white font-bold rounded-xl shadow-inner hover:bg-[#0891b2] transition-colors"
-            >
-              Reset to Default
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section: Info Cards (Three columns) */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* 1. Scale Info */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            {activeMetadata.icon}
-            <h3 className="text-lg font-bold text-slate-900">{activeMetadata.title}</h3>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed min-h-[40px] mb-4">
-            {activeMetadata.desc}
-          </p>
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-center italic text-sm font-serif text-slate-800">
-            {currentZone === 'atomic' && <span>F = k (q<sub>1</sub>q<sub>2</sub>) / r²</span>}
-            {currentZone === 'nuclear' && <span>F<sub>s</sub> ∝ e<sup>-r</sup> / r²</span>}
-            {currentZone === 'planetary' && <span>F = G (m<sub>1</sub>m<sub>2</sub>) / r²</span>}
+          </aside>
           </div>
         </div>
 
-        {/* 2. Live Physics Data */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <LineChart className="text-blue-500" size={24} />
-            <h3 className="text-lg font-bold text-slate-900">Live Physics Data</h3>
-          </div>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-slate-400 uppercase tracking-widest">Current Scale:</span>
-              <span className="font-mono text-slate-900 font-bold">10<sup>{scale.toFixed(0)}</sup> m</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-slate-400 uppercase tracking-widest">Relative Strength:</span>
-              <span className="font-mono text-slate-900 font-bold">{activeMetadata.strength}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-slate-400 uppercase tracking-widest">Force Range:</span>
-              <span className="font-mono text-slate-900 font-bold">{activeMetadata.range}</span>
-            </div>
-          </div>
-        </div>
+          {/* Bottom Row: Info Panel */}
+          <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  {activeMetadata.icon}
+                  <h3 className="text-lg font-bold text-white">{activeMetadata.title}</h3>
+                </div>
+                <p className="text-sm text-neutral-300 leading-relaxed mb-4">
+                  {activeMetadata.desc}
+                </p>
+              </div>
 
-        {/* 3. Try This! */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <Lightbulb className="text-yellow-500" size={24} />
-            <h3 className="text-lg font-bold text-slate-900">Try This!</h3>
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5 h-full flex flex-col justify-center items-center">
+                <h4 className="text-sm font-bold text-purple-400 mb-4 w-full text-left">📐 EQUATION</h4>
+                <div className="p-4 bg-neutral-950 rounded-xl border border-neutral-800 italic text-sm font-serif text-neutral-300 w-full text-center">
+                  {currentZone === 'atomic' && <span>F = k (q<sub>1</sub>q<sub>2</sub>) / r²</span>}
+                  {currentZone === 'nuclear' && <span>F<sub>s</sub> ∝ e<sup>-r</sup> / r²</span>}
+                  {currentZone === 'planetary' && <span>F = G (m<sub>1</sub>m<sub>2</sub>) / r²</span>}
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Drag the slider from Nuclear to Planetary scales. Watch how vectors flip from subatomic bonds to gravitational pulls, and note the strength changes!
-          </p>
-        </div>
-      </div>
-    </div>
+        </section>
+    </main>
   );
 }

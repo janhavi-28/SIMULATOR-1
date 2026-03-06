@@ -254,6 +254,7 @@ const SliderRow: React.FC<SliderRowProps> = ({
 
 export default function MotionInAStraightLineSimulation() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [playing, setPlaying] = useState(true);
   const [scalePower, setScalePower] = useState(SCALE_DEFAULT);
   const [smoothScalePower, setSmoothScalePower] = useState(SCALE_DEFAULT);
   const [scaleHistory, setScaleHistory] = useState<ParameterRecord[]>([]);
@@ -664,6 +665,13 @@ export default function MotionInAStraightLineSimulation() {
             💡 Pro Tip: Set scale to -15 (nuclear) for strong/weak dominance;
             -10 (atomic) for EM; +6 for gravity! ✨
           </p>
+                <button
+                  type="button"
+                  onClick={() => setPlaying(p => !p)}
+                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20"
+                >
+                  {playing ? "⏸ Pause" : "▶ Play"}
+                </button>
 
           <button
             type="button"
@@ -671,8 +679,7 @@ export default function MotionInAStraightLineSimulation() {
             className="mt-2 flex items-center justify-center gap-2 rounded-xl border-0 bg-[#3B82F6] py-2.5 text-sm font-medium text-white transition hover:bg-[#2563EB] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shrink-0"
             aria-label="Reset to default parameters"
           >
-            <span aria-hidden>↺</span> Reset to Default
-          </button>
+            <span aria-hidden>↺</span>↺ Reset</button>
         </div>
       </div>
 

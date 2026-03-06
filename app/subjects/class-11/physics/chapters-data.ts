@@ -1,39 +1,43 @@
 export const physicsChapters = [
   {
     id: "physical-world-and-measurement",
-    title: "Chapter 1: Physical World and Measurement",
+    title: "Chapter : Physical World and Measurement",
   },
   {
     id: "kinematics",
-    title: "Chapter 2: Kinematics",
+    title: "Chapter : Kinematics",
   },
   {
     id: "laws-of-motion",
-    title: "Chapter 3: Laws of Motion",
+    title: "Chapter : Laws of Motion",
   },
   {
     id: "work-energy-and-power",
-    title: "Chapter 4: Work, Energy and Power",
+    title: "Chapter : Work, Energy and Power",
   },
   {
     id: "motion-of-system-of-particles-and-rigid-body",
-    title: "Chapter 5: Motion of System of Particles and Rigid Body",
+    title: "Chapter : Motion of System of Particles and Rigid Body",
+  },
+  {
+  id: "gravitation",
+  title: "Chapter : Gravitation",
   },
   {
     id: "thermodynamics",
-    title: "Chapter 6: Thermodynamics",
+    title: "Chapter : Thermodynamics",
   },
   {
     id: "kinetic-theory-and-gases",
-    title: "Chapter 7: Kinetic Theory and Gases",
+    title: "Chapter : Kinetic Theory and Gases",
   },
   {
     id: "oscillations-and-waves",
-    title: "Chapter 8: Oscillations and Waves",
+    title: "Chapter : Oscillations and Waves",
   },
   {
     id: "experimental-skills",
-    title: "Chapter 9: Experimental Skills",
+    title: "Chapter : Experimental Skills",
   },
 ];
 

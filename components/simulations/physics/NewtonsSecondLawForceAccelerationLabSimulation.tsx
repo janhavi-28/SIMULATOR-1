@@ -9,39 +9,33 @@ import Image from "next/image";
  */
 export default function NewtonsSecondLawForceAccelerationLabSimulation() {
   return (
-    <div className="min-h-[100vh] bg-[#F1F5F9]">
-      {/* Single main title */}
-      <div className="bg-white border-b border-[#E2E8F0] px-6 py-5">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
-            Newton&apos;s Second Law: Force &amp; Acceleration Lab
-          </h1>
-        </div>
-      </div>
-
-      {/* Two-column main section: full-height left (image), right (explanations) */}
+    <div className="w-full">
+      {/* Two square cards: text (left, scrollable) + diagram (right) */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 lg:items-stretch lg:min-h-[520px]">
-          {/* Left column: full-height; image vertically centered, no large gaps */}
-          <div className="flex items-center justify-center min-h-[320px] lg:min-h-0 lg:h-full bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden p-4">
-            <div className="relative w-full h-full min-h-[280px] lg:min-h-[440px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left: compact square diagram card */}
+          <div className="aspect-square lg:order-2">
+            <div className="h-full rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
+              <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-[#E5E7EB] bg-[#F8FAFC]">
               <Image
                 src="/images/newtons-second-law-diagram.png"
                 alt="Newton's Second Law diagram: horizontal track, pulley, wooden block (m), hanging masses (M), with force arrows N, Wb, T, f on the block and T, Wh on the hanging masses"
                 fill
                 className="object-contain"
                 priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 1024px) 100vw, 320px"
               />
+              </div>
             </div>
           </div>
 
-          {/* Right column: force explanations in a grouped panel */}
-          <div className="bg-[#FAFAFA] rounded-xl border border-[#E5E7EB] p-6 shadow-sm lg:self-stretch flex flex-col">
+          {/* Right: wider text panel */}
+          <div className="aspect-square lg:order-1 bg-[#FAFAFA] rounded-xl border border-[#E5E7EB] p-6 shadow-sm overflow-hidden">
+            <div className="h-full overflow-y-auto pr-2">
             <h2 className="text-lg font-bold text-[#1d4ed8] border-b border-[#E5E7EB] pb-2 mb-4">
               Force Arrows and Labels
             </h2>
-            <div className="space-y-4 flex-1">
+            <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-[#c2410c]">Wooden Block (m)</h3>
                 <p className="text-[#475569] text-sm mt-1 leading-relaxed">
@@ -84,6 +78,7 @@ export default function NewtonsSecondLawForceAccelerationLabSimulation() {
                   For clarity, the weight of the hanging masses is labeled here as <strong>W<sub>h</sub></strong> (the diagram may show it as W<sub>b</sub>; that is a typo—we use W<sub>h</sub> to distinguish it from the block’s weight). This is the gravitational force on the hanging masses. <strong>Direction: downward.</strong> Magnitude <em>W<sub>h</sub> = M g</em>. This weight is the <strong>driving force</strong> of the system: it causes the string to pull the block and accelerates both the block and the hanging masses.
                 </p>
               </div>
+            </div>
             </div>
           </div>
         </div>

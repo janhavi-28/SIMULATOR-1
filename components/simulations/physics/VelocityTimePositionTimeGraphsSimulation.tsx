@@ -416,151 +416,69 @@ export default function VelocityTimePositionTimeGraphsSimulation() {
     <main className="min-h-screen bg-[#020617]">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Velocity–time and position–time graphs
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
-            Explore how initial velocity, acceleration, and initial position change the v–t and x–t graphs for uniformly accelerated motion in one dimension.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left column: simulator + bottom controls */}
-          <div className="w-full lg:w-[60%]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-neutral-400">
-                Cyan = velocity v(t), Green = position x(t). Drag time with play or sliders.
-              </div>
-              <div className="flex items-center gap-2">
+      <section className="mx-auto max-w-7xl px-6 py-6">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="mb-0 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-800 bg-neutral-950/50 px-4 py-3">
+                <div className="text-xs text-neutral-400">Cyan = velocity v(t), Green = position x(t).</div>
                 <button
                   type="button"
                   onClick={() => setPlaying((p) => !p)}
                   className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/20"
                 >
-                  {playing ? "Pause" : "Play"}
+                  {playing ? "\u23F8 Pause" : "\u25B6 Play"}
                 </button>
               </div>
+
+              <GraphsCanvas params={params} simTime={simTime} />
             </div>
 
-            <GraphsCanvas params={params} simTime={simTime} />
-
-            {/* Parameter controls — full width below left panel */}
-            <div className="mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Parameters</div>
-                  <div className="text-xs text-neutral-400">
-                    Change u, a, x₀ or time range; graphs update in real time.
+            <aside className="col-span-1 h-[580px] overflow-y-auto">
+              <div className="h-full rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-white">Parameters</div>
+                    <div className="text-xs text-neutral-400">Change u, a, x0 and time range.</div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
+                  >
+                    {"\u21BA Reset"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset
-                </button>
-              </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <SliderRow
-                  label="Initial velocity, u"
-                  value={params.u}
-                  min={-50}
-                  max={50}
-                  step={0.5}
-                  unit="m/s"
-                  onChange={(u) => setParams((p) => ({ ...p, u }))}
-                />
-                <SliderRow
-                  label="Acceleration, a"
-                  value={params.a}
-                  min={-15}
-                  max={15}
-                  step={0.25}
-                  unit="m/s²"
-                  onChange={(a) => setParams((p) => ({ ...p, a }))}
-                />
-                <SliderRow
-                  label="Initial position, x₀"
-                  value={params.x0}
-                  min={-50}
-                  max={50}
-                  step={0.5}
-                  unit="m"
-                  onChange={(x0) => setParams((p) => ({ ...p, x0 }))}
-                />
-                <SliderRow
-                  label="Time range, t_max"
-                  value={params.tMax}
-                  min={2}
-                  max={30}
-                  step={0.5}
-                  unit="s"
-                  onChange={(tMax) => setParams((p) => ({ ...p, tMax }))}
-                />
+                <div className="grid gap-3">
+                  <SliderRow label="Initial velocity u" value={params.u} min={-50} max={50} step={0.5} unit="m/s" onChange={(u) => setParams((p) => ({ ...p, u }))} />
+                  <SliderRow label="Acceleration a" value={params.a} min={-15} max={15} step={0.25} unit="m/s^2" onChange={(a) => setParams((p) => ({ ...p, a }))} />
+                  <SliderRow label="Initial position x0" value={params.x0} min={-50} max={50} step={0.5} unit="m" onChange={(x0) => setParams((p) => ({ ...p, x0 }))} />
+                  <SliderRow label="Time range tMax" value={params.tMax} min={2} max={30} step={0.5} unit="s" onChange={(tMax) => setParams((p) => ({ ...p, tMax }))} />
+                </div>
               </div>
+            </aside>
+          </div>
+        </div>
 
-              <div className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-400">
-                <span>
-                  <span className="font-semibold text-neutral-200">At t = {formatNum(simTime, 2)} s:</span>{" "}
-                  v = {formatNum(vNow, 2)} m/s, x = {formatNum(xNow, 2)} m
-                </span>
+        <div className="mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 text-neutral-300">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="text-sm font-semibold text-white">Concept</div>
+              <p className="mt-3 text-sm">With constant acceleration, velocity changes linearly with time and position follows a parabola.</p>
+            </div>
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="text-sm font-semibold text-white">Key formulas</div>
+              <div className="mt-3 space-y-2 text-sm font-mono text-neutral-200">
+                <div>v(t) = u + a t</div>
+                <div>x(t) = x0 + u t + 0.5 a t^2</div>
               </div>
+            </div>
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="text-sm font-semibold text-white">Live values</div>
+              <div className="mt-3 text-sm">At t = {formatNum(simTime, 2)} s: v = {formatNum(vNow, 2)} m/s, x = {formatNum(xNow, 2)} m</div>
             </div>
           </div>
-
-          {/* Right panel: information */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Velocity–time and position–time graphs
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                For motion with constant acceleration a and initial velocity u, velocity increases linearly with time and position follows a parabola. The v–t graph has slope a; the x–t graph has slope v(t).
-              </p>
-
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Key formulas
-                </div>
-                <div className="mt-3 space-y-2 text-sm font-mono text-neutral-200">
-                  <div><span className="text-cyan-300">v(t) = u + a t</span></div>
-                  <div><span className="text-emerald-300">x(t) = x₀ + u t + ½ a t²</span></div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Variables (SI units)
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">u</dt>
-                    <dd className="text-neutral-400">initial velocity (m/s)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">a</dt>
-                    <dd className="text-neutral-400">acceleration (m/s²)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">x₀</dt>
-                    <dd className="text-neutral-400">initial position (m)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">t</dt>
-                    <dd className="text-neutral-400">time (s)</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                The slope of the v–t graph equals acceleration; the area under v–t between 0 and t gives the displacement. The slope of the x–t graph at any instant is the velocity at that time.
-              </div>
-            </div>
-          </aside>
         </div>
       </section>
     </main>

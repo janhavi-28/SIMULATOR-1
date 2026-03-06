@@ -88,15 +88,6 @@ export default async function TrendingTopicsPhysicsTopicPage({ params }: PagePro
               ← Trending Topics Physics
             </a>
           </nav>
-          <header className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-white">{displayTitle}</h1>
-            <p className="mt-2 max-w-3xl text-sm text-neutral-400" role="doc-subtitle">
-              {meta.description}
-            </p>
-            <p className="mt-4 max-w-3xl text-base text-neutral-300">
-              Use the interactive simulation below to explore this physics concept. Adjust the controls to see how parameters affect the outcome. This educational tool helps students and learners visualize complex ideas through hands-on experimentation.
-            </p>
-          </header>
         </section>
         <PhysicsSimulationLoader topic={topic} />
       </article>

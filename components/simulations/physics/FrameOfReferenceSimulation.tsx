@@ -134,70 +134,57 @@ function interpolate(current: number, target: number, speed: number): number {
 
 // ─── Slider component ────────────────────────────────────────────────────────
 
-function ParameterSlider({
+function SliderRow({
   label,
   value,
   min,
   max,
   step,
   unit,
-  defaultValue,
   icon,
   dramaticRange,
   onChange,
-  onRecord,
-}: Omit<ParameterSliderSpec, "paramKey"> & {
+  color = "#38bdf8",
+}: Omit<ParameterSliderSpec, "paramKey" | "defaultValue"> & {
   onChange: (v: number) => void;
-  onRecord?: (v: number) => void;
+  color?: string;
 }) {
-  const id = label.replace(/\s+/g, "-").toLowerCase();
   return (
-    <div className="flex flex-col gap-1">
-      <label
-        htmlFor={id}
-        className="flex items-center gap-2 text-sm font-medium text-gray-900"
-      >
-        {icon && <span aria-hidden>{icon}</span>}
-        {label}
-      </label>
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">
+          {icon && <span>{icon}</span>}
+          {label}
+        </span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {formatNum(value, step < 1 ? 2 : 1)}
+          {unit ? ` ${unit}` : ""}
+        </span>
+      </div>
       <div className="relative">
-        <input
-          id={id}
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            onChange(v);
-            onRecord?.(v);
-          }}
-          className="h-3 w-full cursor-pointer appearance-none rounded-full border border-gray-200 bg-gray-200 align-middle [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:shadow-md"
-          style={{
-            background: `linear-gradient(to right, #3B82F6 0%, #60A5FA ${((value - min) / (max - min)) * 100}%, #E5E7EB ${((value - min) / (max - min)) * 100}%, #E5E7EB 100%)`,
-          }}
-          aria-label={`${label}: ${value} ${unit}`}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
-          aria-valuetext={`${value} ${unit}`}
-        />
         {dramaticRange && (
           <div
-            className="pointer-events-none absolute top-0 h-3 rounded-full bg-blue-400/20"
+            className="pointer-events-none absolute top-1.5 h-1.5 rounded-full bg-amber-500/30"
             style={{
               left: `${((dramaticRange[0] - min) / (max - min)) * 100}%`,
               width: `${((dramaticRange[1] - dramaticRange[0]) / (max - min)) * 100}%`,
             }}
           />
         )}
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="physics-range w-full"
+          style={{ accentColor: color }}
+          aria-label={label}
+        />
       </div>
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between text-[10px] text-neutral-600">
         <span>{min} {unit}</span>
-        <span className="tabular-nums font-semibold text-gray-900">
-          {formatNum(value, step < 1 ? 2 : 1)} {unit}
-        </span>
         <span>{max} {unit}</span>
       </div>
     </div>
@@ -355,18 +342,18 @@ function SimulationCanvas({
       py: cyPx - (y - originTrainY) * sTrain,
     });
 
-    const gridColor = "rgba(203, 213, 225, 0.6)";
-    const axisColor = "#475569";
-    const textColor = "#1e293b";
-    const primaryBlue = "#3B82F6";
-    const cyan = "#06B6D4";
-    const purple = "#8B5CF6";
+    const gridColor = "rgba(148, 163, 184, 0.2)";
+    const axisColor = "#64748B";
+    const textColor = "#CBD5E1";
+    const primaryBlue = "#38BDF8";
+    const cyan = "#22D3EE";
+    const purple = "#A78BFA";
 
     ctx.clearRect(0, 0, w, h);
     const bgGrad = ctx.createLinearGradient(0, 0, w, h);
-    bgGrad.addColorStop(0, "#E2E8F0");
-    bgGrad.addColorStop(0.5, "#F1F5F9");
-    bgGrad.addColorStop(1, "#FFFFFF");
+    bgGrad.addColorStop(0, "#0B1120");
+    bgGrad.addColorStop(0.5, "#0F172A");
+    bgGrad.addColorStop(1, "#1E293B");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
@@ -379,12 +366,12 @@ function SimulationCanvas({
       // ─── Train Frame (Observer inside train) ─────────────────────────────
       const groundYpxLeft = cyPx + originTrainY * sTrain;
 
-      ctx.fillStyle = "rgba(233, 213, 255, 0.35)";
+      ctx.fillStyle = "rgba(139, 92, 246, 0.1)";
       ctx.fillRect(pad, pad, plotW, plotH);
-      ctx.strokeStyle = "rgba(139, 92, 246, 0.4)";
+      ctx.strokeStyle = "rgba(139, 92, 246, 0.3)";
       ctx.lineWidth = 2;
       ctx.strokeRect(pad + 4, pad + 4, plotW - 8, plotH - 8);
-      ctx.fillStyle = "rgba(245, 243, 255, 0.9)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
       ctx.fillRect(pad, groundYpxLeft, plotW, pad + plotH - groundYpxLeft);
       ctx.strokeStyle = "rgba(100, 116, 139, 0.5)";
       ctx.lineWidth = 1;
@@ -410,39 +397,39 @@ function SimulationCanvas({
       ctx.strokeRect(cxPx - trainHalfLen * sTrain, groundYpxLeft - 6 * dpr, trainHalfLen * 2 * sTrain, 12 * dpr);
       drawObserver(ctx, cxPx, groundYpxLeft - 14 * dpr, dpr, "Thrower", purple);
 
-    if (trailPoints.length > 1) {
-      const n = trailPoints.length;
-      for (let i = 0; i < n - 1; i++) {
-        const a = i / (n - 1);
-        const { px: p0x, py: p0y } = toPxTrain(trailPoints[i].xT, trailPoints[i].yT);
-        const { px: p1x, py: p1y } = toPxTrain(trailPoints[i + 1].xT, trailPoints[i + 1].yT);
-        const grad = ctx.createLinearGradient(p0x, p0y, p1x, p1y);
-        grad.addColorStop(0, `rgba(139, 92, 246, ${0.3 + 0.7 * (1 - a)})`);
-        grad.addColorStop(1, `rgba(196, 181, 253, ${0.5 * (1 - a)})`);
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 4;
+      if (trailPoints.length > 1) {
+        const n = trailPoints.length;
+        for (let i = 0; i < n - 1; i++) {
+          const a = i / (n - 1);
+          const { px: p0x, py: p0y } = toPxTrain(trailPoints[i].xT, trailPoints[i].yT);
+          const { px: p1x, py: p1y } = toPxTrain(trailPoints[i + 1].xT, trailPoints[i + 1].yT);
+          const grad = ctx.createLinearGradient(p0x, p0y, p1x, p1y);
+          grad.addColorStop(0, `rgba(139, 92, 246, ${0.3 + 0.7 * (1 - a)})`);
+          grad.addColorStop(1, `rgba(196, 181, 253, ${0.5 * (1 - a)})`);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(p0x, p0y);
+          ctx.lineTo(p1x, p1y);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = purple;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(p0x, p0y);
-        ctx.lineTo(p1x, p1y);
+        const { px: fx, py: fy } = toPxTrain(trailPoints[0].xT, trailPoints[0].yT);
+        ctx.moveTo(fx, fy);
+        for (let i = 1; i < trailPoints.length; i++) {
+          const { px, py } = toPxTrain(trailPoints[i].xT, trailPoints[i].yT);
+          ctx.lineTo(px, py);
+        }
         ctx.stroke();
+        const midIdxT = Math.floor(trailPoints.length / 2);
+        const midPT = toPxTrain(trailPoints[midIdxT].xT, trailPoints[midIdxT].yT);
+        ctx.fillStyle = "#5b21b6";
+        ctx.font = `600 ${11 * dpr}px system-ui, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText("Ball path: straight up & down", cxPx, midPT.py - 18);
       }
-      ctx.strokeStyle = purple;
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      const { px: fx, py: fy } = toPxTrain(trailPoints[0].xT, trailPoints[0].yT);
-      ctx.moveTo(fx, fy);
-      for (let i = 1; i < trailPoints.length; i++) {
-        const { px, py } = toPxTrain(trailPoints[i].xT, trailPoints[i].yT);
-        ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-      const midIdxT = Math.floor(trailPoints.length / 2);
-      const midPT = toPxTrain(trailPoints[midIdxT].xT, trailPoints[midIdxT].yT);
-      ctx.fillStyle = "#5b21b6";
-      ctx.font = `600 ${11 * dpr}px system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.fillText("Ball path: straight up & down", cxPx, midPT.py - 18);
-    }
 
       const trainPos = getTrainFramePosition(smoothParams, t);
       const ballPT = toPxTrain(trainPos.x, trainPos.y);
@@ -481,9 +468,9 @@ function SimulationCanvas({
       const leftYMax = originGroundY + halfExtentGroundY;
       const groundYpxRight = cyPx + originGroundY * sGround;
 
-      ctx.fillStyle = "rgba(191, 219, 254, 0.2)";
+      ctx.fillStyle = "rgba(56, 189, 248, 0.08)";
       ctx.fillRect(pad, pad, plotW, plotH);
-      ctx.fillStyle = "rgba(148, 163, 184, 0.25)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
       ctx.fillRect(pad, groundYpxRight, plotW, pad + plotH - groundYpxRight);
       ctx.strokeStyle = "rgba(100, 116, 139, 0.5)";
       ctx.lineWidth = 1;
@@ -682,23 +669,23 @@ function StaticReferenceDiagram() {
           <polygon points="0 0, 8 3, 0 6" fill="#475569" />
         </marker>
       </defs>
-      <rect width="480" height="180" fill="#FAFAFA" />
+      <rect width="480" height="180" fill="#0A0F1E" />
       {/* Left: Train frame */}
-      <text x="120" y="18" textAnchor="middle" fill="#5b21b6" fontSize="13" fontWeight="600">Train Frame</text>
-      <rect x="30" y="35" width="180" height="110" fill="#F5F3FF" stroke="#8B5CF6" strokeWidth="1.5" rx="4" />
+      <text x="120" y="18" textAnchor="middle" fill="#A78BFA" fontSize="13" fontWeight="600">Train Frame</text>
+      <rect x="30" y="35" width="180" height="110" fill="#1E1B4B" stroke="#8B5CF6" strokeWidth="1.5" rx="4" />
       <line x1="120" y1="135" x2="120" y2="50" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 4" />
-      <circle cx="120" cy="52" r="5" fill="#A78BFA" stroke="#6D28D9" strokeWidth="1" />
-      <text x="125" y="88" textAnchor="start" fill="#5b21b6" fontSize="11">Ball path: straight up &amp; down</text>
+      <circle cx="120" cy="52" r="5" fill="#C4B5FD" stroke="#A78BFA" strokeWidth="1" />
+      <text x="125" y="88" textAnchor="start" fill="#DDD6FE" fontSize="11">Ball path: straight up &amp; down</text>
       {/* Right: Ground frame */}
-      <text x="360" y="18" textAnchor="middle" fill="#1e40af" fontSize="13" fontWeight="600">Ground Frame</text>
-      <rect x="270" y="35" width="180" height="110" fill="#EFF6FF" stroke="#3B82F6" strokeWidth="1.5" rx="4" />
-      <path d="M 290 135 Q 355 55 430 135" fill="none" stroke="#06B6D4" strokeWidth="2.5" strokeDasharray="5 4" />
-      <circle cx="355" cy="72" r="5" fill="#67e8f9" stroke="#0891B2" strokeWidth="1" />
-      <line x1="270" y1="135" x2="315" y2="135" stroke="#3B82F6" strokeWidth="2" markerEnd="url(#arrowhead-ref)" />
-      <text x="278" y="128" fill="#1e40af" fontSize="10">v_train</text>
-      <line x1="355" y1="72" x2="395" y2="55" stroke="#0891B2" strokeWidth="1.5" markerEnd="url(#arrowhead-ref)" />
-      <text x="372" y="58" fill="#0e7490" fontSize="10">v_ball</text>
-      <text x="360" y="95" textAnchor="middle" fill="#0e7490" fontSize="11">Ball path: parabola</text>
+      <text x="360" y="18" textAnchor="middle" fill="#38BDF8" fontSize="13" fontWeight="600">Ground Frame</text>
+      <rect x="270" y="35" width="180" height="110" fill="#0c4a6e" stroke="#0ea5e9" strokeWidth="1.5" rx="4" />
+      <path d="M 290 135 Q 355 55 430 135" fill="none" stroke="#22D3EE" strokeWidth="2.5" strokeDasharray="5 4" />
+      <circle cx="355" cy="72" r="5" fill="#67e8f9" stroke="#06b6d4" strokeWidth="1" />
+      <line x1="270" y1="135" x2="315" y2="135" stroke="#38BDF8" strokeWidth="2" markerEnd="url(#arrowhead-ref)" />
+      <text x="278" y="128" fill="#BAE6FD" fontSize="10">v_train</text>
+      <line x1="355" y1="72" x2="395" y2="55" stroke="#22D3EE" strokeWidth="1.5" markerEnd="url(#arrowhead-ref)" />
+      <text x="372" y="58" fill="#A5F3FC" fontSize="10">v_ball</text>
+      <text x="360" y="95" textAnchor="middle" fill="#A5F3FC" fontSize="11">Ball path: parabola</text>
     </svg>
   );
 }
@@ -707,6 +694,7 @@ function StaticReferenceDiagram() {
 
 export default function FrameOfReferenceSimulation() {
   const [params, setParams] = useState<SimParams>(DEFAULT_PARAMS);
+  const [playing, setPlaying] = useState(true);
   const [smoothParams, setSmoothParams] = useState<SimParams>(DEFAULT_PARAMS);
   const [simTime, setSimTime] = useState(0);
   const [scale, setScale] = useState(1);
@@ -820,55 +808,83 @@ export default function FrameOfReferenceSimulation() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col overflow-y-auto bg-[#F5F5F5]">
-      {/* Top section: left = stacked simulations, right = parameter controls */}
-      <section className="w-full border-b-2 border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-6 px-4 py-4 lg:flex-row lg:items-start lg:gap-8">
-          {/* Left column: two simulations stacked vertically */}
-          <div className="flex flex-1 flex-col gap-8">
-            <div className="mx-auto w-full max-w-[650px]">
-              <h2 className="mb-2 text-center text-base font-semibold text-gray-800">
-                Train Frame (Observer Inside Train)
-              </h2>
-              <div className="overflow-hidden" style={{ aspectRatio: "16/10", minHeight: 260 }}>
-                <SimulationCanvas
-                  variant="train"
-                  params={params}
-                  simTime={simTime}
-                  smoothParams={smoothParams}
-                  scale={scale}
-                  setScale={setScale}
-                  trailPoints={trailPoints}
-                />
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
+
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+          {/* Top Row: Simulation Canvas (2 columns) side-by-side or stacked on sm */}
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="text-sm text-neutral-400 flex items-center gap-4">
+                <span>Frame of Reference Simulation</span>
+                <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-cyan-500/20 text-cyan-300">
+                  ⚡ {fps} FPS
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPlaying(p => !p)}
+                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20"
+                >
+                  {playing ? "⏸ Pause" : "▶ Play"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                >
+                  ↺ Reset
+                </button>
               </div>
             </div>
-            <div className="mx-auto w-full max-w-[650px]">
-              <h2 className="mb-2 text-center text-base font-semibold text-gray-800">
-                Ground Frame (Observer on Ground)
-              </h2>
-              <div className="overflow-hidden" style={{ aspectRatio: "16/10", minHeight: 260 }}>
-                <SimulationCanvas
-                  variant="ground"
-                  params={params}
-                  simTime={simTime}
-                  smoothParams={smoothParams}
-                  scale={scale}
-                  setScale={setScale}
-                  trailPoints={trailPoints}
-                />
+
+            <div className="flex flex-col xl:flex-row gap-4 h-full">
+              <div className="flex flex-1 flex-col gap-2 relative border border-purple-500/30 rounded-2xl bg-[#0A0F1E] overflow-hidden">
+                <div className="absolute top-2 left-3 z-10 text-xs font-bold text-purple-400 bg-neutral-900/60 px-2 py-1 rounded backdrop-blur">
+                  Train Frame (Observer Inside)
+                </div>
+                <div className="relative w-full h-full flex-1 min-h-[220px]">
+                  <SimulationCanvas
+                    variant="train"
+                    params={params}
+                    simTime={simTime}
+                    smoothParams={smoothParams}
+                    scale={scale}
+                    setScale={setScale}
+                    trailPoints={trailPoints}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-1 flex-col gap-2 relative border border-cyan-500/30 rounded-2xl bg-[#0A0F1E] overflow-hidden">
+                <div className="absolute top-2 left-3 z-10 text-xs font-bold text-cyan-400 bg-neutral-900/60 px-2 py-1 rounded backdrop-blur">
+                  Ground Frame (Observer on Ground)
+                </div>
+                <div className="relative w-full h-full flex-1 min-h-[220px]">
+                  <SimulationCanvas
+                    variant="ground"
+                    params={params}
+                    simTime={simTime}
+                    smoothParams={smoothParams}
+                    scale={scale}
+                    setScale={setScale}
+                    trailPoints={trailPoints}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right column: parameter controls */}
-          <div className="shrink-0 lg:w-[280px]">
-            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/80 px-4 py-4 shadow-inner">
-              <h2 className="mb-3 text-base font-semibold tracking-tight text-white">
-                Parameter controls
-              </h2>
-              <div className="space-y-3">
-                {sliderSpecs.map((spec) => (
-                  <ParameterSlider
+          {/* Controls Panel (1 column) */}
+          <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+            <div>
+              <h3 className="mb-4 text-lg font-semibold text-white">Parameters</h3>
+              <div className="flex flex-col gap-3">
+                {sliderSpecs.map((spec, idx) => (
+                  <SliderRow
                     key={spec.paramKey}
                     label={spec.label}
                     value={spec.value}
@@ -876,46 +892,73 @@ export default function FrameOfReferenceSimulation() {
                     max={spec.max}
                     step={spec.step}
                     unit={spec.unit}
-                    defaultValue={spec.defaultValue}
                     icon={spec.icon}
                     dramaticRange={spec.dramaticRange}
+                    color={idx % 2 === 0 ? "#38bdf8" : "#a855f7"}
                     onChange={(v) => setParams((p) => ({ ...p, [spec.paramKey]: v }))}
                   />
                 ))}
               </div>
-              <div className="mt-3 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
-                <span className="font-semibold">💡 Try:</span> Train velocity = 0 → both show the same
-                motion. Increase train velocity to see the ground-frame parabola.
+            </div>
+
+            <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4 text-sm text-purple-200">
+              <div className="font-bold text-purple-400 mb-2">💡 Note</div>
+              <p className="text-purple-100/80 text-xs leading-relaxed">
+                Train velocity = 0 → both show the same motion. Increase train velocity to see the ground-frame parabola diverge from the train-frame vertical bounce!
+              </p>
+            </div>
+
+            {/* Calculations block */}
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-2">
+              <div className="text-xs font-bold text-neutral-400">Live Values</div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-neutral-500">v_train</span>
+                <span className="font-mono font-bold text-cyan-400">{smoothParams.trainVelocity.toFixed(1)} m/s</span>
               </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500 py-3 font-semibold text-white shadow transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-                aria-label="Reset to default"
-              >
-                <span aria-hidden>↺</span> Reset to Default
-              </button>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-neutral-500">v_ball (t=0) ground x</span>
+                <span className="font-mono font-bold text-purple-400">{vxGround.toFixed(1)} m/s</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-neutral-500">v_ball (t=0) ground y</span>
+                <span className="font-mono font-bold text-purple-400">{vyGround.toFixed(1)} m/s</span>
+              </div>
+            </div>
+          </aside>
+          </div>
+        </div>
+
+          {/* Bottom Row: Info Panel */}
+          <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-center">
+
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5 lg:col-span-2">
+                <h4 className="text-sm font-bold text-cyan-400 mb-2">✨ REFERENCE DIAGRAM</h4>
+                <div className="mb-4 border border-neutral-800 rounded-xl bg-neutral-950 px-2 py-4">
+                  <StaticReferenceDiagram />
+                </div>
+                <div className="text-sm text-neutral-300 space-y-2">
+                  <p><strong className="text-purple-400">Train frame:</strong> For someone inside the train, the train is at rest. The ball is thrown straight up, so its path is a vertical line.</p>
+                  <p><strong className="text-cyan-400">Ground frame:</strong> For someone standing on the ground, the train moves to the right. The ball has the same vertical motion plus the train&apos;s horizontal motion, creating a parabola.</p>
+                </div>
+              </div>
+
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5 h-full">
+                <h4 className="text-sm font-bold text-amber-500 mb-3">📐 THE PHYSICS</h4>
+                <p className="text-sm mb-4">
+                  Motion depends on the observer&apos;s frame of reference. The exact same physical event is described differently varying on relative speeds.
+                </p>
+                <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 space-y-2 font-mono text-xs">
+                  <div className="text-cyan-400">x_ground = v_train·t + x_train</div>
+                  <div className="text-purple-400">v_ground = v_train + v_ball</div>
+                  <div className="text-neutral-500 border-t border-neutral-800 pt-2 text-[10px]">
+                    (Galilean Transformation)
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Bottom section: Student takeaway + static reference diagram — always in view when scrolling */}
-      <section className="flex flex-col gap-4 border-t-2 border-gray-200 bg-[#F9FAFB] p-6 pb-12">
-        <p className="text-center text-base font-medium italic text-gray-800">
-          Motion depends on the observer&apos;s frame of reference. The same event can look different to observers in different frames.
-        </p>
-        <div className="mx-auto w-full max-w-3xl rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="mb-3 text-center text-sm font-semibold text-gray-700">Reference diagram</p>
-          <div className="flex justify-center overflow-hidden rounded-lg bg-gray-50/50">
-            <StaticReferenceDiagram />
-          </div>
-          <div className="mt-4 space-y-2 border-t border-gray-100 pt-4 text-sm text-gray-600">
-            <p><strong className="text-purple-700">Train frame (left):</strong> For someone inside the train, the train is at rest. The ball is thrown straight up, so its path is a vertical line—straight up and straight back down into the thrower&apos;s hand.</p>
-            <p><strong className="text-blue-700">Ground frame (right):</strong> For someone standing on the ground, the train moves to the right with velocity v_train. The ball has the same vertical motion plus the train&apos;s horizontal motion, so its path is a parabola. The ball still lands back in the thrower&apos;s hand because the thrower is moving with the train.</p>
-          </div>
-        </div>
-      </section>
-    </div>
+        </section>
+    </main>
   );
 }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Mapping of simulations to categories:
  * - senior-secondary: Class 11/12 syllabus topics
  * - trending-topics: Standalone conceptual sims (not in syllabus)
@@ -11,7 +11,6 @@ export const SENIOR_SECONDARY_PHYSICS_SIMS = [
   "motion-in-a-plane",
   "projectile-motion",
   "velocity-time-position-time-graphs",
-  "relations-for-uniformly-accelerated-motion",
   "uniform-circular-motion",
   "resonance",
   "newtons-second-law-force-acceleration-lab",
@@ -20,6 +19,17 @@ export const SENIOR_SECONDARY_PHYSICS_SIMS = [
   "banking-of-roads",
   "work-energy-theorem",
   "rotational-inertia-moment",
+  "escape-velocity",
+  "universal-law-of-gravitation",
+  "keplers-laws-of-planetary-motion",
+  "orbital-velocity",
+  "centre-of-mass",
+  "moment-of-inertia",
+  "rolling-motion",
+  "torque-and-rotational-dynamics",
+  "heat-transfer-conduction-convection-radiation",
+  "thermodynamic-systems-and-processes",
+  "work-done-by-gas",
 ] as const;
 
 export const TRENDING_TOPICS_PHYSICS_SIMS = [
@@ -35,5 +45,4 @@ export const TRENDING_TOPICS_PHYSICS_SIMS = [
   "quantum-entanglement",
   "quantum-tunneling",
   "wave-function-collapse",
-  "resonance",
 ] as const;

@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 
-// ——— Causality-accurate Time Travel (CTC) Simulator ———
-// Light cones, proper time τ, causal arrows, Physics (Novikov) vs Sci‑Fi (branching).
-// Worldlines from simplified GR metrics; timelike condition g_μν (dx^μ/dτ)(dx^ν/dτ) < 0.
+// â€”â€”â€” Causality-accurate Time Travel (CTC) Simulator â€”â€”â€”
+// Light cones, proper time Ï„, causal arrows, Physics (Novikov) vs Sciâ€‘Fi (branching).
+// Worldlines from simplified GR metrics; timelike condition g_Î¼Î½ (dx^Î¼/dÏ„)(dx^Î½/dÏ„) < 0.
 
 type SpacetimeModelId = "godel" | "kerr" | "tipler" | "wormhole" | "minkowski";
 type CausalMode = "physics" | "scifi";
@@ -14,9 +14,9 @@ type Params = {
   branchCount: number;
   loopExtent: number;
   simSpeed: number;
-  /** Event A position along worldline (0–1, proper time fraction) */
+  /** Event A position along worldline (0â€“1, proper time fraction) */
   eventAFrac: number;
-  /** Event B position along worldline (0–1) */
+  /** Event B position along worldline (0â€“1) */
   eventBFrac: number;
   spacetimeModel: SpacetimeModelId;
   causalMode: CausalMode;
@@ -38,13 +38,13 @@ function clamp(n: number, min: number, max: number) {
 }
 
 function formatNum(n: number, decimals = 2) {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "â€”";
   return n.toFixed(decimals);
 }
 
-// ——— Metric and light cones (c = 1) ———
-// ds² = g_tt dt² + 2 g_tx dt dx + g_xx dx². Null: g_tt (dt/dx)² + 2 g_tx (dt/dx) + g_xx = 0.
-// So dt/dx = (-g_tx ± √(g_tx² - g_tt g_xx)) / g_tt.
+// â€”â€”â€” Metric and light cones (c = 1) â€”â€”â€”
+// dsÂ² = g_tt dtÂ² + 2 g_tx dt dx + g_xx dxÂ². Null: g_tt (dt/dx)Â² + 2 g_tx (dt/dx) + g_xx = 0.
+// So dt/dx = (-g_tx Â± âˆš(g_txÂ² - g_tt g_xx)) / g_tt.
 function lightConeSlopes(
   gtt: number,
   gtx: number,
@@ -63,7 +63,7 @@ function lightConeSlopes(
 type MetricAtPoint = { gtt: number; gtx: number; gxx: number };
 
 function getMetricGodel(t: number, x: number, ctcStrength: number): MetricAtPoint {
-  // Gödel: rotation induces dt dx cross term. Simplified: g_tt = -1, g_xx = 1, g_tx = Ω x² type.
+  // GÃ¶del: rotation induces dt dx cross term. Simplified: g_tt = -1, g_xx = 1, g_tx = Î© xÂ² type.
   const omega = ctcStrength * 0.8;
   const gtt = -1;
   const gxx = 1;
@@ -82,7 +82,7 @@ function getMetricKerr(t: number, x: number, ctcStrength: number): MetricAtPoint
 }
 
 function getMetricTipler(t: number, x: number, ctcStrength: number): MetricAtPoint {
-  // Tipler cylinder: rotation, dt dφ cross. 2D slice: tilt increases with |x| (radius).
+  // Tipler cylinder: rotation, dt dÏ† cross. 2D slice: tilt increases with |x| (radius).
   const gtt = -1;
   const gxx = 1;
   const gtx = ctcStrength * 0.4 * x;
@@ -90,7 +90,7 @@ function getMetricTipler(t: number, x: number, ctcStrength: number): MetricAtPoi
 }
 
 function getMetricWormhole(t: number, x: number, ctcStrength: number): MetricAtPoint {
-  // Traversable wormhole with time shift: throat at x≈0, time jump. Smooth metric.
+  // Traversable wormhole with time shift: throat at xâ‰ˆ0, time jump. Smooth metric.
   const throat = 0.3 * (1 - ctcStrength * 0.5);
   const gtt = -1 - ctcStrength * 0.2 * Math.exp(-x * x / (throat * throat + 0.1));
   const gxx = 1 + ctcStrength * 0.5 / (x * x + 0.2);
@@ -122,7 +122,7 @@ function getMetric(
   }
 }
 
-// Worldline point with proper time τ (monotonically increasing).
+// Worldline point with proper time Ï„ (monotonically increasing).
 export type WorldlinePoint = { t: number; x: number; tau: number };
 
 function computeWorldline(
@@ -152,7 +152,7 @@ function computeWorldline(
     pts.push({ t, x, tau: 0 });
   }
 
-  // Compute proper time τ by integrating sqrt(-ds²) along curve. ds² < 0 for timelike.
+  // Compute proper time Ï„ by integrating sqrt(-dsÂ²) along curve. dsÂ² < 0 for timelike.
   let tau = 0;
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[i]!;
@@ -243,7 +243,7 @@ function getLightConeDirections(
   ];
 }
 
-// ——— Slider row ———
+// â€”â€”â€” Slider row â€”â€”â€”
 function SliderRow({
   label,
   value,
@@ -284,7 +284,7 @@ function SliderRow({
   );
 }
 
-// ——— Canvas colors (dark theme) ———
+// â€”â€”â€” Canvas colors (dark theme) â€”â€”â€”
 const BG = "#050810";
 const GRID = "rgba(100, 116, 139, 0.12)";
 const AXIS = "rgba(248, 250, 252, 0.85)";
@@ -307,42 +307,42 @@ const SPACETIME_MODELS: {
   exoticMatter: string;
   plausibility: string;
 }[] = [
-  {
-    id: "godel",
-    name: "Gödel Universe",
-    description: "Rotating dust; global CTCs. Exact GR solution.",
-    exoticMatter: "No",
-    plausibility: "Theoretically consistent; not our universe.",
-  },
-  {
-    id: "kerr",
-    name: "Kerr Black Hole Interior",
-    description: "Inside inner horizon (r < r⁻) causal structure allows CTCs.",
-    exoticMatter: "No",
-    plausibility: "Solution exists; interior may be unstable.",
-  },
-  {
-    id: "tipler",
-    name: "Tipler Cylinder",
-    description: "Infinitely long rotating cylinder; CTCs around it.",
-    exoticMatter: "Yes (infinite density)",
-    plausibility: "Requires infinite length; not realistic.",
-  },
-  {
-    id: "wormhole",
-    name: "Traversable Wormhole (time shift)",
-    description: "Two mouths with time shift; path through throat can go to past.",
-    exoticMatter: "Yes (negative energy)",
-    plausibility: "Speculative; needs exotic matter.",
-  },
-  {
-    id: "minkowski",
-    name: "Minkowski (no CTC)",
-    description: "Flat spacetime; no CTCs. Reference.",
-    exoticMatter: "No",
-    plausibility: "Standard.",
-  },
-];
+    {
+      id: "godel",
+      name: "Godel Universe",
+      description: "Rotating dust; global CTCs. Exact GR solution.",
+      exoticMatter: "No",
+      plausibility: "Theoretically consistent; not our universe.",
+    },
+    {
+      id: "kerr",
+      name: "Kerr Black Hole Interior",
+      description: "Inside inner horizon (r < r-) causal structure allows CTCs.",
+      exoticMatter: "No",
+      plausibility: "Solution exists; interior may be unstable.",
+    },
+    {
+      id: "tipler",
+      name: "Tipler Cylinder",
+      description: "Infinitely long rotating cylinder; CTCs around it.",
+      exoticMatter: "Yes (infinite density)",
+      plausibility: "Requires infinite length; not realistic.",
+    },
+    {
+      id: "wormhole",
+      name: "Traversable Wormhole (time shift)",
+      description: "Two mouths with time shift; path through throat can go to past.",
+      exoticMatter: "Yes (negative energy)",
+      plausibility: "Speculative; needs exotic matter.",
+    },
+    {
+      id: "minkowski",
+      name: "Minkowski (no CTC)",
+      description: "Flat spacetime; no CTCs. Reference.",
+      exoticMatter: "No",
+      plausibility: "Standard.",
+    },
+  ];
 
 function SimulatorCanvas({
   params,
@@ -505,7 +505,7 @@ function SimulatorCanvas({
       ctx.setLineDash([]);
     }
 
-    // Causal arrows A→B and B→A (along worldline)
+    // Causal arrows Aâ†’B and Bâ†’A (along worldline)
     function drawArrow(
       context: CanvasRenderingContext2D,
       from: WorldlinePoint,
@@ -560,7 +560,7 @@ function SimulatorCanvas({
       });
     }
 
-    // Main worldline with proper-time arrows (small ticks in direction of increasing τ)
+    // Main worldline with proper-time arrows (small ticks in direction of increasing Ï„)
     ctx.strokeStyle = CTC_COLOR;
     ctx.lineWidth = 2.5 * dpr;
     ctx.lineCap = "round";
@@ -612,7 +612,7 @@ function SimulatorCanvas({
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillText("A", sx, sy - 14 * dpr);
-      ctx.fillText(`τ=${formatNum(pA.tau, 2)}`, sx, sy + 20 * dpr);
+      ctx.fillText(`Ï„=${formatNum(pA.tau, 2)}`, sx, sy + 20 * dpr);
     }
     if (pB) {
       const { x: sx, y: sy } = toScreen(pB.t, pB.x);
@@ -628,7 +628,7 @@ function SimulatorCanvas({
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillText("B", sx, sy - 14 * dpr);
-      ctx.fillText(`τ=${formatNum(pB.tau, 2)}`, sx, sy + 20 * dpr);
+      ctx.fillText(`Ï„=${formatNum(pB.tau, 2)}`, sx, sy + 20 * dpr);
     }
 
     // Traveler dot (proper time direction)
@@ -655,7 +655,7 @@ function SimulatorCanvas({
       ctx.font = `${9 * dpr}px sans-serif`;
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
-      ctx.fillText(`τ=${formatNum(tauP, 2)}`, sx + 12 * dpr, sy);
+      ctx.fillText(`Ï„=${formatNum(tauP, 2)}`, sx + 12 * dpr, sy);
     }
 
     // Axis labels: coordinate time t vs space x
@@ -684,9 +684,9 @@ function SimulatorCanvas({
     );
     hudY += 14 * dpr;
     ctx.fillStyle = SUBTEXT;
-    ctx.fillText("Yellow: light cones (c=1). Arrows: increasing proper time τ.", hudX, hudY);
+    ctx.fillText("Yellow: light cones (c=1). Arrows: increasing proper time Ï„.", hudX, hudY);
     hudY += 14 * dpr;
-    ctx.fillText("t = coordinate time. τ = proper time (always increases).", hudX, hudY);
+    ctx.fillText("t = coordinate time. Ï„ = proper time (always increases).", hudX, hudY);
   }, [params, time, bounds]);
 
   return (
@@ -739,199 +739,190 @@ export default function TimeTravelSimulation() {
       </div>
 
       <section className="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left: simulator + parameters below */}
-          <div className="relative w-full shrink-0 lg:w-[60%] flex flex-col gap-4">
-            <div className="mb-1 flex items-center justify-between gap-3 flex-wrap">
-              <div className="text-xs text-neutral-400">
-                Spacetime diagram: t (vertical), x (horizontal). τ = proper time. Light cones show local causal structure (c=1).
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPlaying((p) => !p)}
-                  className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20"
-                >
-                  {playing ? "Pause" : "Play"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTime(0)}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset time
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-neutral-700 bg-neutral-900/30">
-              <SimulatorCanvas params={params} time={time} playing={playing} />
-            </div>
-
-            {/* Mode indicator */}
-            <div className="rounded-xl border border-neutral-700 bg-neutral-900/50 px-4 py-2 flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-neutral-300">Mode:</span>
-              {params.causalMode === "physics" ? (
-                <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-3 py-1 text-xs font-semibold text-emerald-300">
-                  Physics (Novikov) — Self-consistent solution enforced.
-                </span>
-              ) : (
-                <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-1 text-xs font-semibold text-amber-300">
-                  Sci‑Fi (branching) — Speculative, non-GR.
-                </span>
-              )}
-            </div>
-
-            {/* Parameters — below simulation */}
-            <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-5 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Parameters</div>
-                  <div className="text-xs text-neutral-400">Model, CTC strength, events A/B.</div>
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="col-span-1 flex flex-col gap-4 lg:col-span-2">
+                <div className="mb-1 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="text-xs text-neutral-400">
+                    Spacetime diagram: t (vertical), x (horizontal). Tau = proper time. Light cones show local causal structure (c=1).
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPlaying((p) => !p)}
+                      className="rounded-xl border border-emerald-500/70 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_0_1px_rgba(16,185,129,0.15)] hover:bg-emerald-500"
+                    >
+                      {playing ? "\u23F8 Pause" : "\u25B6 Play"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={reset}
+                      className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-100 hover:bg-neutral-700"
+                    >
+                      {"\u21BA Reset"}
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset
-                </button>
-              </div>
 
-              <div className="mb-3">
-                <div className="text-xs font-semibold text-neutral-400 mb-1">Causal mode</div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setParams((p) => ({ ...p, causalMode: "physics" as CausalMode, branchCount: 0 }))}
-                    className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
-                      params.causalMode === "physics"
-                        ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300"
-                        : "border-neutral-600 bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-                    }`}
-                  >
-                    Physics
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setParams((p) => ({ ...p, causalMode: "scifi" as CausalMode }))}
-                    className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
-                      params.causalMode === "scifi"
-                        ? "border-amber-500/50 bg-amber-500/20 text-amber-300"
-                        : "border-neutral-600 bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-                    }`}
-                  >
-                    Sci‑Fi
-                  </button>
+                <div className="rounded-2xl border border-neutral-700 bg-neutral-900/30">
+                  <SimulatorCanvas params={params} time={time} playing={playing} />
+                </div>
+
+                <div className="rounded-xl border border-neutral-700 bg-neutral-900/50 px-4 py-2 flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-neutral-300">Mode:</span>
+                  {params.causalMode === "physics" ? (
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-3 py-1 text-xs font-semibold text-emerald-300">
+                      Physics (Novikov) - self-consistent solution enforced.
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-1 text-xs font-semibold text-amber-300">
+                      Sci-Fi (branching) - speculative, non-GR.
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="mb-3">
-                <div className="text-xs font-semibold text-neutral-400 mb-1">Spacetime model</div>
-                <select
-                  value={params.spacetimeModel}
-                  onChange={(e) =>
-                    setParams((p) => ({
-                      ...p,
-                      spacetimeModel: e.target.value as SpacetimeModelId,
-                    }))
-                  }
-                  className="w-full rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm text-white"
-                >
-                  {SPACETIME_MODELS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700">
+                <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-5 shadow-xl">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Parameters</h3>
+                      <div className="text-xs text-neutral-400">Model, CTC strength, events A/B.</div>
+                    </div>
+                  </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <SliderRow
-                  label="CTC strength"
-                  value={params.ctcStrength}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  unit=""
-                  onChange={(v) => setParams((p) => ({ ...p, ctcStrength: clamp(v, 0, 1) }))}
-                />
-                {params.causalMode === "scifi" && (
-                  <SliderRow
-                    label="Timeline branches"
-                    value={params.branchCount}
-                    min={0}
-                    max={4}
-                    step={1}
-                    unit=""
-                    onChange={(v) =>
-                      setParams((p) => ({
-                        ...p,
-                        branchCount: Math.round(clamp(v, 0, 4)),
-                      }))
-                    }
-                  />
-                )}
-                <SliderRow
-                  label="Loop extent"
-                  value={params.loopExtent}
-                  min={0.5}
-                  max={2.5}
-                  step={0.1}
-                  unit=""
-                  onChange={(v) =>
-                    setParams((p) => ({ ...p, loopExtent: clamp(v, 0.5, 2.5) }))
-                  }
-                />
-                <SliderRow
-                  label="Event A (τ fraction)"
-                  value={params.eventAFrac}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  unit=""
-                  onChange={(v) =>
-                    setParams((p) => ({ ...p, eventAFrac: clamp(v, 0, 1) }))
-                  }
-                />
-                <SliderRow
-                  label="Event B (τ fraction)"
-                  value={params.eventBFrac}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  unit=""
-                  onChange={(v) =>
-                    setParams((p) => ({ ...p, eventBFrac: clamp(v, 0, 1) }))
-                  }
-                />
-                <SliderRow
-                  label="Sim speed"
-                  value={params.simSpeed}
-                  min={0.5}
-                  max={2}
-                  step={0.25}
-                  unit="×"
-                  onChange={(v) => setParams((p) => ({ ...p, simSpeed: v }))}
-                />
-              </div>
+                  <div className="mb-3">
+                    <div className="text-xs font-semibold text-neutral-400 mb-1">Causal mode</div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setParams((p) => ({ ...p, causalMode: "physics" as CausalMode, branchCount: 0 }))}
+                        className={`rounded-xl border px-3 py-2 text-xs font-semibold ${params.causalMode === "physics"
+                            ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300"
+                            : "border-neutral-600 bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+                          }`}
+                      >
+                        Physics
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setParams((p) => ({ ...p, causalMode: "scifi" as CausalMode }))}
+                        className={`rounded-xl border px-3 py-2 text-xs font-semibold ${params.causalMode === "scifi"
+                            ? "border-amber-500/50 bg-amber-500/20 text-amber-300"
+                            : "border-neutral-600 bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+                          }`}
+                      >
+                        Sci-Fi
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="text-xs font-semibold text-neutral-400 mb-1">Spacetime model</div>
+                    <select
+                      value={params.spacetimeModel}
+                      onChange={(e) =>
+                        setParams((p) => ({
+                          ...p,
+                          spacetimeModel: e.target.value as SpacetimeModelId,
+                        }))
+                      }
+                      className="w-full rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm text-white"
+                    >
+                      {SPACETIME_MODELS.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                    <SliderRow
+                      label="CTC strength"
+                      value={params.ctcStrength}
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      unit=""
+                      onChange={(v) => setParams((p) => ({ ...p, ctcStrength: clamp(v, 0, 1) }))}
+                    />
+                    {params.causalMode === "scifi" && (
+                      <SliderRow
+                        label="Timeline branches"
+                        value={params.branchCount}
+                        min={0}
+                        max={4}
+                        step={1}
+                        unit=""
+                        onChange={(v) =>
+                          setParams((p) => ({
+                            ...p,
+                            branchCount: Math.round(clamp(v, 0, 4)),
+                          }))
+                        }
+                      />
+                    )}
+                    <SliderRow
+                      label="Loop extent"
+                      value={params.loopExtent}
+                      min={0.5}
+                      max={2.5}
+                      step={0.1}
+                      unit=""
+                      onChange={(v) =>
+                        setParams((p) => ({ ...p, loopExtent: clamp(v, 0.5, 2.5) }))
+                      }
+                    />
+                    <SliderRow
+                      label="Event A (tau fraction)"
+                      value={params.eventAFrac}
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      unit=""
+                      onChange={(v) =>
+                        setParams((p) => ({ ...p, eventAFrac: clamp(v, 0, 1) }))
+                      }
+                    />
+                    <SliderRow
+                      label="Event B (tau fraction)"
+                      value={params.eventBFrac}
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      unit=""
+                      onChange={(v) =>
+                        setParams((p) => ({ ...p, eventBFrac: clamp(v, 0, 1) }))
+                      }
+                    />
+                    <SliderRow
+                      label="Sim speed"
+                      value={params.simSpeed}
+                      min={0.5}
+                      max={2}
+                      step={0.25}
+                      unit="x"
+                      onChange={(v) => setParams((p) => ({ ...p, simSpeed: v }))}
+                    />
+                  </div>
+                </div>
+              </aside>
             </div>
-          </div>
 
-          {/* Right: description */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl h-full">
+            <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
               <div className="text-sm font-semibold text-white">
-                Time Travel — Causality &amp; GR
+                Time Travel - Causality &amp; GR
               </div>
               <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                A <em>closed timelike curve (CTC)</em> is a worldline that returns to the same spacetime event. The worldline stays inside the local light cone (timelike: g_μν dx^μ dx^ν &lt; 0). Proper time τ always increases along the curve, even when coordinate time t decreases. Events A and B can form a causal loop (A→B→A); in Physics mode Novikov self-consistency is enforced; in Sci‑Fi mode branching timelines are speculative.
+                A <em>closed timelike curve (CTC)</em> is a worldline that returns to the same spacetime event. The worldline stays inside the local light cone (timelike: g_mu_nu dx^mu dx^nu &lt; 0). Proper time tau always increases along the curve, even when coordinate time t decreases. Events A and B can form a causal loop (A-&gt;B-&gt;A); in Physics mode Novikov self-consistency is enforced, while in Sci-Fi mode branching timelines are speculative.
               </p>
               <div className="mt-4 rounded-2xl border border-neutral-700 bg-neutral-900/60 p-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">t vs τ</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">t vs tau</div>
                 <div className="mt-2 space-y-1 text-sm text-neutral-300">
                   <div><strong className="text-neutral-200">Coordinate time t</strong>: axis on diagram; can decrease along a CTC.</div>
-                  <div><strong className="text-neutral-200">Proper time τ</strong>: clock time; always increases. Arrows on worldline show τ direction.</div>
+                  <div><strong className="text-neutral-200">Proper time tau</strong>: clock time; always increases. Arrows on worldline show tau direction.</div>
                 </div>
               </div>
               {currentModel && (
@@ -945,10 +936,10 @@ export default function TimeTravelSimulation() {
                 </div>
               )}
               <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-neutral-300">
-                <span className="font-semibold text-amber-400">Timelike condition:</span> g_μν (dx^μ/dτ)(dx^ν/dτ) &lt; 0. Worldlines are integrated from the metric; light cone slope = c = 1 in chosen units.
+                <span className="font-semibold text-amber-400">Timelike condition:</span> g_mu_nu (dx^mu/dtau)(dx^nu/dtau) &lt; 0. Worldlines are integrated from the metric; light cone slope = c = 1 in chosen units.
               </div>
             </div>
-          </aside>
+          </div>
         </div>
       </section>
     </main>

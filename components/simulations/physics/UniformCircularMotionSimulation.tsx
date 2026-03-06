@@ -445,9 +445,9 @@ export default function UniformCircularMotionSimulation() {
   return (
     <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-[#7B2C5E] via-[#A64D7B] to-[#F9A8C4] text-gray-900">
       {/* Top section: 70vh — Sim (65%) + Controls (35%) */}
-      <div className="flex flex-1 min-h-0 flex-col lg:flex-row px-4 py-4 gap-4" style={{ height: "70vh" }}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3" style={{ height: "70vh" }}>
         {/* Simulation box — 65% width */}
-        <div className="lg:w-[65%] w-full min-h-0 flex flex-col rounded-2xl border border-[#E5E9F0] bg-white shadow-lg overflow-hidden">
+        <div className="lg:col-span-2 w-full min-h-0 flex flex-col rounded-2xl border border-[#E5E9F0] bg-white shadow-lg overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
             <h2 className="text-base font-semibold text-blue-600">
               Uniform Circular Motion
@@ -456,9 +456,9 @@ export default function UniformCircularMotionSimulation() {
               <button
                 type="button"
                 onClick={() => setPaused((p) => !p)}
-                className="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-500 text-white hover:bg-blue-600"
-              >
-                {paused ? "▶ Play" : "⏸ Pause"}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${paused ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {paused ? "▶ Play" : "⏸ Pause"}
               </button>
               <button
                 type="button"
@@ -616,7 +616,7 @@ export default function UniformCircularMotionSimulation() {
         </div>
 
         {/* Parameter controls — 35% width, vertical sliders */}
-        <div className="lg:w-[35%] w-full flex flex-col rounded-2xl border border-[#E5E9F0] bg-[#F9FAFB] shadow-lg p-4 overflow-auto">
+        <div className=" w-full flex flex-col rounded-2xl border border-[#E5E9F0] bg-[#F9FAFB] shadow-lg p-4 overflow-auto">
           <h3 className="text-sm font-semibold text-blue-600 mb-1">Parameters & Scale</h3>
           <p className="text-xs text-gray-500 mb-3">
             All controls visible — no scrolling.
@@ -693,9 +693,7 @@ export default function UniformCircularMotionSimulation() {
             type="button"
             onClick={handleReset}
             className="w-full py-2.5 rounded-xl bg-blue-500 text-white font-semibold text-sm hover:bg-blue-600 transition"
-          >
-            ↺ Reset to Default
-          </button>
+          >↺ Reset</button>
         </div>
       </div>
 

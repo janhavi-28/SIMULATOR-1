@@ -859,266 +859,172 @@ const PhysicalWorldUnitsSimulation: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-b from-[#F9FAFB] via-white to-[#EFF6FF] text-gray-900">
-      <section className="mx-auto flex max-w-7xl flex-col gap-6 px-6 pt-8 pb-4 lg:flex-row">
-        {/* Left: Simulation box */}
-        <div className="flex-1 rounded-3xl border border-gray-200 bg-white/90 p-5 shadow-lg shadow-blue-100">
-          <header className="mb-3 flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Physical World &amp; Units – Scattering Explorer
-              </h1>
-              <p className="mt-1 text-xs text-gray-500 max-w-xl">
-                Alpha particles from a{" "}
-                <span className="font-semibold text-sky-600">
-                  visible source
-                </span>{" "}
-                strike a{" "}
-                <span className="font-semibold text-blue-600">
-                  massive nucleus
-                </span>
-                . Adjust energy and impact parameter to see how{" "}
-                <span className="font-semibold text-emerald-600">
-                  units and scales
-                </span>{" "}
-                change the motion.
-              </p>
-            </div>
-          </header>
+      <section className="mx-auto max-w-7xl px-6 pt-8 pb-4">
+        <div className="rounded-3xl border border-gray-200 bg-white/90 p-5 shadow-lg shadow-blue-100">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+            <div className="col-span-1 lg:col-span-2">
+              <header className="mb-3 flex items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    Physical World &amp; Units - Scattering Explorer
+                  </h1>
+                  <p className="mt-1 max-w-xl text-xs text-gray-500">
+                    Alpha particles from a visible source strike a massive nucleus. Adjust energy and impact parameter to see how units and scales change the motion.
+                  </p>
+                </div>
+              </header>
 
-          <div
-            ref={containerRef}
-            className="relative mt-2 flex min-h-[260px] flex-1 items-stretch justify-stretch overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-[#E5E7EB] via-white to-[#DBEAFE]"
-          >
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 h-full w-full"
-            />
+              <div
+                ref={containerRef}
+                className="relative mt-2 flex min-h-[260px] flex-1 items-stretch justify-stretch overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-[#E5E7EB] via-white to-[#DBEAFE]"
+              >
+                <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
-            {/* Scale indicator */}
-            <div className="pointer-events-none absolute bottom-3 left-4 rounded-full bg-white/80 px-3 py-1 text-[11px] font-mono text-gray-700 shadow-sm border border-gray-200">
-              Scale ≈{" "}
-              <span className="text-sky-600">
-                {scaleRef.current.toFixed(2)}×
-              </span>{" "}
-              | 1 unit ≈ 1 fm
+                <div className="pointer-events-none absolute bottom-3 left-4 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-[11px] font-mono text-gray-700 shadow-sm">
+                  Scale ~ <span className="text-sky-600">{scaleRef.current.toFixed(2)}x</span> | 1 unit ~ 1 fm
+                </div>
+              </div>
             </div>
+
+            <aside className="col-span-1 h-[580px] overflow-y-auto rounded-3xl border border-gray-200 bg-white/95 p-5 shadow-lg shadow-blue-100">
+              <div className="space-y-3">
+                <SliderRow
+                  label="Alpha energy"
+                  icon="E"
+                  value={energy}
+                  min={1}
+                  max={20}
+                  step={0.1}
+                  unit="MeV"
+                  defaultValue={7.5}
+                  dramaticRange={[1, 3]}
+                  onChange={setEnergy}
+                />
+                <SliderRow
+                  label="Impact parameter"
+                  icon="I"
+                  value={impact}
+                  min={0.1}
+                  max={5}
+                  step={0.05}
+                  unit="fm"
+                  defaultValue={0.8}
+                  dramaticRange={[0.5, 1.2]}
+                  onChange={setImpact}
+                />
+                <SliderRow
+                  label="Emission rate"
+                  icon="R"
+                  value={emissionRate}
+                  min={5}
+                  max={120}
+                  step={1}
+                  unit="alpha/s"
+                  defaultValue={40}
+                  dramaticRange={[60, 100]}
+                  onChange={setEmissionRate}
+                />
+                <SliderRow
+                  label="Nuclear mass (relative)"
+                  icon="M"
+                  value={nuclearMass}
+                  min={50}
+                  max={400}
+                  step={1}
+                  unit="u"
+                  defaultValue={197}
+                  dramaticRange={[150, 300]}
+                  onChange={setNuclearMass}
+                />
+
+                <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
+                  <div className="mb-1 font-semibold">Pro tip</div>
+                  <ul className="space-y-1">
+                    <li>
+                      <span className="font-semibold">Head-on:</span> Energy <span className="font-semibold">1-2 MeV</span>, Impact <span className="font-semibold">0.1 fm</span> - huge deflection.
+                    </li>
+                    <li>
+                      <span className="font-semibold">Glancing:</span> Energy <span className="font-semibold">15 MeV</span>, Impact <span className="font-semibold">5 fm</span> - barely bends.
+                    </li>
+                    <li>
+                      <span className="font-semibold">Right angle:</span> Energy <span className="font-semibold">7.5 MeV</span>, Impact <span className="font-semibold">0.8 fm</span> - theta ~ 90 deg.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                {"\u21BA Reset"}
+              </button>
+            </aside>
           </div>
         </div>
-
-        {/* Right: Controls */}
-        <aside className="flex w-full flex-col justify-between rounded-3xl border border-gray-200 bg-white/95 p-5 shadow-lg shadow-blue-100 lg:w-[32%]">
-          <div className="space-y-3">
-            <SliderRow
-              label="Alpha energy"
-              icon="⚡"
-              value={energy}
-              min={1}
-              max={20}
-              step={0.1}
-              unit="MeV"
-              defaultValue={7.5}
-              dramaticRange={[1, 3]}
-              onChange={setEnergy}
-            />
-            <SliderRow
-              label="Impact parameter"
-              icon="🎯"
-              value={impact}
-              min={0.1}
-              max={5}
-              step={0.05}
-              unit="fm"
-              defaultValue={0.8}
-              dramaticRange={[0.5, 1.2]}
-              onChange={setImpact}
-            />
-            <SliderRow
-              label="Emission rate"
-              icon="🌟"
-              value={emissionRate}
-              min={5}
-              max={120}
-              step={1}
-              unit="α/s"
-              defaultValue={40}
-              dramaticRange={[60, 100]}
-              onChange={setEmissionRate}
-            />
-            <SliderRow
-              label="Nuclear mass (relative)"
-              icon="🪐"
-              value={nuclearMass}
-              min={50}
-              max={400}
-              step={1}
-              unit="u"
-              defaultValue={197}
-              dramaticRange={[150, 300]}
-              onChange={setNuclearMass}
-            />
-
-            <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
-              <div className="font-semibold mb-1">
-                💡 Pro Tip for drama
-              </div>
-              <ul className="space-y-1">
-                <li>
-                  <span className="font-semibold">Head‑on:</span> Energy{" "}
-                  <span className="font-semibold">1–2 MeV</span>, Impact{" "}
-                  <span className="font-semibold">0.1 fm</span> → huge
-                  deflection.
-                </li>
-                <li>
-                  <span className="font-semibold">Glancing:</span> Energy{" "}
-                  <span className="font-semibold">15 MeV</span>, Impact{" "}
-                  <span className="font-semibold">5 fm</span> → barely bends.
-                </li>
-                <li>
-                  <span className="font-semibold">Right angle:</span> Energy{" "}
-                  <span className="font-semibold">7.5 MeV</span>, Impact{" "}
-                  <span className="font-semibold">0.8 fm</span> → θ ≈ 90°.
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleReset}
-            className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-          >
-            ↺ Reset to Default
-          </button>
-        </aside>
       </section>
 
-      {/* Bottom educational panel */}
-      <section className="mx-auto flex max-w-7xl flex-col gap-4 px-6 pb-6 lg:flex-row">
-        {/* Left: Concept & formula */}
-        <div className="flex w-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-4 shadow-sm lg:w-2/5">
-          <h2 className="text-sm font-bold text-blue-600 mb-1">
-            ✨ The Concept
-          </h2>
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 pb-6 lg:grid-cols-3">
+        <div className="flex w-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-4 shadow-sm">
+          <h2 className="mb-1 text-sm font-bold text-blue-600">The Concept</h2>
           <p className="text-xs leading-snug text-gray-700">
-            When alpha particles approach a tiny, massive nucleus,{" "}
-            <span className="font-semibold text-cyan-700">
-              electrostatic repulsion
-            </span>{" "}
-            bends their paths.
-            Higher energy and different impact parameters reveal how{" "}
-            <span className="font-semibold text-emerald-700">
-              physical quantities and units
-            </span>{" "}
-            control motion at nuclear scales.
+            When alpha particles approach a tiny, massive nucleus, electrostatic repulsion bends their paths. Higher energy and different impact parameters reveal how physical quantities and units control motion at nuclear scales.
           </p>
 
           <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2">
-            <div className="mb-1 text-xs font-semibold text-blue-600">
-              📐 Scattering formula
-            </div>
-            <pre className="text-[11px] font-mono text-gray-800 leading-snug">
-              θ = 2·arctan(Z₁Z₂k / 2Eb)
+            <div className="mb-1 text-xs font-semibold text-blue-600">Scattering formula</div>
+            <pre className="text-[11px] font-mono leading-snug text-gray-800">
+              theta = 2 * arctan(Z1 Z2 k / 2 E b)
               {"\n"}
-              E in MeV, b in fm, k = 1.44 MeV·fm
+              E in MeV, b in fm, k = 1.44 MeV*fm
             </pre>
           </div>
         </div>
 
-        {/* Middle: live equation & stats */}
-        <div className="flex w-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-4 shadow-sm lg:w-1/3">
-          <h2 className="text-sm font-bold text-blue-600 mb-1">
-            📊 Live Physics
-          </h2>
-          <div className="rounded-2xl bg-gray-50 px-3 py-2 text-[11px] font-mono text-gray-800 space-y-1">
+        <div className="flex w-full flex-col rounded-3xl border border-gray-200 bg-white/95 p-4 shadow-sm">
+          <h2 className="mb-1 text-sm font-bold text-blue-600">Live Physics</h2>
+          <div className="space-y-1 rounded-2xl bg-gray-50 px-3 py-2 font-mono text-[11px] text-gray-800">
             <div>Current calculation:</div>
+            <div>theta = 2 * arctan(Z1 Z2 k / 2 E b)</div>
             <div>
-              θ = 2·arctan(Z₁Z₂k / 2Eb)
+              theta = 2 * arctan({equationDisplay.Z1}x{equationDisplay.Z2}x1.44 / 2x{energy.toFixed(2)}x{impact.toFixed(2)})
             </div>
             <div>
-              θ = 2·arctan(
-              {equationDisplay.Z1}×{equationDisplay.Z2}×1.44 / 2×
-              {energy.toFixed(2)}×{impact.toFixed(2)})
+              theta ~ <span className="font-semibold text-sky-600">{thetaDeg.toFixed(1)} deg</span>
             </div>
             <div>
-              θ ≈{" "}
-              <span className="text-sky-600 font-semibold">
-                {thetaDeg.toFixed(1)}°
-              </span>
-            </div>
-            <div>
-              dₘᵢₙ ≈{" "}
-              <span className="text-emerald-600 font-semibold">
-                {closestApproach.toFixed(2)} fm
-              </span>
+              d_min ~ <span className="font-semibold text-emerald-600">{closestApproach.toFixed(2)} fm</span>
             </div>
           </div>
 
-          <div className="mt-2 rounded-2xl bg-slate-900 px-3 py-2 text-[11px] text-slate-100 font-mono space-y-0.5">
-            <div className="font-semibold flex items-center gap-1">
-              ⚡ Live Stats
-            </div>
-            <div>
-              Energy: {history.energy.current.toFixed(2)} MeV (avg{" "}
-              {history.energy.average.toFixed(2)})
-            </div>
-            <div>
-              Impact: {history.impact.current.toFixed(2)} fm (avg{" "}
-              {history.impact.average.toFixed(2)})
-            </div>
-            <div>
-              Emission: {history.emissionRate.current.toFixed(0)} α/s
-            </div>
+          <div className="mt-2 space-y-0.5 rounded-2xl bg-slate-900 px-3 py-2 font-mono text-[11px] text-slate-100">
+            <div className="font-semibold">Live Stats</div>
+            <div>Energy: {history.energy.current.toFixed(2)} MeV (avg {history.energy.average.toFixed(2)})</div>
+            <div>Impact: {history.impact.current.toFixed(2)} fm (avg {history.impact.average.toFixed(2)})</div>
+            <div>Emission: {history.emissionRate.current.toFixed(0)} alpha/s</div>
           </div>
         </div>
 
-        {/* Right: interactive tips */}
-        <div className="flex w-full flex-col rounded-3xl border border-blue-100 bg-blue-50/90 p-4 shadow-sm lg:w-1/3">
-          <h2 className="text-sm font-bold text-blue-600 mb-1">
-            💡 Try This for Drama!
-          </h2>
-          <div className="text-[11px] text-blue-900 space-y-2">
+        <div className="flex w-full flex-col rounded-3xl border border-blue-100 bg-blue-50/90 p-4 shadow-sm">
+          <h2 className="mb-1 text-sm font-bold text-blue-600">Try this</h2>
+          <div className="space-y-2 text-[11px] text-blue-900">
             <div>
-              <div className="font-semibold">
-                🎯 Maximum deflection
-              </div>
+              <div className="font-semibold">Maximum deflection</div>
               <div>
-                Energy = <span className="font-semibold">1–2 MeV</span>, Impact{" "}
-                <span className="font-semibold">0.1 fm</span> → many{" "}
-                <span className="text-amber-600 font-semibold">
-                  back‑scattered
-                </span>{" "}
-                particles.
+                Energy = <span className="font-semibold">1-2 MeV</span>, Impact <span className="font-semibold">0.1 fm</span> - many <span className="font-semibold text-amber-600">back-scattered</span> particles.
               </div>
             </div>
             <div>
-              <div className="font-semibold">
-                ⚡ High‑speed pass
-              </div>
+              <div className="font-semibold">High-speed pass</div>
               <div>
-                Energy = <span className="font-semibold">15 MeV</span>, Impact{" "}
-                <span className="font-semibold">5 fm</span> → beam races past
-                with{" "}
-                <span className="text-emerald-600 font-semibold">
-                  tiny bends
-                </span>
-                .
+                Energy = <span className="font-semibold">15 MeV</span>, Impact <span className="font-semibold">5 fm</span> - tiny bends.
               </div>
             </div>
             <div>
-              <div className="font-semibold">
-                🌟 Critical angle (≈90°)
-              </div>
+              <div className="font-semibold">Critical angle (~90 deg)</div>
               <div>
-                Energy = <span className="font-semibold">7.5 MeV</span>,
-                Impact ={" "}
-                <span className="font-semibold">
-                  0.8 fm
-                </span>{" "}
-                → a beautifully{" "}
-                <span className="text-sky-700 font-semibold">
-                  right‑angled
-                </span>{" "}
-                scatter.
+                Energy = <span className="font-semibold">7.5 MeV</span>, Impact = <span className="font-semibold">0.8 fm</span> - right-angled scattering.
               </div>
             </div>
           </div>

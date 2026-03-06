@@ -71,7 +71,6 @@ function integrateRay(
   return points;
 }
 
-// ——— Slider row: label, then value right beside the slider ———
 function SliderRow({
   label,
   value,
@@ -80,6 +79,7 @@ function SliderRow({
   step,
   unit,
   onChange,
+  color = "#38bdf8",
 }: {
   label: string;
   value: number;
@@ -88,26 +88,28 @@ function SliderRow({
   step: number;
   unit: string;
   onChange: (v: number) => void;
+  color?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-neutral-700 bg-neutral-900/70 px-4 py-3 shadow-sm">
-      <div className="text-sm font-semibold text-white">{label}</div>
-      <div className="flex items-center gap-3">
-        <span className="min-w-[3.5rem] text-right text-sm tabular-nums text-neutral-300">
-          {formatNum(value, 2)}
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">{label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {formatNum(value, step < 1 ? 2 : 0)}
           {unit ? ` ${unit}` : ""}
         </span>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="physics-range flex-1 min-w-0"
-          aria-label={label}
-        />
       </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor: color }}
+        aria-label={label}
+      />
     </div>
   );
 }
@@ -372,54 +374,47 @@ export default function GeneralRelativitySimulation() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617]">
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="relative w-full shrink-0 lg:w-[60%]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-neutral-400">
-                Rubber-sheet spacetime: mass curves the grid; light rays follow geodesics and bend (gravitational lensing).
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+          {/* Top Row: Simulation Canvas (2 columns) */}
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="text-sm text-neutral-400 flex items-center gap-4">
+                <span>General Relativity Simulation</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setPlaying((p) => !p)}
-                  className="rounded-xl border border-violet-500/40 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200 hover:border-violet-400 hover:bg-violet-500/20"
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${!playing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
-                  {playing ? "Pause" : "Play"}
+                  {playing ? "⏸ Pause" : "▶ Play"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTime(0)}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
+                  onClick={reset}
+                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
                 >
-                  Reset time
+                  ↺ Reset
                 </button>
               </div>
             </div>
 
-            <SimulatorCanvas params={params} time={time} playing={playing} />
+            <div className="relative w-full overflow-hidden rounded-2xl border border-violet-500/40 bg-[#0A0F1E] aspect-video">
+              <SimulatorCanvas params={params} time={time} playing={playing} />
+            </div>
+          </div>
 
-            <div className="relative z-10 mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Parameters</div>
-                  <div className="text-xs text-neutral-400">
-                    Mass strength sets curvature; impact parameter sets closest approach of the main ray.
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset
-                </button>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Controls Panel (1 column) */}
+          <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+            <div>
+              <h3 className="mb-4 text-lg font-semibold text-white">Parameters</h3>
+              <div className="flex flex-col gap-3">
                 <SliderRow
                   label="Mass strength, M"
                   value={params.massStrength}
@@ -427,6 +422,7 @@ export default function GeneralRelativitySimulation() {
                   max={2}
                   step={0.1}
                   unit=""
+                  color="#f472b6"
                   onChange={(massStrength) =>
                     setParams((p) => ({ ...p, massStrength: clamp(massStrength, 0.2, 2) }))
                   }
@@ -438,6 +434,7 @@ export default function GeneralRelativitySimulation() {
                   max={3}
                   step={0.1}
                   unit=""
+                  color="#a78bfa"
                   onChange={(impactParam) =>
                     setParams((p) => ({ ...p, impactParam: clamp(impactParam, 0.5, 3) }))
                   }
@@ -449,6 +446,7 @@ export default function GeneralRelativitySimulation() {
                   max={2}
                   step={0.25}
                   unit="×"
+                  color="#38bdf8"
                   onChange={(simSpeed) =>
                     setParams((p) => ({ ...p, simSpeed }))
                   }
@@ -460,78 +458,75 @@ export default function GeneralRelativitySimulation() {
                   max={5}
                   step={1}
                   unit=""
+                  color="#c4b5fd"
                   onChange={(numRays) =>
                     setParams((p) => ({ ...p, numRays: Math.round(clamp(numRays, 1, 5)) }))
                   }
                 />
               </div>
-
-              <div className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-400">
-                <span>
-                  <span className="font-semibold text-neutral-200">Deflection</span> increases with M and decreases with b.
-                </span>
-              </div>
             </div>
-          </div>
 
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                General Relativity — Spacetime Curvature & Light Bending
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                In general relativity, gravity is the curvature of spacetime. Mass and energy bend the fabric of spacetime; the rubber-sheet analogy shows this as a depression. Light (and matter) follow geodesics—the straightest paths in curved space—so light bends around a massive object (gravitational lensing).
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
+              <div className="font-bold text-amber-400 mb-2">💡 Deflection Hint</div>
+              <p className="text-amber-100/80 text-xs leading-relaxed">
+                Notice how the deflection curve increases with greater mass (M) and tighter impact parameters (b).
               </p>
+            </div>
+          </aside>
+          </div>
+        </div>
 
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Key formula
-                </div>
-                <div className="mt-3 space-y-2 text-sm font-mono text-neutral-200">
-                  <div>
-                    <span className="text-violet-300">α ≈ 4GM / (c²b)</span>
-                  </div>
-                  <div className="text-neutral-400 font-sans font-normal">
-                    Deflection angle α (radians) for light grazing a mass M at impact parameter b.
-                  </div>
+          {/* Bottom Row: Info Panel */}
+          <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5 lg:col-span-2">
+                <h4 className="text-sm font-bold text-violet-400 mb-3">🌟 Spacetime Curvature & Light Bending</h4>
+                <p className="text-sm mb-3">
+                  In general relativity, gravity is the curvature of spacetime. Mass and energy bend the fabric of spacetime; the rubber-sheet analogy shows this as a depression.
+                </p>
+                <p className="text-sm">
+                  Light and matter follow geodesics—the straightest paths in curved space—which causes light to bend around massive objects, a phenomenon known as <strong>gravitational lensing</strong>.
+                </p>
+                <div className="mt-4 rounded-xl border border-neutral-700 bg-neutral-900/40 p-3 text-xs text-neutral-400">
+                  Near a black hole, curvature is so strong that light can orbit in a <i>photon sphere</i> or fall in entirely. This weak-field simulation focuses on observable deflection angles.
                 </div>
               </div>
 
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Variables
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5 h-full">
+                <h4 className="text-sm font-bold text-emerald-400 mb-3">📐 The Deflection Formula</h4>
+                <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 mb-4 font-mono text-sm">
+                  <span className="text-violet-300">α ≈ 4GM / (c²b)</span>
                 </div>
-                <dl className="mt-3 grid gap-2 text-sm">
+
+                <h5 className="text-xs font-bold text-neutral-400 uppercase mb-2">Variables</h5>
+                <dl className="grid gap-2 text-xs font-mono">
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">G</dt>
-                    <dd className="text-neutral-400">gravitational constant (m³/(kg·s²))</dd>
+                    <dt className="text-emerald-300">G</dt>
+                    <dd className="text-neutral-400 text-right">gravitational const.</dd>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">M</dt>
-                    <dd className="text-neutral-400">mass (kg)</dd>
+                    <dt className="text-emerald-300">M</dt>
+                    <dd className="text-neutral-400 text-right">mass</dd>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">c</dt>
-                    <dd className="text-neutral-400">speed of light (m/s)</dd>
+                    <dt className="text-emerald-300">c</dt>
+                    <dd className="text-neutral-400 text-right">speed of light</dd>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">b</dt>
-                    <dd className="text-neutral-400">impact parameter (m)</dd>
+                    <dt className="text-emerald-300">b</dt>
+                    <dd className="text-neutral-400 text-right">impact parameter</dd>
                   </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">α</dt>
-                    <dd className="text-neutral-400">deflection angle (rad)</dd>
+                  <div className="flex justify-between gap-4 border-t border-neutral-800 pt-1">
+                    <dt className="text-violet-300 font-bold">α</dt>
+                    <dd className="text-neutral-300 text-right font-bold">deflection angle</dd>
                   </div>
                 </dl>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                Near a black hole, curvature is so strong that light can orbit (photon sphere) or fall in. This simulator uses a weak-field style deflection so you can see bending clearly.
-              </div>
             </div>
-          </aside>
-        </div>
-      </section>
+          </div>
+        </section>
     </main>
   );
 }

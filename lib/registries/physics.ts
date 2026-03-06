@@ -258,6 +258,19 @@ export const physicsTopicMeta: Record<
       "Senior Secondary",
     ],
   },
+  "universal-law-of-gravitation": {
+    title: "Universal Law of Gravitation | Physics",
+    description:
+      "Interactive gravitation simulator with Newton's law F = Gm₁m₂/r², orbital paths, auto-scaling, live force equations, and scale-based force dominance from nuclear to planetary ranges.",
+    keywords: [
+      "universal law of gravitation",
+      "Newton gravitation",
+      "orbital motion",
+      "F=Gm1m2/r2",
+      "Class 11 physics",
+      "gravitation simulator",
+    ],
+  },
   "rotational-inertia-moment": {
     title: "Rotational Inertia Moment | Physics",
     description:
@@ -273,6 +286,21 @@ export const physicsTopicMeta: Record<
       "Motion of System of Particles and Rigid Body",
       "Class 11 physics",
       "Chapter 5",
+    ],
+  },
+  "thermodynamic-systems-and-processes": {
+    title: "Thermodynamic Systems and Processes | Physics",
+    description:
+      "Interactive thermodynamics simulator with particle-level heat flow, piston compression, ideal-gas pressure response, and scale-based dominance bars from nuclear to planetary regimes.",
+    keywords: [
+      "thermodynamics",
+      "thermodynamic systems",
+      "heat and work",
+      "ideal gas law",
+      "entropy",
+      "class 11 physics",
+      "senior secondary physics",
+      "interactive simulation",
     ],
   },
 };

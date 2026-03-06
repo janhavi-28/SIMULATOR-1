@@ -51,14 +51,11 @@ function SliderRow(props: {
 }) {
   const { label, value, min, max, step, unit, accentClassName, onChange } = props;
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900/70 px-4 py-3 shadow-sm">
-      <div className="min-w-[160px]">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900/70 px-4 py-3 shadow-sm">
+      <div className="mb-2">
         <div className="text-sm font-semibold text-white">{label}</div>
         <div className="mt-0.5 text-xs text-neutral-400">
-          <span className="tabular-nums text-neutral-200">
-            {formatNumber(value, step < 1 ? 2 : 0)}
-          </span>{" "}
-          {unit}
+          <span className="tabular-nums text-neutral-200">{formatNumber(value, step < 1 ? 2 : 0)}</span> {unit}
         </div>
       </div>
       <input
@@ -70,14 +67,8 @@ function SliderRow(props: {
         onChange={(e) => onChange(Number(e.target.value))}
         aria-label={label}
         disabled={false}
-        className={`h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-800 outline-none disabled:opacity-50 ${accentClassName}`}
+        className={`physics-range h-3 w-full cursor-pointer appearance-none rounded-full bg-neutral-800 outline-none disabled:opacity-50 ${accentClassName}`}
       />
-      <div className="min-w-[80px] text-right text-xs text-neutral-400">
-        <span className="tabular-nums text-neutral-200">
-          {formatNumber(value, step < 1 ? 2 : 0)}
-        </span>{" "}
-        {unit}
-      </div>
     </div>
   );
 }
@@ -410,6 +401,7 @@ export default function WaveFunctionCollapseSimulation() {
   const [params, setParams] = useState<WaveFunctionCollapseParams>(DEFAULT_PARAMS);
   const [phase, setPhase] = useState<SimPhase>("superposition");
   const [collapsedX, setCollapsedX] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(true);
 
   const resetDefaults = useCallback(() => {
     setParams(DEFAULT_PARAMS);
@@ -438,180 +430,88 @@ export default function WaveFunctionCollapseSimulation() {
   const canMeasure = phase === "superposition";
   const canResetToSuperposition = phase === "collapsed" || phase === "superposition";
 
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => {
+      if (phase === "superposition") {
+        measure();
+      } else if (phase === "collapsed") {
+        resetToSuperposition();
+      }
+    }, 1400);
+    return () => window.clearInterval(id);
+  }, [playing, phase, measure, resetToSuperposition]);
+
   return (
     <main className="min-h-screen bg-neutral-950">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0f172a]" />
 
       <section className="mx-auto max-w-7xl px-6 pt-10 pb-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Wave function collapse
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
-            In quantum mechanics, before a measurement the system is in a superposition of possibilities (fuzzy probability).
-            The act of measurement collapses the wave function to one definite outcome (sharp result). Measurement changes the outcome.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="w-full lg:w-[60%]">
-            <CanvasSimulator
-              params={params}
-              phase={phase}
-              collapsedX={collapsedX}
-              collapseT={phase === "collapsed" ? 1 : 0}
-              onCollapseComplete={onCollapseComplete}
-            />
-
-            <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="mb-0 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-800 bg-neutral-950/50 px-4 py-3">
                 <div>
-                  <div className="text-sm font-semibold text-white">
-                    Parameters
-                  </div>
-                  <div className="text-xs text-neutral-400">
-                    Set probabilities and shape; then click Measure to collapse.
-                  </div>
+                  <div className="text-sm font-semibold text-white">Wave function collapse</div>
+                  <div className="text-xs text-neutral-400">Before measurement: spread probability. After measurement: one definite outcome.</div>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={resetDefaults} className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800">{"\u21BA Reset"}</button>
                   <button
                     type="button"
-                    onClick={resetDefaults}
-                    className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800"
+                    onClick={() => setPlaying((p) => !p)}
+                    className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20"
                   >
-                    Reset defaults
+                    {playing ? "\u23F8 Pause" : "\u25B6 Play"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={resetToSuperposition}
-                    disabled={!canResetToSuperposition}
-                    className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    Back to superposition
-                  </button>
-                  <button
-                    type="button"
-                    onClick={measure}
-                    disabled={!canMeasure}
-                    className="rounded-xl border border-amber-500/50 bg-amber-500/20 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/30 disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    Measure
-                  </button>
+                  <button type="button" onClick={resetToSuperposition} disabled={!canResetToSuperposition} className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 disabled:pointer-events-none disabled:opacity-50">Back to superposition</button>
+                  <button type="button" onClick={measure} disabled={!canMeasure} className="rounded-xl border border-amber-500/50 bg-amber-500/20 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/30 disabled:pointer-events-none disabled:opacity-50">Measure</button>
                 </div>
               </div>
 
-              <div className="grid gap-3">
-                <SliderRow
-                  label="P(A) — prob. outcome A"
-                  value={params.probA}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  unit=""
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(probA) => {
-                    setParams((p) => ({ ...p, probA }));
-                    if (phase === "superposition") setCollapsedX(null);
-                  }}
-                />
-                <SliderRow
-                  label="Spread σ (fuzziness)"
-                  value={params.spreadSigma}
-                  min={0.2}
-                  max={1.2}
-                  step={0.05}
-                  unit=""
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(spreadSigma) => setParams((p) => ({ ...p, spreadSigma }))}
-                />
-                <SliderRow
-                  label="Peak separation d"
-                  value={params.peakSeparation}
-                  min={1}
-                  max={3.5}
-                  step={0.1}
-                  unit=""
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(peakSeparation) => setParams((p) => ({ ...p, peakSeparation }))}
-                />
-                <SliderRow
-                  label="Collapse duration"
-                  value={params.collapseDuration}
-                  min={0.2}
-                  max={1}
-                  step={0.1}
-                  unit="s"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(collapseDuration) => setParams((p) => ({ ...p, collapseDuration }))}
-                />
+              <CanvasSimulator params={params} phase={phase} collapsedX={collapsedX} collapseT={phase === "collapsed" ? 1 : 0} onCollapseComplete={onCollapseComplete} />
+            </div>
+
+            <aside className="col-span-1 h-[580px] overflow-y-auto">
+                <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-white">Parameters</h3>
+                    <div className="text-xs text-neutral-400">Set probabilities and shape, then click Measure.</div>
+                  </div>
+                <div className="grid gap-3">
+                  <SliderRow label="P(A) probability" value={params.probA} min={0} max={1} step={0.05} unit="" accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400 [&::-webkit-slider-thumb]:shadow" onChange={(probA) => { setParams((p) => ({ ...p, probA })); if (phase === "superposition") setCollapsedX(null); }} />
+                  <SliderRow label="Spread sigma" value={params.spreadSigma} min={0.2} max={1.2} step={0.05} unit="" accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow" onChange={(spreadSigma) => setParams((p) => ({ ...p, spreadSigma }))} />
+                  <SliderRow label="Peak separation d" value={params.peakSeparation} min={1} max={3.5} step={0.1} unit="" accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow" onChange={(peakSeparation) => setParams((p) => ({ ...p, peakSeparation }))} />
+                  <SliderRow label="Collapse duration" value={params.collapseDuration} min={0.2} max={1} step={0.1} unit="s" accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:shadow" onChange={(collapseDuration) => setParams((p) => ({ ...p, collapseDuration }))} />
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl text-neutral-300">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="text-sm font-semibold text-white">Concept</div>
+              <p className="mt-3 text-sm">Measurement changes a superposition (fuzzy distribution) into one definite observed state.</p>
+            </div>
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="text-sm font-semibold text-white">Key formulas</div>
+              <div className="mt-3 space-y-2 text-sm font-mono text-neutral-200">
+                <div>|psi&gt; = alpha|A&gt; + beta|B&gt;</div>
+                <div>P(A) = |alpha|^2, P(B) = |beta|^2</div>
+                <div>|alpha|^2 + |beta|^2 = 1</div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="text-sm font-semibold text-white">Variables</div>
+              <div className="mt-3 space-y-2 text-sm">
+                <div>alpha, beta: amplitudes</div>
+                <div>sigma: spread parameter</div>
+                <div>|psi(x)|^2: probability density</div>
               </div>
             </div>
           </div>
-
-          <aside className="w-full lg:w-[40%]">
-            <div className="sticky top-6 h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Measurement changes outcome
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                Before measurement the system is in a superposition: a probability distribution over possible outcomes.
-                Observation collapses the wave function to one outcome with probability P(i) = |⟨ψ|i⟩|². The plot shows
-                fuzzy probability → sharp result on observation.
-              </p>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Key formulas
-                </div>
-                <div className="mt-3 space-y-2 text-sm text-neutral-200">
-                  <div className="font-mono">
-                    |ψ⟩ = α|A⟩ + β|B⟩
-                    <span className="ml-2 text-neutral-400">(superposition)</span>
-                  </div>
-                  <div className="font-mono">
-                    P(A) = |α|², P(B) = |β|²
-                    <span className="ml-2 text-neutral-400">(Born rule)</span>
-                  </div>
-                  <div className="font-mono">
-                    |α|² + |β|² = 1
-                    <span className="ml-2 text-neutral-400">(normalization)</span>
-                  </div>
-                  <div className="font-mono text-neutral-300">
-                    Measurement: |ψ⟩ → |i⟩ with prob. |⟨ψ|i⟩|²
-                    <span className="ml-2 text-neutral-400">(collapse postulate)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Variables (with units)
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">α, β</dt>
-                    <dd className="text-neutral-400">amplitudes (dimensionless)</dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">σ</dt>
-                    <dd className="text-neutral-400">spread of superposition (arb.)</dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">|ψ(x)|²</dt>
-                    <dd className="text-neutral-400">probability density (1/length)</dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">P(A), P(B)</dt>
-                    <dd className="text-neutral-400">probabilities of outcomes (0–1)</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-4 text-xs text-neutral-300">
-                Simulation: adjust P(A) and the shape (σ, d), then click Measure. The wave function collapses to outcome A or B at random with the chosen probabilities—illustrating that measurement changes the state from fuzzy to sharp.
-              </div>
-            </div>
-          </aside>
         </div>
       </section>
     </main>

@@ -306,6 +306,7 @@ function TuningForkCanvas({
 }
 
 export default function ResonanceSimulation() {
+  const [playing, setPlaying] = useState(true);
   const [params, setParams] = useState<TuningForkParams>(DEFAULT_PARAMS);
   const [strikeAAt, setStrikeAAt] = useState<number | null>(null);
   const [strikeBAt, setStrikeBAt] = useState<number | null>(null);
@@ -399,9 +400,16 @@ export default function ResonanceSimulation() {
         </div>
 
         {/* Right: Parameters tab */}
-        <div className="flex-1 min-w-0 border-l-2 border-[#D4AF37] bg-gradient-to-b from-[#FFF8DC] to-[#FFEFD5] p-4 overflow-auto">
+        <div className="col-span-1 lg:col-span-2 min-w-0 border-l-2 border-[#D4AF37] bg-gradient-to-b from-[#FFF8DC] to-[#FFEFD5] p-4 overflow-auto">
           <div className="flex items-center justify-between gap-2 mb-3">
             <span className="text-sm font-bold text-[#FF8C42]">Parameters</span>
+                <button
+                  type="button"
+                  onClick={() => setPlaying(p => !p)}
+                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20"
+                >
+                  {playing ? "⏸ Pause" : "▶ Play"}
+                </button>
             <button
               type="button"
               onClick={reset}

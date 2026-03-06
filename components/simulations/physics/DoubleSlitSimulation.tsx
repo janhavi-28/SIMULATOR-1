@@ -1,15 +1,15 @@
-"use client";
+﻿"use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // Types & constants
 // ---------------------------------------------------------------------------
 
 interface DoubleSlitParams {
-  /** Wavelength (nm). Visible light ~400–700 nm. */
+  /** Wavelength (nm). Visible light ~400-700 nm. */
   wavelengthNm: number;
-  /** Slit separation (μm). Typical 50–300 μm. */
+  /** Slit separation (um). Typical 50-300 um. */
   slitSeparationUm: number;
   /** Screen distance from slits (m). */
   screenDistanceM: number;
@@ -31,9 +31,35 @@ function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
 }
 
-function formatNumber(n: number, digits = 2): string {
-  if (!Number.isFinite(n)) return "—";
-  return n.toFixed(digits);
+function sinc(x: number): number {
+  if (Math.abs(x) < 1e-8) return 1;
+  return Math.sin(x) / x;
+}
+
+function getHalfSpanMeters(wavelengthNm: number, slitSeparationUm: number, screenDistanceM: number): number {
+  const lambda = wavelengthNm * 1e-9;
+  const d = slitSeparationUm * 1e-6;
+  const L = screenDistanceM;
+  // Cover about +/- 4 fringe spacings for clearer pattern shape.
+  return Math.max(0.01, (4 * lambda * L) / d);
+}
+
+function doubleSlitIntensity(
+  yMeters: number,
+  wavelengthNm: number,
+  slitSeparationUm: number,
+  screenDistanceM: number
+): number {
+  const lambda = wavelengthNm * 1e-9; // m
+  const d = slitSeparationUm * 1e-6; // m
+  const L = screenDistanceM;
+  // Finite slit width envelope so outer fringes fade realistically.
+  const slitWidth = d * 0.32;
+  const alpha = (Math.PI * d * yMeters) / (lambda * L);
+  const beta = (Math.PI * slitWidth * yMeters) / (lambda * L);
+  const interference = Math.cos(alpha) ** 2;
+  const envelope = sinc(beta) ** 2;
+  return clamp(interference * envelope, 0, 1);
 }
 
 function useLatestRef<T>(value: T) {
@@ -48,27 +74,33 @@ function useLatestRef<T>(value: T) {
 // Slider row
 // ---------------------------------------------------------------------------
 
-function SliderRow(props: {
+function SliderRow({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
+  color = "#38bdf8",
+}: {
   label: string;
   value: number;
   min: number;
   max: number;
   step: number;
   unit: string;
-  accentClassName: string;
-  onChange: (next: number) => void;
+  onChange: (v: number) => void;
+  color?: string;
 }) {
-  const { label, value, min, max, step, unit, accentClassName, onChange } = props;
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900/70 px-4 py-3 shadow-sm">
-      <div className="min-w-[180px]">
-        <div className="text-sm font-semibold text-white">{label}</div>
-        <div className="mt-0.5 text-xs text-neutral-400">
-          <span className="tabular-nums text-neutral-200">
-            {formatNumber(value, step < 1 ? 2 : 0)}
-          </span>{" "}
-          {unit}
-        </div>
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex flex-col gap-0.5">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-200">{label}</span>
+        <span className="tabular-nums text-sm text-neutral-400">
+          {value.toFixed(step < 1 ? 2 : 1)}
+          {unit ? ` ${unit}` : ""}
+        </span>
       </div>
       <input
         type="range"
@@ -77,39 +109,29 @@ function SliderRow(props: {
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor: color }}
         aria-label={label}
-        className={`h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-800 outline-none ${accentClassName}`}
       />
-      <div className="min-w-[100px] text-right text-xs text-neutral-400">
-        <span className="tabular-nums text-neutral-200">
-          {formatNumber(value, step < 1 ? 2 : 0)}
-        </span>{" "}
-        {unit}
-      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Sample y position from double-slit intensity (cos² pattern)
+// Sample y position from double-slit intensity (cos^2 pattern)
 // Returns y in normalized -1..1 for screen drawing.
-// I(y) ∝ cos²(π d y / (λ L)); use rejection sampling or inverse over a range.
-// Fringe spacing Δy = λL/d (in real meters). We work in normalized coords.
+// I(y) ~ cos^2(pi d y / (lambda L)); use rejection sampling or inverse over a range.
+// Fringe spacing delta y = lambdaL/d (in real meters). We work in normalized coords.
 // ---------------------------------------------------------------------------
 function sampleInterference(
   wavelengthNm: number,
   slitSeparationUm: number,
   screenDistanceM: number
 ): number {
-  const λ = wavelengthNm * 1e-9; // m
-  const d = slitSeparationUm * 1e-6; // m
-  const L = screenDistanceM;
-  const k = (Math.PI * d) / (λ * L); // I ∝ cos²(k * y_real), y_real in m
-  // Fringe spacing in m: Δy = λ*L/d. Show about ±3 fringes.
-  const halfSpan = Math.max(0.01, (3 * λ * L) / d);
+  const halfSpan = getHalfSpanMeters(wavelengthNm, slitSeparationUm, screenDistanceM);
   for (let attempt = 0; attempt < 30; attempt++) {
     const yM = (Math.random() * 2 - 1) * halfSpan;
-    const intensity = Math.cos(k * yM) ** 2;
+    const intensity = doubleSlitIntensity(yM, wavelengthNm, slitSeparationUm, screenDistanceM);
     if (Math.random() <= intensity) return clamp(yM / halfSpan, -1, 1);
   }
   return (Math.random() * 2 - 1);
@@ -122,22 +144,14 @@ function sampleInterference(
 interface CanvasSimulatorProps {
   params: DoubleSlitParams;
   hits: Hit[];
-  paused: boolean;
-  onTogglePaused: () => void;
-  onClear: () => void;
 }
 
 const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
   params,
   hits,
-  paused,
-  onTogglePaused,
-  onClear,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const aspectRatio = 16 / 9;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -176,15 +190,15 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
     const grid = "rgba(100,116,139,0.18)";
     const axis = "#94a3b8";
     const text = "#e2e8f0";
-    const slitColor = "#1e293b";
     const barrierColor = "#334155";
     const particleColor = "rgba(34,211,238,0.85)";
     const particleGlow = "rgba(34,211,238,0.25)";
     const accent = "#38bdf8";
+    const theoryColor = "rgba(251,191,36,0.95)";
+    const observedColor = "rgba(16,185,129,0.95)";
 
     ctx.clearRect(0, 0, w, h);
 
-    const pad = 20 * dpr;
     const leftPad = 50 * dpr;
     const rightPad = 50 * dpr;
     const bottomPad = 36 * dpr;
@@ -221,11 +235,10 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
       ctx.stroke();
     }
 
-    // Barrier (vertical strip) with two slits – left third of plot
+    // Barrier (vertical strip) with two slits - left third of plot
     const barrierLeft = plotX0 + plotW * 0.28;
     const barrierRight = plotX0 + plotW * 0.35;
     const barrierMidY = plotY0 + plotH / 2;
-    const slitHalf = (plotH * 0.12);
     ctx.fillStyle = barrierColor;
     ctx.fillRect(plotX0, plotY0, barrierLeft - plotX0, plotH);
     ctx.fillRect(barrierRight, plotY0, plotX1 - barrierRight, plotH);
@@ -238,7 +251,7 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
     ctx.fillRect(barrierLeft, topSlitY + slitWidth, barrierRight - barrierLeft, botSlitY - (topSlitY + slitWidth));
     ctx.fillRect(barrierLeft, botSlitY + slitWidth, barrierRight - barrierLeft, plotY1 - (botSlitY + slitWidth));
 
-    // Screen (right edge) – where dots accumulate
+    // Screen (right edge) - where dots accumulate
     const screenX = plotX1 - 2 * dpr;
     ctx.strokeStyle = accent;
     ctx.lineWidth = 2 * dpr;
@@ -269,6 +282,45 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
       ctx.fill();
     }
 
+    // Observed distribution from hits: horizontal bars extending left from screen.
+    const bins = 90;
+    const counts = new Array<number>(bins).fill(0);
+    for (const hit of hits) {
+      const idx = clamp(Math.floor(((hit + 1) / 2) * bins), 0, bins - 1);
+      counts[idx] += 1;
+    }
+    const maxCount = Math.max(1, ...counts);
+    const histMaxW = plotW * 0.28;
+    for (let i = 0; i < bins; i++) {
+      const yNorm = ((i + 0.5) / bins) * 2 - 1;
+      const y = toY(yNorm);
+      const barW = (counts[i] / maxCount) * histMaxW;
+      if (barW <= 0.5) continue;
+      ctx.strokeStyle = "rgba(16,185,129,0.35)";
+      ctx.lineWidth = 1.25 * dpr;
+      ctx.beginPath();
+      ctx.moveTo(screenX - 3 * dpr, y);
+      ctx.lineTo(screenX - 3 * dpr - barW, y);
+      ctx.stroke();
+    }
+
+    // Theoretical intensity profile curve for current parameters.
+    const halfSpan = getHalfSpanMeters(params.wavelengthNm, params.slitSeparationUm, params.screenDistanceM);
+    const theoryMaxW = plotW * 0.28;
+    ctx.strokeStyle = theoryColor;
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath();
+    for (let i = 0; i <= 240; i++) {
+      const yNorm = (i / 240) * 2 - 1;
+      const yM = yNorm * halfSpan;
+      const intensity = doubleSlitIntensity(yM, params.wavelengthNm, params.slitSeparationUm, params.screenDistanceM);
+      const x = screenX - 3 * dpr - intensity * theoryMaxW;
+      const y = toY(yNorm);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
     // Axis labels
     ctx.fillStyle = axis;
     ctx.font = `${11 * dpr}px ui-sans-serif, system-ui, sans-serif`;
@@ -287,40 +339,17 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText(`Particles: ${hits.length}`, plotX0, plotY0 - 2 * dpr);
+    ctx.fillStyle = observedColor;
+    ctx.fillText("Observed", plotX1 - plotW * 0.24, plotY0 - 2 * dpr);
+    ctx.fillStyle = theoryColor;
+    ctx.fillText("Theory", plotX1 - plotW * 0.14, plotY0 - 2 * dpr);
   }, [params, hits]);
 
   return (
     <div className="rounded-3xl border border-sky-500/40 bg-neutral-950/60 p-4 shadow-[0_0_40px_rgba(56,189,248,0.1)]">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold text-white">
-            Double slit – particles forming interference pattern
-          </div>
-          <div className="text-xs text-neutral-400">
-            Cyan dots = particle hits on screen; pattern emerges over time.
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onClear}
-            className="rounded-xl border border-sky-500/40 bg-neutral-900 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-neutral-800 hover:border-sky-400"
-          >
-            Clear screen
-          </button>
-          <button
-            type="button"
-            onClick={onTogglePaused}
-            className="rounded-xl bg-sky-400/90 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-sky-300"
-          >
-            {paused ? "Resume" : "Pause"}
-          </button>
-        </div>
-      </div>
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden rounded-2xl border border-sky-500/40 bg-[#050816]"
-        style={{ aspectRatio: "16/9" }}
+        className="relative aspect-video w-full overflow-hidden rounded-2xl border border-sky-500/40 bg-[#050816]"
       >
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
       </div>
@@ -335,17 +364,18 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
 export default function DoubleSlitSimulation() {
   const [params, setParams] = useState<DoubleSlitParams>(DEFAULT_PARAMS);
   const [hits, setHits] = useState<Hit[]>([]);
-  const [paused, setPaused] = useState(false);
+  const [playing, setPlaying] = useState(true);
 
   const paramsRef = useLatestRef(params);
-  const pausedRef = useLatestRef(paused);
+  const playingRef = useLatestRef(playing);
   const lastEmitRef = useRef<number>(0);
+  const emitCarryRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
 
   const resetDefaults = useCallback(() => {
     setParams(DEFAULT_PARAMS);
     setHits([]);
-    setPaused(false);
+    setPlaying(true);
   }, []);
 
   const clearScreen = useCallback(() => setHits([]), []);
@@ -354,13 +384,15 @@ export default function DoubleSlitSimulation() {
   useEffect(() => {
     const step = (ts: number) => {
       rafRef.current = requestAnimationFrame(step);
-      if (pausedRef.current) return;
+      if (!playingRef.current) return;
 
       const p = paramsRef.current;
       const dt = (ts - lastEmitRef.current) / 1000;
       lastEmitRef.current = ts;
 
-      const toEmit = Math.min(50, Math.max(0, Math.floor(p.emissionRate * dt)));
+      emitCarryRef.current += p.emissionRate * dt;
+      const toEmit = Math.min(80, Math.max(0, Math.floor(emitCarryRef.current)));
+      emitCarryRef.current -= toEmit;
       if (toEmit <= 0) return;
 
       const newHits: Hit[] = [];
@@ -381,157 +413,173 @@ export default function DoubleSlitSimulation() {
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
-  }, [paramsRef, pausedRef]);
+  }, [paramsRef, playingRef]);
 
   return (
-    <main className="min-h-screen bg-neutral-950">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0f172a]" />
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="mx-auto max-w-7xl px-6 pt-10 pb-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Double slit experiment
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
-            Particles (e.g. electrons or photons) are sent one by one through two slits.
-            Each dot is one particle hitting the screen. Over time, an interference pattern
-            emerges—wave-like behavior even for single particles.
-          </p>
+      <section className="mx-auto w-full max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="mb-0 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-800 bg-neutral-950/50 px-4 py-3">
+                <div>
+                  <div className="text-sm font-semibold text-white">Double slit - particles forming interference pattern</div>
+                  <div className="text-xs text-neutral-400">Cyan dots are impacts; green bars are observed counts; yellow curve is theory.</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPlaying((p) => !p)}
+                    className={`min-w-[110px] rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-colors ${playing ? "bg-emerald-700 hover:bg-emerald-800" : "bg-emerald-600 hover:bg-emerald-700"}`}
+                  >
+                    {playing ? "⏸ Pause" : "▶ Play"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearScreen}
+                    className="min-w-[110px] rounded-xl border border-neutral-600 bg-neutral-800 px-5 py-2.5 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                  >
+                    Clear screen
+                  </button>
+                </div>
+              </div>
+
+              <CanvasSimulator
+                params={params}
+                hits={hits}
+              />
+            </div>
+
+            <aside className="col-span-1 h-[580px] overflow-y-auto pr-1">
+              <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Parameters</h3>
+                    <div className="text-xs text-neutral-400">Tune wavelength, slit spacing, distance, and emission rate.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetDefaults}
+                    className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-100 transition-colors hover:bg-neutral-700"
+                  >
+                    Reset defaults
+                  </button>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <SliderRow
+                    label="Wavelength, lambda"
+                    value={params.wavelengthNm}
+                    min={350}
+                    max={750}
+                    step={10}
+                    unit="nm"
+                    color="#a78bfa" // violet-400
+                    onChange={(wavelengthNm) => setParams((p) => ({ ...p, wavelengthNm }))}
+                  />
+                  <SliderRow
+                    label="Slit separation, d"
+                    value={params.slitSeparationUm}
+                    min={50}
+                    max={400}
+                    step={10}
+                    unit="um"
+                    color="#fbbf24" // amber-400
+                    onChange={(slitSeparationUm) => setParams((p) => ({ ...p, slitSeparationUm }))}
+                  />
+                  <SliderRow
+                    label="Screen distance, L"
+                    value={params.screenDistanceM}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    unit="m"
+                    color="#34d399" // emerald-400
+                    onChange={(screenDistanceM) => setParams((p) => ({ ...p, screenDistanceM }))}
+                  />
+                  <SliderRow
+                    label="Emission rate"
+                    value={params.emissionRate}
+                    min={20}
+                    max={300}
+                    step={10}
+                    unit="particles/s"
+                    color="#38bdf8" // sky-400
+                    onChange={(emissionRate) => setParams((p) => ({ ...p, emissionRate }))}
+                  />
+                </div>
+
+                <div className="mt-6 rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 text-sm text-sky-200">
+                  <div className="font-bold text-sky-400 mb-2">Note</div>
+                  <p className="text-xs text-sky-100/80 leading-relaxed">
+                    Larger lambda or L, or smaller d, gives wider fringe spacing.
+                    Green bars show observed counts, and the yellow curve shows theory.
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="w-full lg:w-[60%]">
-            <CanvasSimulator
-              params={params}
-              hits={hits}
-              paused={paused}
-              onTogglePaused={() => setPaused((p) => !p)}
-              onClear={clearScreen}
-            />
+        {/* Bottom Row: Info Panel */}
+        <div className="mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 
-            <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    Parameters
+              <div className="col-span-1 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+                <h4 className="mb-3 text-sm font-bold text-cyan-400">The Concept</h4>
+                <p className="text-sm mb-3">
+                  Light or matter passing through two narrow slits produces a pattern of bright and dark fringes
+                  on a screen. The intensity follows a cos^2 dependence from the path difference.
+                </p>
+                <p className="text-sm">
+                  Even when particles are sent one at a time, the same pattern builds up - each particle is described
+                  by a wave function that interferes with itself. This demonstrates wave-particle duality.
+                </p>
+              </div>
+
+              <div className="col-span-1 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+                <h4 className="mb-3 text-sm font-bold text-cyan-400">Key Formula</h4>
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-neutral-800 bg-neutral-950 p-3">
+                    <div className="mb-1 text-xs font-bold text-yellow-400">Intensity Distribution</div>
+                    <div className="text-sm font-mono text-neutral-200">I(y) = cos^2(pi d y / (lambda L))</div>
+                    <div className="mt-2 text-xs text-neutral-400">Where y is the vertical position on screen.</div>
                   </div>
-                  <div className="text-xs text-neutral-400">
-                    Change wavelength, slit separation, or screen distance to see how the pattern changes.
+                  <div className="rounded-lg border border-neutral-800 bg-neutral-950 p-3">
+                    <div className="mb-1 text-xs font-bold text-yellow-400">Fringe Spacing</div>
+                    <div className="text-sm font-mono text-neutral-200">delta y = lambda L / d</div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={resetDefaults}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800"
-                >
-                  Reset defaults
-                </button>
               </div>
 
-              <div className="grid gap-3">
-                <SliderRow
-                  label="Wavelength, λ"
-                  value={params.wavelengthNm}
-                  min={350}
-                  max={750}
-                  step={10}
-                  unit="nm"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(wavelengthNm) => setParams((p) => ({ ...p, wavelengthNm }))}
-                />
-                <SliderRow
-                  label="Slit separation, d"
-                  value={params.slitSeparationUm}
-                  min={50}
-                  max={400}
-                  step={10}
-                  unit="μm"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(slitSeparationUm) => setParams((p) => ({ ...p, slitSeparationUm }))}
-                />
-                <SliderRow
-                  label="Screen distance, L"
-                  value={params.screenDistanceM}
-                  min={0.5}
-                  max={3}
-                  step={0.1}
-                  unit="m"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(screenDistanceM) => setParams((p) => ({ ...p, screenDistanceM }))}
-                />
-                <SliderRow
-                  label="Emission rate"
-                  value={params.emissionRate}
-                  min={20}
-                  max={300}
-                  step={10}
-                  unit="particles/s"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(emissionRate) => setParams((p) => ({ ...p, emissionRate }))}
-                />
+              <div className="col-span-1 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+                <h4 className="mb-3 text-sm font-bold text-cyan-400">Variables</h4>
+                <div className="space-y-3 rounded-lg border border-neutral-800 bg-neutral-950 p-4 font-mono text-sm">
+                  <div className="flex items-end justify-between border-b border-neutral-800 pb-2">
+                    <span className="font-bold text-yellow-400">lambda</span>
+                    <span className="text-xs text-neutral-400">wavelength (nm)</span>
+                  </div>
+                  <div className="flex items-end justify-between border-b border-neutral-800 pb-2">
+                    <span className="font-bold text-yellow-400">d</span>
+                    <span className="text-xs text-neutral-400">slit separation (um)</span>
+                  </div>
+                  <div className="flex items-end justify-between border-b border-neutral-800 pb-2">
+                    <span className="font-bold text-yellow-400">L</span>
+                    <span className="text-xs text-neutral-400">screen distance (m)</span>
+                  </div>
+                  <div className="flex items-end justify-between pb-1">
+                    <span className="font-bold text-yellow-400">y</span>
+                    <span className="text-xs text-neutral-400">position on screen (m)</span>
+                  </div>
+                </div>
               </div>
+
             </div>
           </div>
-
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Wave–particle duality &amp; interference
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                Light or matter passing through two narrow slits produces a pattern of bright and dark fringes
-                on a screen. The intensity follows a cos² dependence from the path difference. Even when particles
-                are sent one at a time, the same pattern builds up—each particle is described by a wave function
-                that interferes with itself.
-              </p>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Key formula
-                </div>
-                <div className="mt-3 space-y-2 text-sm text-neutral-200">
-                  <div className="font-mono">
-                    I(y) ∝ cos²(π d y / (λ L))
-                    <span className="ml-2 text-neutral-400">(intensity on screen)</span>
-                  </div>
-                  <div className="font-mono">
-                    Δy = λ L / d
-                    <span className="ml-2 text-neutral-400">(fringe spacing, m)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Variables (with units)
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">λ</dt>
-                    <dd className="text-neutral-400">wavelength (nm)</dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">d</dt>
-                    <dd className="text-neutral-400">slit separation (μm)</dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">L</dt>
-                    <dd className="text-neutral-400">screen distance (m)</dd>
-                  </div>
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <dt className="text-neutral-200">y</dt>
-                    <dd className="text-neutral-400">position on screen (m)</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                Larger λ or L, or smaller d, gives wider fringe spacing. Pause to inspect the pattern; clear and resume to see it build again.
-              </div>
-            </div>
-          </aside>
-        </div>
       </section>
     </main>
   );
 }
+

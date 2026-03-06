@@ -469,223 +469,117 @@ export default function ProjectileMotionSimulationPage() {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0b1120]" />
 
       <section className="mx-auto max-w-7xl px-6 pt-10 pb-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Projectile motion simulator
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
-            Launch a projectile with adjustable speed, angle, and height. See
-            how the trajectory, range and time of flight change in real time.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left column: visual + bottom controls */}
-          <div className="w-full lg:w-[60%]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div />
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={launch}
-                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/20"
-                >
-                  Launch
-                </button>
-                <button
-                  type="button"
-                  onClick={togglePause}
-                  className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-200"
-                >
-                  {paused ? "Play" : "Pause"}
-                </button>
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="mb-0 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-800 bg-neutral-950/50 px-4 py-3">
+                <div>
+                  <div className="text-sm font-semibold text-white">Projectile motion in 2D</div>
+                  <div className="text-xs text-neutral-400">Cyan arrow is velocity. Red arrow is acceleration due to gravity.</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={launch}
+                    className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/20"
+                  >
+                    Launch
+                  </button>
+                  <button
+                    type="button"
+                    onClick={togglePause}
+                    className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-200"
+                  >
+                    {paused ? "\u25B6 Play" : "\u23F8 Pause"}
+                  </button>
+                </div>
               </div>
+
+              <ProjectileCanvas params={params} sim={sim} />
             </div>
 
-            <ProjectileCanvas params={params} sim={sim} />
-
-            <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    Parameters
+            <aside className="col-span-1 h-[580px] overflow-y-auto">
+              <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-white">Parameters</div>
+                    <div className="text-xs text-neutral-400">Adjust speed, angle, height, and gravity.</div>
                   </div>
-                  <div className="text-xs text-neutral-400">
-                    Adjust speed, launch angle, height and gravity. The motion
-                    updates instantly.
-                  </div>
+                  <button
+                    type="button"
+                    onClick={resetDefaults}
+                    className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
+                  >
+                    {"\u21BA Reset"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={resetDefaults}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800"
-                >
-                  Reset defaults
-                </button>
+
+                <div className="grid gap-3">
+                  <SliderRow
+                    label="Initial speed v0"
+                    value={params.v0}
+                    min={5}
+                    max={60}
+                    step={0.5}
+                    unit="m/s"
+                    onChange={(v0) => setParams((prev) => ({ ...prev, v0 }))}
+                  />
+                  <SliderRow
+                    label="Launch angle theta"
+                    value={params.angleDeg}
+                    min={10}
+                    max={80}
+                    step={1}
+                    unit="deg"
+                    onChange={(angleDeg) => setParams((prev) => ({ ...prev, angleDeg }))}
+                  />
+                  <SliderRow
+                    label="Initial height h0"
+                    value={params.h0}
+                    min={0}
+                    max={15}
+                    step={0.5}
+                    unit="m"
+                    onChange={(h0) => setParams((prev) => ({ ...prev, h0 }))}
+                  />
+                  <SliderRow
+                    label="Gravity g"
+                    value={params.g}
+                    min={5}
+                    max={20}
+                    step={0.1}
+                    unit="m/s^2"
+                    onChange={(g) => setParams((prev) => ({ ...prev, g }))}
+                  />
+                </div>
               </div>
+            </aside>
+          </div>
+        </div>
 
-              <div className="grid gap-3">
-                <SliderRow
-                  label="Initial speed, v₀"
-                  value={params.v0}
-                  min={5}
-                  max={60}
-                  step={0.5}
-                  unit="m/s"
-                  onChange={(v0) =>
-                    setParams((prev) => ({
-                      ...prev,
-                      v0,
-                    }))
-                  }
-                />
-                <SliderRow
-                  label="Launch angle, θ"
-                  value={params.angleDeg}
-                  min={10}
-                  max={80}
-                  step={1}
-                  unit="°"
-                  onChange={(angleDeg) =>
-                    setParams((prev) => ({
-                      ...prev,
-                      angleDeg,
-                    }))
-                  }
-                />
-                <SliderRow
-                  label="Initial height, h₀"
-                  value={params.h0}
-                  min={0}
-                  max={15}
-                  step={0.5}
-                  unit="m"
-                  onChange={(h0) =>
-                    setParams((prev) => ({
-                      ...prev,
-                      h0,
-                    }))
-                  }
-                />
-                <SliderRow
-                  label="Gravitational acceleration, g"
-                  value={params.g}
-                  min={5}
-                  max={20}
-                  step={0.1}
-                  unit="m/s²"
-                  onChange={(g) =>
-                    setParams((prev) => ({
-                      ...prev,
-                      g,
-                    }))
-                  }
-                />
+        <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl text-neutral-300">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <h4 className="mb-3 text-sm font-bold text-cyan-400">Concept</h4>
+              <p className="text-sm">Horizontal motion has constant velocity, while vertical motion has constant downward acceleration.</p>
+            </div>
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <h4 className="mb-3 text-sm font-bold text-cyan-400">Key formulas</h4>
+              <div className="space-y-2 text-sm font-mono text-neutral-200">
+                <div>x(t) = v0 cos(theta) t</div>
+                <div>y(t) = h0 + v0 sin(theta) t - 0.5 g t^2</div>
+                <div>Range = v0 cos(theta) * T</div>
               </div>
-
-              <div className="mt-4 grid gap-3 text-xs text-neutral-400 sm:grid-cols-3">
-                <div>
-                  <div className="font-semibold text-neutral-200">
-                    Time of flight
-                  </div>
-                  <div className="mt-1 tabular-nums text-neutral-100">
-                    {formatNumber(tFlight, 2)} s
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-neutral-200">Range</div>
-                  <div className="mt-1 tabular-nums text-neutral-100">
-                    {formatNumber(range, 1)} m
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-neutral-200">
-                    Maximum height
-                  </div>
-                  <div className="mt-1 tabular-nums text-neutral-100">
-                    {formatNumber(hMax, 1)} m
-                  </div>
-                </div>
+            </div>
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <h4 className="mb-3 text-sm font-bold text-cyan-400">Live values</h4>
+              <div className="space-y-2 text-sm">
+                <div>Time of flight: <span className="tabular-nums">{formatNumber(tFlight, 2)} s</span></div>
+                <div>Range: <span className="tabular-nums">{formatNumber(range, 1)} m</span></div>
+                <div>Maximum height: <span className="tabular-nums">{formatNumber(hMax, 1)} m</span></div>
               </div>
             </div>
           </div>
-
-          {/* Right panel: information */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Concept: projectile motion
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                A projectile launched with initial speed v₀ at angle θ follows a
-                curved path under constant downward acceleration g. The
-                horizontal motion has constant velocity, while the vertical
-                motion is uniformly accelerated.
-              </p>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Key formulas
-                </div>
-                <div className="mt-3 space-y-2 text-sm text-neutral-200 font-mono">
-                  <div>
-                    x(t) = v₀ cosθ · t
-                    <span className="ml-2 text-neutral-400">(horizontal)</span>
-                  </div>
-                  <div>
-                    y(t) = h₀ + v₀ sinθ · t − ½ g t²
-                    <span className="ml-2 text-neutral-400">(vertical)</span>
-                  </div>
-                  <div>
-                    T ≈{" "}
-                    <span className="text-neutral-100">
-                      (v₀ sinθ + √(v₀² sin²θ + 2 g h₀)) / g
-                    </span>
-                  </div>
-                  <div>
-                    R ≈ v₀ cosθ · T
-                    <span className="ml-2 text-neutral-400">(range)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Variables (with units)
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">v₀</dt>
-                    <dd className="text-neutral-400">
-                      initial speed (m/s)
-                    </dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">θ</dt>
-                    <dd className="text-neutral-400">
-                      launch angle above horizontal (degrees)
-                    </dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">h₀</dt>
-                    <dd className="text-neutral-400">initial height (m)</dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">g</dt>
-                    <dd className="text-neutral-400">
-                      gravitational acceleration (m/s²)
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                Tip: try θ ≈ 45° at fixed v₀ to see near‑maximum range, then
-                change θ while keeping v₀ constant to see how the trajectory
-                reshapes.
-              </div>
-            </div>
-          </aside>
         </div>
       </section>
     </main>

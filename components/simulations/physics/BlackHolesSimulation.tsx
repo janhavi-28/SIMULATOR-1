@@ -110,7 +110,6 @@ function timeDilationFactor(r: number, r_s: number): number {
   return t > 0 ? Math.sqrt(t) : 0;
 }
 
-// ——— Slider row ———
 function SliderRow({
   label,
   value,
@@ -118,6 +117,8 @@ function SliderRow({
   max,
   step,
   unit,
+  icon,
+  accentColor = "#3B82F6",
   onChange,
 }: {
   label: string;
@@ -126,27 +127,30 @@ function SliderRow({
   max: number;
   step: number;
   unit: string;
+  icon?: string;
+  accentColor?: string;
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-neutral-700 bg-neutral-900/70 px-4 py-3 shadow-sm">
-      <div className="text-sm font-semibold text-white">{label}</div>
-      <div className="flex items-center gap-3">
-        <span className="min-w-[3.5rem] text-right text-sm tabular-nums text-neutral-300">
-          {formatNum(value, 2)}
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">{icon} {label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {step < 0.1 ? value.toFixed(2) : Math.round(value)}
           {unit ? ` ${unit}` : ""}
         </span>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="physics-range flex-1 min-w-0"
-          aria-label={label}
-        />
       </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor }}
+        aria-label={label}
+      />
     </div>
   );
 }
@@ -387,13 +391,11 @@ function SimulatorCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#030712]"
-      style={{ aspectRatio: "16/9" }}
+      className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#030712] aspect-video"
     >
       <canvas
         ref={canvasRef}
         className="absolute inset-0 h-full w-full"
-        style={{ aspectRatio: "16/9" }}
       />
     </div>
   );
@@ -428,56 +430,48 @@ export default function BlackHolesSimulation() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617]">
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left: 60% — simulator + bottom controls */}
-          <div className="relative w-full shrink-0 lg:w-[60%]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-neutral-400">
-                Event horizon, light bending, and time dilation. Rays and photon path update with mass and impact parameter.
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+          {/* Top Row: Simulation Canvas */}
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-800 pb-4 mb-6">
+              <div className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400">
+                🕳️ Black Holes & Geodesics
+              </div>
+              <div className="text-xs text-neutral-400 hidden sm:block">
+                Event horizon, light bending, and time dilation
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPlaying((p) => !p)}
-                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/20"
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${playing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
                 >
-                  {playing ? "Pause" : "Play"}
+                  {playing ? "⏸ Pause" : "▶ Play"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTime(0)}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
+                  onClick={reset}
+                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
                 >
-                  Reset time
+                  ↺ Reset
                 </button>
               </div>
             </div>
 
             <SimulatorCanvas params={params} time={time} playing={playing} />
+          </div>
 
-            {/* Bottom: full-width parameter panel */}
-            <div className="relative z-10 mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Parameters</div>
-                  <div className="text-xs text-neutral-400">
-                    Mass sets event horizon size; impact parameter sets closest approach of light.
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset
-                </button>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Controls Panel */}
+          <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+            <div>
+              <h3 className="mb-4 text-xs font-bold tracking-widest text-neutral-500">⚙ PARAMETERS</h3>
+              <div className="flex flex-col gap-3">
                 <SliderRow
                   label="Mass strength, M"
                   value={params.massStrength}
@@ -485,6 +479,8 @@ export default function BlackHolesSimulation() {
                   max={2}
                   step={0.1}
                   unit=""
+                  icon="⚖️"
+                  accentColor="#F59E0B"
                   onChange={(massStrength) =>
                     setParams((p) => ({ ...p, massStrength: clamp(massStrength, 0.5, 2) }))
                   }
@@ -496,6 +492,8 @@ export default function BlackHolesSimulation() {
                   max={4}
                   step={0.05}
                   unit=""
+                  icon="🎯"
+                  accentColor="#38BDF8"
                   onChange={(impactParam) =>
                     setParams((p) => ({ ...p, impactParam: clamp(impactParam, 1.2, 4) }))
                   }
@@ -507,6 +505,8 @@ export default function BlackHolesSimulation() {
                   max={5}
                   step={1}
                   unit=""
+                  icon="🔦"
+                  accentColor="#A855F7"
                   onChange={(numRays) =>
                     setParams((p) => ({ ...p, numRays: Math.round(clamp(numRays, 1, 5)) }))
                   }
@@ -518,90 +518,105 @@ export default function BlackHolesSimulation() {
                   max={2}
                   step={0.25}
                   unit="×"
+                  icon="⏱️"
+                  accentColor="#22C55E"
                   onChange={(simSpeed) =>
                     setParams((p) => ({ ...p, simSpeed }))
                   }
                 />
               </div>
             </div>
-          </div>
 
-          {/* Right: 40% — info panel */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Black Holes — Event Horizon, Light Bending & Time Dilation
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                A black hole is a region where gravity is so strong that nothing, not even light, can escape. The boundary is the event horizon at radius r_s. Light rays bend around the hole; time runs slower near the horizon (gravitational time dilation). Matter crossing the horizon is stretched by tidal forces (spaghettification).
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 font-mono text-sm space-y-2">
+              <div className="text-neutral-500 font-sans font-bold tracking-wider text-xs mb-1">LIVE METRICS</div>
+              <div className="flex justify-between"><span className="text-neutral-400">b_crit</span><span className="text-cyan-400">{formatNum(criticalImpactParam(), 2)} r_s</span></div>
+              <div className="flex justify-between"><span className="text-neutral-400">r_s (world)</span><span className="text-emerald-400">{formatNum(schwarzschildRadiusWorld(params.massStrength), 2)}</span></div>
+            </div>
+
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+              <div className="font-bold text-blue-400 mb-2 font-sans">💡 Quick Tip</div>
+              <p className="text-xs text-blue-200/80 leading-relaxed font-sans">
+                Set <span className="text-blue-300 font-bold">b &lt; {formatNum(criticalImpactParam(), 2)} r_s</span> to observe photons crossing the event horizon and being captured.
               </p>
-
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Natural units &amp; exact equation
-                </div>
-                <div className="mt-3 space-y-3 text-sm font-mono text-neutral-200">
-                  <div>
-                    <span className="text-cyan-300">G = c = 1 ⇒ r_s = 2M</span>
-                  </div>
-                  <div>
-                    <span className="text-cyan-300">d²u/dφ² + u = 3 M u²</span>
-                    <div className="mt-1 font-sans text-xs font-normal text-neutral-400">
-                      Null geodesic in Schwarzschild; u = 1/r. First integral: (du/dφ)² = 1/b² − u² + 2M u³.
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-cyan-300">b_crit = (3√3/2) r_s ≈ 2.60 r_s</span>
-                    <div className="mt-1 font-sans text-xs font-normal text-neutral-400">
-                      b &gt; b_crit → escape; b = b_crit → unstable orbit (photon sphere); b &lt; b_crit → capture.
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-cyan-300">Photon sphere: r = 1.5 r_s</span>
-                    <div className="mt-1 font-sans text-xs font-normal text-neutral-400">
-                      Unstable circular orbit for photons. Trajectories from RK4 integration only (no weak-field formula).
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-cyan-300">Δt' = Δt √(1 − r_s/r)</span>
-                    <div className="mt-1 font-sans text-xs font-normal text-neutral-400">
-                      Time dilation (r &gt; r_s). Photon dims near horizon in the sim.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Variables (natural units)
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">r_s</dt>
-                    <dd className="text-neutral-400">Schwarzschild radius (event horizon)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">M</dt>
-                    <dd className="text-neutral-400">mass (r_s = 2M)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">b</dt>
-                    <dd className="text-neutral-400">impact parameter (in r_s)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">φ</dt>
-                    <dd className="text-neutral-400">azimuthal angle (rad)</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                Sim uses RK4 on the exact Schwarzschild null geodesic equation. Set b just above b_crit to see multiple windings and large deflection; set b &lt; b_crit to see sharp capture. Dashed circle is the photon sphere at r = 1.5 r_s.
-              </div>
             </div>
           </aside>
+          </div>
         </div>
-      </section>
+
+          {/* Bottom Row: Info Panel */}
+          <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl flex flex-col md:flex-row gap-6">
+
+            <div className="flex-1 space-y-4">
+              <h3 className="text-sm font-bold text-cyan-400 tracking-widest uppercase">Physics Principle: General Relativity</h3>
+              <p className="text-sm text-neutral-400 leading-relaxed font-sans">
+                A black hole is a region of spacetime where gravity is so strong that nothing, not even light, can escape. The boundary is the event horizon at radius r_s. Light rays bend around the hole; time runs slower near the horizon (gravitational time dilation).
+              </p>
+
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-200 mb-1">Natural units & exact equation</h4>
+                  <ul className="space-y-2 text-sm text-neutral-400 font-sans list-disc pl-5 marker:text-cyan-500">
+                    <li>
+                      <strong className="text-cyan-300">G = c = 1 ⇒ r_s = 2M</strong>
+                    </li>
+                    <li>
+                      <strong className="text-cyan-300">d²u/dφ² + u = 3Mu²</strong>
+                      <p className="mt-0.5 text-xs">Null geodesic in Schwarzschild; u = 1/r. First integral: (du/dφ)² = 1/b² − u² + 2M u³.</p>
+                    </li>
+                    <li>
+                      <strong className="text-cyan-300">b_crit = (3√3/2) r_s ≈ 2.60 r_s</strong>
+                      <p className="mt-0.5 text-xs">b &gt; b_crit → escape; b = b_crit → unstable orbit; b &lt; b_crit → capture.</p>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              <h3 className="text-sm font-bold text-emerald-400 tracking-widest uppercase">Mathematical Variables</h3>
+
+              <div className="space-y-4">
+                <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+                  <table className="w-full text-sm font-sans text-left">
+                    <thead className="bg-neutral-800/50 text-neutral-400 border-b border-neutral-800">
+                      <tr>
+                        <th className="px-4 py-2 font-medium">Symbol</th>
+                        <th className="px-4 py-2 font-medium">Name</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800">
+                      <tr>
+                        <td className="px-4 py-2 font-mono text-cyan-400 bg-neutral-950/30">r_s</td>
+                        <td className="px-4 py-2 text-neutral-300">Schwarzschild radius (event horizon)</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2 font-mono text-amber-500 bg-neutral-950/30">M</td>
+                        <td className="px-4 py-2 text-neutral-300">Mass (r_s = 2M)</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2 font-mono text-emerald-400 bg-neutral-950/30">b</td>
+                        <td className="px-4 py-2 text-neutral-300">Impact parameter (in r_s)</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-2 font-mono text-purple-400 bg-neutral-950/30">φ</td>
+                        <td className="px-4 py-2 text-neutral-300">Azimuthal angle (rad)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="rounded-xl border border-amber-900/30 bg-amber-900/10 p-4">
+                  <h4 className="text-sm font-semibold text-amber-500 mb-1">Time Dilation</h4>
+                  <div className="text-amber-200/70 font-sans">
+                    <strong className="font-mono text-amber-400">Δt&apos; = Δt √(1 − r_s/r)</strong>
+                    <p className="mt-1 text-xs">Time dilation (r &gt; r_s). The photon visually dims near the horizon in the simulation to denote temporal slowing.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
     </main>
   );
 }

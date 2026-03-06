@@ -396,183 +396,174 @@ export default function SpecialRelativitySimulation() {
     <main className="min-h-screen bg-[#020617]">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left column: simulator + controls (isolate so canvas never overlaps sliders) */}
-          <div className="relative w-full shrink-0 lg:w-[60%]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-neutral-400">
-                Green = lab clock (t), Amber = moving clock (τ). Ship length
-                contracted by 1/γ. <span className="text-cyan-300">Drag the graph horizontally to scrub time.</span>
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+            {/* Top Row: Simulation Canvas */}
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-800 pb-4 mb-6">
+                <div className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">
+                  🚀 Special Relativity
+                </div>
+                <div className="text-xs text-neutral-400 hidden sm:block">
+                  Green = lab clock (t), Amber = moving clock (τ). Drag horizontally to scrub time.
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPlaying((p) => !p)}
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${playing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                  >
+                    {playing ? "⏸ Pause" : "▶ Play"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                  >
+                    ↺ Reset
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPlaying((p) => !p)}
-                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/20"
-                >
-                  {playing ? "Pause" : "Play"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLabTime(0)}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset time
-                </button>
-              </div>
+
+              <SimulatorCanvas
+                params={params}
+                labTime={labTime}
+                playing={playing}
+                onScrubTime={setLabTime}
+                onScrubStart={() => setPlaying(false)}
+              />
             </div>
 
-            <SimulatorCanvas
-              params={params}
-              labTime={labTime}
-              playing={playing}
-              onScrubTime={setLabTime}
-              onScrubStart={() => setPlaying(false)}
-            />
+            {/* Controls Panel */}
+            <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+              <div className="pt-2">
+                <h3 className="mb-4 text-xs font-bold tracking-widest text-neutral-500">⚙ PARAMETERS</h3>
+                <div className="grid gap-3">
+                  <SliderRow
+                    label="Velocity, v/c"
+                    value={params.vOverC}
+                    min={0}
+                    max={0.95}
+                    step={0.01}
+                    unit=""
+                    onChange={(vOverC) =>
+                      setParams((p) => ({ ...p, vOverC: clamp(vOverC, 0, 0.99) }))
+                    }
+                  />
+                  <SliderRow
+                    label="Rest length, L₀"
+                    value={params.restLength}
+                    min={20}
+                    max={120}
+                    step={5}
+                    unit="m"
+                    onChange={(restLength) =>
+                      setParams((p) => ({ ...p, restLength }))
+                    }
+                  />
+                  <SliderRow
+                    label="Sim speed"
+                    value={params.simSpeed}
+                    min={0.25}
+                    max={3}
+                    step={0.25}
+                    unit="×"
+                    onChange={(simSpeed) =>
+                      setParams((p) => ({ ...p, simSpeed }))
+                    }
+                  />
+                </div>
+              </div>
 
-            {/* Parameter controls — full width below left panel (relative z-10 so sliders stay clickable) */}
-            <div className="relative z-10 mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    Parameters
+              <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+                <div className="font-bold text-cyan-400 mb-2 font-sans">Live Status</div>
+                <div className="flex flex-col gap-2 text-xs text-neutral-300">
+                  <div>
+                    <span className="font-semibold text-neutral-200">
+                      Lab time t = {formatNum(labTime, 2)} s
+                    </span>{" "}
+                    → proper time τ = {formatNum(properTime, 2)} s (γ ={" "}
+                    {formatNum(γ, 2)})
                   </div>
-                  <div className="text-xs text-neutral-400">
-                    Change v/c or rest length; time dilation and length
-                    contraction update in real time.
+                  <div>
+                    Contracted L = {formatNum(contractedLength, 1)} m
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset
-                </button>
               </div>
+            </aside>
+          </div>
+        </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <SliderRow
-                  label="Velocity, v/c"
-                  value={params.vOverC}
-                  min={0}
-                  max={0.95}
-                  step={0.01}
-                  unit=""
-                  onChange={(vOverC) =>
-                    setParams((p) => ({ ...p, vOverC: clamp(vOverC, 0, 0.99) }))
-                  }
-                />
-                <SliderRow
-                  label="Rest length, L₀"
-                  value={params.restLength}
-                  min={20}
-                  max={120}
-                  step={5}
-                  unit="m"
-                  onChange={(restLength) =>
-                    setParams((p) => ({ ...p, restLength }))
-                  }
-                />
-                <SliderRow
-                  label="Sim speed"
-                  value={params.simSpeed}
-                  min={0.25}
-                  max={3}
-                  step={0.25}
-                  unit="×"
-                  onChange={(simSpeed) =>
-                    setParams((p) => ({ ...p, simSpeed }))
-                  }
-                />
-              </div>
+        {/* Bottom Row: Info Panel */}
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300 flex flex-col md:flex-row gap-6">
 
-              <div className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-400">
-                <span>
-                  <span className="font-semibold text-neutral-200">
-                    Lab time t = {formatNum(labTime, 2)} s
-                  </span>{" "}
-                  → proper time τ = {formatNum(properTime, 2)} s (γ ={" "}
-                  {formatNum(γ, 2)})
-                </span>
-                <span>
-                  Contracted length L = {formatNum(contractedLength, 1)} m
-                </span>
+          <div className="flex-1 space-y-4">
+            <h3 className="text-sm font-bold text-cyan-400 tracking-widest uppercase">Special Relativity — Time Dilation & Length Contraction</h3>
+            <p className="text-sm text-neutral-400 leading-relaxed font-sans">
+              In special relativity, moving clocks run slower (time dilation)
+              and moving lengths contract along the direction of motion. The
+              Lorentz factor γ depends only on v/c. As v → c, γ → ∞ so time
+              on the moving clock nearly stops and length contracts to zero.
+            </p>
+
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 mt-6">
+              <h4 className="text-sm font-semibold text-neutral-200 mb-3">Key Formulas</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800"><span className="text-cyan-300">γ = 1/√(1 − v²/c²)</span></div>
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800"><span className="text-emerald-300">Δt = γ Δτ</span> <span className="text-neutral-500 float-right text-xs mt-0.5">(time dilation: lab time vs proper time)</span></div>
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800"><span className="text-amber-300">L = L₀/γ</span> <span className="text-neutral-500 float-right text-xs mt-0.5">(length contraction)</span></div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right panel: information */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Special Relativity — Time Dilation & Length Contraction
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                In special relativity, moving clocks run slower (time dilation)
-                and moving lengths contract along the direction of motion. The
-                Lorentz factor γ depends only on v/c. As v → c, γ → ∞ so time
-                on the moving clock nearly stops and length contracts to zero.
-              </p>
+          <div className="flex-1 space-y-4">
+            <h3 className="text-sm font-bold text-emerald-400 tracking-widest uppercase">Variables Reference</h3>
 
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Key formulas
-                </div>
-                <div className="mt-3 space-y-2 text-sm font-mono text-neutral-200">
-                  <div>
-                    <span className="text-cyan-300">γ = 1/√(1 − v²/c²)</span>
-                  </div>
-                  <div>
-                    <span className="text-emerald-300">Δt = γ Δτ</span> (time
-                    dilation: lab time vs proper time)
-                  </div>
-                  <div>
-                    <span className="text-amber-300">L = L₀/γ</span> (length
-                    contraction)
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-                  Variables
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">v, c</dt>
-                    <dd className="text-neutral-400">
-                      speed, speed of light (m/s)
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">γ</dt>
-                    <dd className="text-neutral-400">Lorentz factor (dimensionless)</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">Δt, Δτ</dt>
-                    <dd className="text-neutral-400">
-                      lab time, proper time (s)
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">L₀, L</dt>
-                    <dd className="text-neutral-400">
-                      rest length, contracted length (m)
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                The twin paradox: a traveling twin ages less because they
-                experience less proper time. Here we show one frame: the lab
-                clock ticks t while the moving ship&apos;s clock ticks τ = t/γ
-                (slower).
-              </div>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+              <table className="w-full text-sm font-sans text-left">
+                <thead className="bg-neutral-800/50 text-neutral-400 border-b border-neutral-800">
+                  <tr>
+                    <th className="px-4 py-2 font-medium">Symbol</th>
+                    <th className="px-4 py-2 font-medium">Name</th>
+                    <th className="px-4 py-2 font-medium">Unit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-800">
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-cyan-400 bg-neutral-950/30">v, c</td>
+                    <td className="px-4 py-3 text-neutral-300">speed, speed of light</td>
+                    <td className="px-4 py-3 text-neutral-500">m/s</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-amber-500 bg-neutral-950/30">γ</td>
+                    <td className="px-4 py-3 text-neutral-300">Lorentz factor</td>
+                    <td className="px-4 py-3 text-neutral-500">—</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-emerald-400 bg-neutral-950/30">Δt, Δτ</td>
+                    <td className="px-4 py-3 text-neutral-300">lab time, proper time</td>
+                    <td className="px-4 py-3 text-neutral-500">s</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-purple-400 bg-neutral-950/30">L₀, L</td>
+                    <td className="px-4 py-3 text-neutral-300">rest length, contracted length</td>
+                    <td className="px-4 py-3 text-neutral-500">m</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </aside>
+
+            <div className="mt-4 rounded-xl border border-neutral-700 bg-neutral-900/40 p-4 text-sm text-neutral-400">
+              <strong className="text-neutral-300">The twin paradox:</strong> a traveling twin ages less because they
+              experience less proper time. Here we show one frame: the lab
+              clock ticks <span className="text-neutral-300">t</span> while the moving ship&apos;s clock ticks <span className="text-neutral-300">τ = t/γ</span> (slower).
+            </div>
+          </div>
+
         </div>
       </section>
     </main>

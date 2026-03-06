@@ -98,66 +98,45 @@ const SCALE_MAX = 10;
 // Parameter Slider Component
 // ---------------------------------------------------------------------------
 
-function ParameterSlider({
-  config,
+function SliderRow({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
   onChange,
+  color = "#38bdf8",
 }: {
-  config: ParameterSliderConfig;
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
   onChange: (v: number) => void;
+  color?: string;
 }) {
-  const { label, value, min, max, step, unit, icon, dramaticRange } = config;
-  const pct = ((value - min) / (max - min)) * 100;
-  const dramaticStart =
-    dramaticRange != null ? ((dramaticRange[0] - min) / (max - min)) * 100 : 0;
-  const dramaticEnd =
-    dramaticRange != null ? ((dramaticRange[1] - min) / (max - min)) * 100 : 0;
-
   return (
-    <div className="mb-3">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium text-gray-900 flex items-center gap-1">
-          {icon != null && <span>{icon}</span>}
-          <span>{label}</span>
-        </span>
-        <span className="text-sm font-semibold text-blue-600">
-          {value.toFixed(step < 1 ? 2 : 1)} {unit}
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200">{label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {value.toFixed(step < 1 ? 2 : 1)}
+          {unit ? ` ${unit}` : ""}
         </span>
       </div>
-      <div className="relative w-full">
-        {dramaticRange != null && (
-          <div
-            className="absolute h-2 rounded-full pointer-events-none bg-blue-200/60"
-            style={{
-              left: `${dramaticStart}%`,
-              width: `${dramaticEnd - dramaticStart}%`,
-              top: "50%",
-              transform: "translateY(-50%)",
-              boxShadow: "0 0 12px rgba(59,130,246,0.4)",
-            }}
-          />
-        )}
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="physics-range w-full"
-          aria-label={`${label}: ${value.toFixed(2)} ${unit}`}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
-          aria-valuetext={`${value.toFixed(2)} ${unit}`}
-          style={{
-            background: `linear-gradient(to right, #3B82F6 0%, #60A5FA ${pct}%, #E5E7EB ${pct}%, #E5E7EB 100%)`,
-          }}
-        />
-      </div>
-      <div className="flex justify-between text-[11px] text-gray-500 mt-0.5">
-        <span>{min} {unit}</span>
-        <span>{max} {unit}</span>
-      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor: color }}
+        aria-label={label}
+      />
     </div>
   );
 }
@@ -170,6 +149,7 @@ export default function BankingOfRoadsSimulation() {
   const [speed, setSpeed] = useState(25);
   const [radius, setRadius] = useState(80);
   const [angle, setAngle] = useState(15);
+  const [playing, setPlaying] = useState(true);
 
   const [carPosition, setCarPosition] = useState(0);
   const [scale, setScale] = useState(1);
@@ -250,7 +230,7 @@ export default function BankingOfRoadsSimulation() {
 
   const animate = useCallback(
     (time: number) => {
-      if (frameIdRef.current == null) return;
+      if (frameIdRef.current == null || !playing) return;
       if (lastTimeRef.current == null) {
         lastTimeRef.current = time;
         frameIdRef.current = requestAnimationFrame(animate);
@@ -293,16 +273,17 @@ export default function BankingOfRoadsSimulation() {
 
       frameIdRef.current = requestAnimationFrame(animate);
     },
-    [speed, radius, recordParameters, autoScale]
+    [speed, radius, recordParameters, autoScale, playing]
   );
 
   useEffect(() => {
+    if (!playing) return;
     frameIdRef.current = requestAnimationFrame(animate);
     return () => {
       if (frameIdRef.current != null)
         cancelAnimationFrame(frameIdRef.current);
     };
-  }, [animate]);
+  }, [animate, playing]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -316,6 +297,7 @@ export default function BankingOfRoadsSimulation() {
     setSpeed(25);
     setRadius(80);
     setAngle(15);
+    setPlaying(true);
     setCarPosition(0);
     setScale(1);
     setSimState({
@@ -386,461 +368,481 @@ export default function BankingOfRoadsSimulation() {
   ];
 
   const proTipText = ideal
-    ? "✨ Perfect! Speed matches design—no friction needed. Watch the forces balance."
+    ? "✨ Perfect! Speed matches design—no friction needed."
     : speed > vDesign
-      ? `💡 Speed (${speed.toFixed(1)} m/s) > design (${vDesign.toFixed(1)} m/s)—car tends to slip outward. Try lowering speed.`
+      ? `💡 Speed > design—car tends to slip outward.`
       : speed < vDesign
-        ? `💡 Speed (${speed.toFixed(1)} m/s) < design (${vDesign.toFixed(1)} m/s)—car tends to slip inward. Try increasing speed.`
-        : "💡 Adjust speed to match design speed for ideal banking—no friction required! 🎯";
+        ? `💡 Speed < design—car tends to slip inward.`
+        : "💡 Adjust speed to match design speed!";
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-[#E8EEF2] to-[#FFFFFF] text-gray-900">
-      {/* Top section: 70vh — Sim (65%) + Controls (35%) */}
-      <div
-        className="flex flex-1 min-h-0 flex-col lg:flex-row px-4 py-4 gap-4"
-        style={{ height: "70vh" }}
-      >
-        {/* Simulation box — 65% width */}
-        <div className="lg:w-[65%] w-full min-h-0 flex flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-lg overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
-            <h2 className="text-base font-semibold text-[#3B82F6]">
-              Banking of Roads
-            </h2>
-            <div className="flex items-center gap-2">
-              <span
-                className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                  ideal ? "bg-green-500 text-white" : "bg-amber-100 text-amber-800"
-                }`}
-              >
-                {ideal ? "✓ Ideal" : "Off design"}
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 min-h-0 relative bg-gradient-to-br from-[#E8EEF2] via-[#F5F5F5] to-[#FFFFFF]">
-            <svg
-              viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
-              className="w-full h-full block"
-              role="img"
-              aria-label="Banking of roads - car on banked curve"
-            >
-              <defs>
-                <pattern
-                  id="bor-grid"
-                  x="0"
-                  y="0"
-                  width="40"
-                  height="40"
-                  patternUnits="userSpaceOnUse"
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
+
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Top Row: Simulation Canvas (2 columns) */}
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-neutral-400">
+                Banking of roads simulation.
+                <span
+                  className={`ml-3 px-2.5 py-1 text-xs font-medium rounded-full ${ideal ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"
+                    }`}
                 >
-                  <path
-                    d="M 40 0 L 0 0 0 40"
-                    fill="none"
-                    stroke={COLORS.grid}
-                    strokeWidth="0.5"
-                  />
-                </pattern>
-                <linearGradient id="bor-road" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#6B7280" />
-                  <stop offset="50%" stopColor="#9CA3AF" />
-                  <stop offset="100%" stopColor="#6B7280" />
-                </linearGradient>
-                <radialGradient id="bor-center-glow" r="70%">
-                  <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#93C5FD" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient id="bor-car-glow" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity="1" />
-                </linearGradient>
-                <filter id="bor-glow">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
+                  {ideal ? "✓ Ideal" : "Off design"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPlaying((p) => !p)}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${!playing ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {playing ? "⏸ Pause" : "▶ Play"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                >
+                  ↺ Reset
+                </button>
+              </div>
+            </div>
 
-              <rect width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill="url(#bor-grid)" />
-              <ellipse cx={cx} cy={cy} rx={200} ry={200} fill="url(#bor-center-glow)" />
-
-              {/* Origin */}
-              <line
-                x1={cx - 8}
-                y1={cy}
-                x2={cx + 8}
-                y2={cy}
-                stroke="#6B7280"
-                strokeWidth="1"
-                strokeOpacity="0.6"
-              />
-              <line
-                x1={cx}
-                y1={cy - 8}
-                x2={cx}
-                y2={cy + 8}
-                stroke="#6B7280"
-                strokeWidth="1"
-                strokeOpacity="0.6"
-              />
-
-              {/* Curved banked track — elliptical path (top-down view) */}
-              <ellipse
-                cx={cx}
-                cy={cy}
-                rx={trackRadiusX}
-                ry={trackRadiusY}
-                fill="none"
-                stroke="url(#bor-road)"
-                strokeWidth="18"
-                strokeDasharray="none"
-              />
-
-              {/* Inner track edge */}
-              <ellipse
-                cx={cx}
-                cy={cy}
-                rx={trackRadiusX - 10}
-                ry={trackRadiusY - 4}
-                fill="none"
-                stroke="#4B5563"
-                strokeWidth="1"
-                strokeDasharray="4 3"
-              />
-
-              {/* Road surface lines — dashed center */}
-              <ellipse
-                cx={cx}
-                cy={cy}
-                rx={trackRadiusX - 4}
-                ry={trackRadiusY - 1.6}
-                fill="none"
-                stroke="#FCD34D"
-                strokeWidth="2"
-                strokeDasharray="8 6"
-              />
-
-              {/* Car — wheels aligned to road surface, tires touching at all rotation angles */}
-              <g
-                transform={`translate(${carX}, ${carY}) rotate(${carRotationDeg})`}
-                filter="url(#bor-glow)"
+            <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#030712] aspect-video">
+              <svg
+                viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+                className="w-full h-full block"
+                role="img"
+                aria-label="Banking of roads - car on banked curve"
               >
-                <rect
-                  x={-28}
-                  y={-14}
-                  width={56}
-                  height={28}
-                  rx={4}
-                  fill="url(#bor-car-glow)"
-                  stroke="#1E40AF"
+                <defs>
+                  <pattern
+                    id="bor-grid"
+                    x="0"
+                    y="0"
+                    width="40"
+                    height="40"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 40 0 L 0 0 0 40"
+                      fill="none"
+                      stroke="rgba(100, 116, 139, 0.12)"
+                      strokeWidth="0.5"
+                    />
+                  </pattern>
+                  <linearGradient id="bor-road" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#334155" />
+                    <stop offset="50%" stopColor="#475569" />
+                    <stop offset="100%" stopColor="#334155" />
+                  </linearGradient>
+                  <radialGradient id="bor-center-glow" r="70%">
+                    <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.1" />
+                    <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                  </radialGradient>
+                  <linearGradient id="bor-car-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity="1" />
+                  </linearGradient>
+                  <filter id="bor-glow">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <rect width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill="url(#bor-grid)" />
+                <ellipse cx={cx} cy={cy} rx={200} ry={200} fill="url(#bor-center-glow)" />
+
+                {/* Origin */}
+                <line
+                  x1={cx - 8}
+                  y1={cy}
+                  x2={cx + 8}
+                  y2={cy}
+                  stroke="#6B7280"
+                  strokeWidth="1"
+                  strokeOpacity="0.6"
+                />
+                <line
+                  x1={cx}
+                  y1={cy - 8}
+                  x2={cx}
+                  y2={cy + 8}
+                  stroke="#6B7280"
+                  strokeWidth="1"
+                  strokeOpacity="0.6"
+                />
+
+                {/* Curved banked track — elliptical path (top-down view) */}
+                <ellipse
+                  cx={cx}
+                  cy={cy}
+                  rx={trackRadiusX}
+                  ry={trackRadiusY}
+                  fill="none"
+                  stroke="url(#bor-road)"
+                  strokeWidth="18"
+                  strokeDasharray="none"
+                />
+
+                {/* Inner track edge */}
+                <ellipse
+                  cx={cx}
+                  cy={cy}
+                  rx={trackRadiusX - 10}
+                  ry={trackRadiusY - 4}
+                  fill="none"
+                  stroke="#4B5563"
+                  strokeWidth="1"
+                  strokeDasharray="4 3"
+                />
+
+                {/* Road surface lines — dashed center */}
+                <ellipse
+                  cx={cx}
+                  cy={cy}
+                  rx={trackRadiusX - 4}
+                  ry={trackRadiusY - 1.6}
+                  fill="none"
+                  stroke="#FCD34D"
+                  strokeWidth="2"
+                  strokeDasharray="8 6"
+                />
+
+                {/* Car — wheels aligned to road surface, tires touching at all rotation angles */}
+                <g
+                  transform={`translate(${carX}, ${carY}) rotate(${carRotationDeg})`}
+                  filter="url(#bor-glow)"
+                >
+                  <rect
+                    x={-28}
+                    y={-14}
+                    width={56}
+                    height={28}
+                    rx={4}
+                    fill="url(#bor-car-glow)"
+                    stroke="#1E40AF"
+                    strokeWidth="1.5"
+                  />
+                  <rect
+                    x={-20}
+                    y={-10}
+                    width={16}
+                    height={12}
+                    fill="#60A5FA"
+                    opacity="0.8"
+                  />
+                  <rect
+                    x={4}
+                    y={-10}
+                    width={16}
+                    height={12}
+                    fill="#60A5FA"
+                    opacity="0.8"
+                  />
+                  {/* Wheels — drawn to overlap road surface, r=6 for clear contact */}
+                  <circle cx={-16} cy={14} r={6} fill="#1F2937" stroke="#374151" strokeWidth="1" />
+                  <circle cx={16} cy={14} r={6} fill="#1F2937" stroke="#374151" strokeWidth="1" />
+                </g>
+
+                {/* Force diagram at car position */}
+                <g transform={`translate(${carX}, ${carY})`}>
+                  {/* mg — downward, scaled */}
+                  <line
+                    x1={0}
+                    y1={0}
+                    x2={0}
+                    y2={50}
+                    stroke="#EF4444"
+                    strokeWidth="2"
+                    markerEnd="url(#arrow-red)"
+                  />
+                  <text x={12} y={28} fill="#EF4444" fontSize="11" fontWeight="600">
+                    mg
+                  </text>
+
+                  {/* N — normal, perpendicular to road (tilted by θ) */}
+                  <line
+                    x1={0}
+                    y1={0}
+                    x2={45 * Math.sin(thetaRad)}
+                    y2={-45 * Math.cos(thetaRad)}
+                    stroke="#10B981"
+                    strokeWidth="2"
+                    markerEnd="url(#arrow-green)"
+                  />
+                  <text
+                    x={50 * Math.sin(thetaRad)}
+                    y={-50 * Math.cos(thetaRad)}
+                    fill="#10B981"
+                    fontSize="11"
+                    fontWeight="600"
+                  >
+                    N
+                  </text>
+
+                  {/* Fc arrow — centripetal (toward center) */}
+                  <line
+                    x1={0}
+                    y1={0}
+                    x2={(fcArrowLen * toCenterX) / toCenterLen}
+                    y2={(fcArrowLen * toCenterY) / toCenterLen}
+                    stroke="#3B82F6"
+                    strokeWidth="2"
+                    markerEnd="url(#arrow-blue)"
+                  />
+                  <text
+                    x={(fcArrowLen + 12) * toCenterX / toCenterLen}
+                    y={(fcArrowLen + 12) * toCenterY / toCenterLen}
+                    fill="#3B82F6"
+                    fontSize="10"
+                    fontWeight="600"
+                  >
+                    Fc
+                  </text>
+                </g>
+
+                {/* Arrow markers */}
+                <defs>
+                  <marker
+                    id="arrow-red"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="4"
+                    refY="4"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#EF4444" />
+                  </marker>
+                  <marker
+                    id="arrow-green"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="4"
+                    refY="4"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#10B981" />
+                  </marker>
+                  <marker
+                    id="arrow-blue"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="4"
+                    refY="4"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L8,4 L0,8 Z" fill="#3B82F6" />
+                  </marker>
+                </defs>
+
+                {/* Radius indicator — from center to track edge (top of ellipse) */}
+                <line
+                  x1={cx}
+                  y1={cy}
+                  x2={cx}
+                  y2={cy - trackRadiusY}
+                  stroke="#06B6D4"
                   strokeWidth="1.5"
-                />
-                <rect
-                  x={-20}
-                  y={-10}
-                  width={16}
-                  height={12}
-                  fill="#60A5FA"
-                  opacity="0.8"
-                />
-                <rect
-                  x={4}
-                  y={-10}
-                  width={16}
-                  height={12}
-                  fill="#60A5FA"
-                  opacity="0.8"
-                />
-                {/* Wheels — drawn to overlap road surface, r=6 for clear contact */}
-                <circle cx={-16} cy={14} r={6} fill="#1F2937" stroke="#374151" strokeWidth="1" />
-                <circle cx={16} cy={14} r={6} fill="#1F2937" stroke="#374151" strokeWidth="1" />
-              </g>
-
-              {/* Force diagram at car position */}
-              <g transform={`translate(${carX}, ${carY})`}>
-                {/* mg — downward, scaled */}
-                <line
-                  x1={0}
-                  y1={0}
-                  x2={0}
-                  y2={50}
-                  stroke="#EF4444"
-                  strokeWidth="2"
-                  markerEnd="url(#arrow-red)"
-                />
-                <text x={12} y={28} fill="#EF4444" fontSize="11" fontWeight="600">
-                  mg
-                </text>
-
-                {/* N — normal, perpendicular to road (tilted by θ) */}
-                <line
-                  x1={0}
-                  y1={0}
-                  x2={45 * Math.sin(thetaRad)}
-                  y2={-45 * Math.cos(thetaRad)}
-                  stroke="#10B981"
-                  strokeWidth="2"
-                  markerEnd="url(#arrow-green)"
+                  strokeDasharray="4 3"
                 />
                 <text
-                  x={50 * Math.sin(thetaRad)}
-                  y={-50 * Math.cos(thetaRad)}
-                  fill="#10B981"
+                  x={cx + 10}
+                  y={cy - trackRadiusY / 2 + 4}
+                  fill="#06B6D4"
                   fontSize="11"
                   fontWeight="600"
                 >
-                  N
+                  r = {radius} m
                 </text>
 
-                {/* Fc arrow — centripetal (toward center) */}
-                <line
-                  x1={0}
-                  y1={0}
-                  x2={(fcArrowLen * toCenterX) / toCenterLen}
-                  y2={(fcArrowLen * toCenterY) / toCenterLen}
-                  stroke="#3B82F6"
-                  strokeWidth="2"
-                  markerEnd="url(#arrow-blue)"
+                {/* Banking angle arc — near road */}
+                <g transform={`translate(${cx + trackRadiusX + 50}, ${cy - 60})`}>
+                  <path
+                    d={`M 0 40 L 0 0 L ${40 * Math.tan(thetaRad)} 40 Z`}
+                    fill="none"
+                    stroke="#8B5CF6"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 2"
+                  />
+                  <text x={20} y={50} fill="#6B7280" fontSize="10">
+                    θ = {angle.toFixed(1)}°
+                  </text>
+                </g>
+
+                {/* Legend */}
+                <g transform={`translate(${CANVAS_WIDTH - 200}, 24)`}>
+                  <rect
+                    x={0}
+                    y={0}
+                    width={188}
+                    height={72}
+                    rx={8}
+                    fill="rgba(15, 23, 42, 0.8)"
+                    stroke="#334155"
+                    strokeWidth="1"
+                  />
+                  <text x={10} y={18} fill="#E2E8F0" fontSize="11" fontWeight="700">
+                    Legend
+                  </text>
+                  <line x1={10} y1={28} x2={28} y2={28} stroke="#EF4444" strokeWidth="3" />
+                  <text x={34} y={31} fill="#CBD5E1" fontSize="10">
+                    mg — weight
+                  </text>
+                  <line x1={10} y1={42} x2={28} y2={42} stroke="#10B981" strokeWidth="3" />
+                  <text x={34} y={45} fill="#CBD5E1" fontSize="10">
+                    N — normal
+                  </text>
+                  <line x1={10} y1={56} x2={28} y2={56} stroke="#3B82F6" strokeWidth="3" />
+                  <text x={34} y={59} fill="#CBD5E1" fontSize="10">
+                    Fc — centripetal
+                  </text>
+                </g>
+
+                <text x={12} y={24} fill="#64748B" fontSize="11">
+                  {fps} fps
+                </text>
+                <text x={12} y={38} fill="#64748B" fontSize="10">
+                  Δt: {physicsTimeMs.toFixed(2)} ms
+                </text>
+              </svg>
+            </div>
+          </div>
+
+          {/* Controls Panel (1 column) */}
+          <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+            <div>
+              <h3 className="mb-4 text-lg font-semibold text-white">Parameters</h3>
+              <div className="flex flex-col gap-3">
+                <SliderRow
+                  label="Speed"
+                  value={speed}
+                  min={5}
+                  max={50}
+                  step={1}
+                  unit="m/s"
+                  color="#ef4444"
+                  onChange={(v) => setSpeed(v)}
                 />
-                <text
-                  x={(fcArrowLen + 12) * toCenterX / toCenterLen}
-                  y={(fcArrowLen + 12) * toCenterY / toCenterLen}
-                  fill="#3B82F6"
-                  fontSize="10"
-                  fontWeight="600"
-                >
-                  Fc
-                </text>
-              </g>
-
-              {/* Arrow markers */}
-              <defs>
-                <marker
-                  id="arrow-red"
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="4"
-                  refY="4"
-                  orient="auto"
-                >
-                  <path d="M0,0 L8,4 L0,8 Z" fill="#EF4444" />
-                </marker>
-                <marker
-                  id="arrow-green"
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="4"
-                  refY="4"
-                  orient="auto"
-                >
-                  <path d="M0,0 L8,4 L0,8 Z" fill="#10B981" />
-                </marker>
-                <marker
-                  id="arrow-blue"
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="4"
-                  refY="4"
-                  orient="auto"
-                >
-                  <path d="M0,0 L8,4 L0,8 Z" fill="#3B82F6" />
-                </marker>
-              </defs>
-
-              {/* Radius indicator — from center to track edge (top of ellipse) */}
-              <line
-                x1={cx}
-                y1={cy}
-                x2={cx}
-                y2={cy - trackRadiusY}
-                stroke="#06B6D4"
-                strokeWidth="1.5"
-                strokeDasharray="4 3"
-              />
-              <text
-                x={cx + 10}
-                y={cy - trackRadiusY / 2 + 4}
-                fill="#06B6D4"
-                fontSize="11"
-                fontWeight="600"
-              >
-                r = {radius} m
-              </text>
-
-              {/* Banking angle arc — near road */}
-              <g transform={`translate(${cx + trackRadiusX + 50}, ${cy - 60})`}>
-                <path
-                  d={`M 0 40 L 0 0 L ${40 * Math.tan(thetaRad)} 40 Z`}
-                  fill="none"
-                  stroke="#8B5CF6"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 2"
+                <SliderRow
+                  label="Radius"
+                  value={radius}
+                  min={20}
+                  max={200}
+                  step={5}
+                  unit="m"
+                  color="#38bdf8"
+                  onChange={(v) => setRadius(v)}
                 />
-                <text x={20} y={50} fill="#6B7280" fontSize="10">
-                  θ = {angle.toFixed(1)}°
-                </text>
-              </g>
-
-              {/* Legend */}
-              <g transform={`translate(${CANVAS_WIDTH - 200}, 24)`}>
-                <rect
-                  x={0}
-                  y={0}
-                  width={188}
-                  height={72}
-                  rx={8}
-                  fill="rgba(249,250,251,0.95)"
-                  stroke="#E5E7EB"
-                  strokeWidth="1"
+                <SliderRow
+                  label="Banking Angle"
+                  value={angle}
+                  min={0}
+                  max={45}
+                  step={1}
+                  unit="°"
+                  color="#a855f7"
+                  onChange={(v) => setAngle(v)}
                 />
-                <text x={10} y={18} fill="#111827" fontSize="11" fontWeight="700">
-                  Legend
-                </text>
-                <line x1={10} y1={28} x2={28} y2={28} stroke="#EF4444" strokeWidth="3" />
-                <text x={34} y={31} fill="#374151" fontSize="10">
-                  mg — weight
-                </text>
-                <line x1={10} y1={42} x2={28} y2={42} stroke="#10B981" strokeWidth="3" />
-                <text x={34} y={45} fill="#374151" fontSize="10">
-                  N — normal
-                </text>
-                <line x1={10} y1={56} x2={28} y2={56} stroke="#3B82F6" strokeWidth="3" />
-                <text x={34} y={59} fill="#374151" fontSize="10">
-                  Fc — centripetal
-                </text>
-              </g>
+              </div>
+            </div>
 
-              <text x={12} y={24} fill="#6B7280" fontSize="11">
-                {fps} fps
-              </text>
-              <text x={12} y={38} fill="#6B7280" fontSize="10">
-                Δt: {physicsTimeMs.toFixed(2)} ms
-              </text>
-            </svg>
+            <div className={`rounded-xl border border-neutral-800 p-4 text-sm ${ideal ? "bg-emerald-500/10 text-emerald-300" : "bg-cyan-500/10 text-cyan-300"
+              }`}>
+              {proTipText}
+            </div>
+          </aside>
           </div>
         </div>
 
-        {/* Parameter controls — 35% width */}
-        <div className="lg:w-[35%] w-full flex flex-col rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] shadow-lg p-4 overflow-auto">
-          <h3 className="text-sm font-semibold text-[#3B82F6] mb-1">
-            Parameters
-          </h3>
-          <p className="text-xs text-gray-500 mb-3">
-            All controls visible — no scrolling.
-          </p>
-
-          {sliders.map((s) => (
-            <ParameterSlider
-              key={s.label}
-              config={s}
-              onChange={(v) => {
-                if (s.label === "Speed") setSpeed(v);
-                if (s.label === "Radius") setRadius(v);
-                if (s.label === "Banking Angle") setAngle(v);
-              }}
-            />
-          ))}
-
-          <div className="rounded-lg bg-sky-50 border border-sky-100 px-2.5 py-2 text-xs text-sky-800 mb-3">
-            {proTipText}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleReset}
-            className="w-full py-2.5 rounded-xl bg-blue-500 text-white font-semibold text-sm hover:bg-blue-600 transition mt-auto"
-          >
-            ↺ Reset to Default
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom section: 30vh — Educational content */}
-      <div
-        className="flex-none border-t border-gray-200 bg-[#F9FAFB] px-4 py-4"
-        style={{ minHeight: "30vh" }}
-      >
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Left 40%: Concept & formula */}
-          <div className="md:col-span-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h4 className="text-sm font-bold text-[#3B82F6] mb-2">
-              ✨ The Concept
-            </h4>
-            <p className="text-xs text-gray-700 mb-3">
-              On a banked road, the road surface is tilted at an angle θ. The
-              horizontal component of the normal force (N sin θ) provides the
-              centripetal force needed for circular motion, reducing reliance on
-              friction.
-            </p>
-            <h5 className="text-xs font-bold text-[#3B82F6] mb-1">
-              📐 Key Formula
-            </h5>
-            <pre className="text-[11px] font-mono text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-2 overflow-x-auto">
-              {`tan θ = v² / (r·g)
+          {/* Bottom Row: Info Panel (Full width, 3 cols) */}
+          <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Left: Concept & formula */}
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-4">
+                <h4 className="text-sm font-bold text-cyan-400 mb-2">
+                  ✨ The Concept
+                </h4>
+                <p className="text-sm mb-3">
+                  On a banked road, the road surface is tilted at an angle θ. The
+                  horizontal component of the normal force (N sin θ) provides the
+                  centripetal force needed for circular motion, reducing reliance on
+                  friction.
+                </p>
+                <h5 className="text-xs font-bold text-cyan-400 mb-1">
+                  📐 Key Formula
+                </h5>
+                <pre className="text-xs font-mono text-neutral-300 bg-neutral-950 border border-neutral-800 rounded-lg p-2 overflow-x-auto">
+                  {`tan θ = v² / (r·g)
 
 Where: v = speed, r = radius, g = 9.81 m/s²
 Design speed: v = √(r·g·tan θ)`}
-            </pre>
-          </div>
+                </pre>
+              </div>
 
-          {/* Middle 30%: Live physics */}
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h4 className="text-sm font-bold text-[#3B82F6] mb-2">
-              🧮 Live Calculation
-            </h4>
-            <div className="text-[11px] font-mono text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-2 space-y-1">
-              <div>
-                v = {speed.toFixed(1)} m/s, r = {radius.toFixed(0)} m, θ ={" "}
-                {angle.toFixed(1)}°
+              {/* Middle: Live physics */}
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-4">
+                <h4 className="text-sm font-bold text-cyan-400 mb-2">
+                  🧮 Live Calculation
+                </h4>
+                <div className="text-sm font-mono text-neutral-300 bg-neutral-950 border border-neutral-800 rounded-lg p-3 space-y-2">
+                  <div>
+                    v = {speed.toFixed(1)} m/s, r = {radius.toFixed(0)} m, θ ={" "}
+                    {angle.toFixed(1)}°
+                  </div>
+                  <div>
+                    v_design = √(r·g·tan θ) = √({radius.toFixed(0)} × 9.81 × tan(
+                    {angle.toFixed(1)}°)) ={" "}
+                    <span className="text-cyan-400 font-semibold">
+                      {vDesign.toFixed(2)} m/s
+                    </span>
+                  </div>
+                  <div>
+                    θ_ideal = arctan(v²/(rg)) = arctan(
+                    {(speed * speed).toFixed(0)}/({radius.toFixed(0)}×9.81)) ={" "}
+                    <span className="text-cyan-400 font-semibold">
+                      {thetaIdeal.toFixed(1)}°
+                    </span>
+                  </div>
+                  <div>
+                    a_c = v²/r ={" "}
+                    <span className="text-cyan-400 font-semibold">
+                      {aC.toFixed(2)} m/s²
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                v_design = √(r·g·tan θ) = √({radius.toFixed(0)} × 9.81 × tan(
-                {angle.toFixed(1)}°)) ={" "}
-                <span className="text-blue-600 font-semibold">
-                  {vDesign.toFixed(2)} m/s
-                </span>
-              </div>
-              <div>
-                θ_ideal = arctan(v²/(rg)) = arctan(
-                {(speed * speed).toFixed(0)}/({radius.toFixed(0)}×9.81)) ={" "}
-                <span className="text-blue-600 font-semibold">
-                  {thetaIdeal.toFixed(1)}°
-                </span>
-              </div>
-              <div>
-                a_c = v²/r ={" "}
-                <span className="text-blue-600 font-semibold">
-                  {aC.toFixed(2)} m/s²
-                </span>
+
+              {/* Right: Try This */}
+              <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-4">
+                <h4 className="text-sm font-bold text-cyan-400 mb-2">
+                  💡 Try This for Drama!
+                </h4>
+                <ul className="text-sm space-y-3">
+                  <li>
+                    <strong className="text-neutral-200">🎯 Ideal banking:</strong> θ = 15°, r = 80 m → v = 14.5
+                    m/s for perfect balance.
+                  </li>
+                  <li>
+                    <strong className="text-neutral-200">⚡ Steep bank:</strong> θ = 30°, r = 50 m → v ≈ 16.9
+                    m/s—high-speed tight turn!
+                  </li>
+                  <li>
+                    <strong className="text-neutral-200">🌟 Flat curve:</strong> θ = 5°, r = 100 m → v ≈ 9.3
+                    m/s—needs friction at higher speeds.
+                  </li>
+                </ul>
               </div>
             </div>
-            <div className="mt-2 text-xs text-gray-600">
-              ⚡ FPS: {fps} · Speed avg: {simState.speed.average.toFixed(1)} m/s
-            </div>
           </div>
-
-          {/* Right 30%: Try This */}
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h4 className="text-sm font-bold text-[#3B82F6] mb-2">
-              💡 Try This for Drama!
-            </h4>
-            <ul className="text-xs text-gray-700 space-y-2">
-              <li>
-                <strong>🎯 Ideal banking:</strong> θ = 15°, r = 80 m → v = 14.5
-                m/s for perfect balance.
-              </li>
-              <li>
-                <strong>⚡ Steep bank:</strong> θ = 30°, r = 50 m → v ≈ 16.9
-                m/s—high-speed tight turn!
-              </li>
-              <li>
-                <strong>🌟 Flat curve:</strong> θ = 5°, r = 100 m → v ≈ 9.3
-                m/s—needs friction at higher speeds.
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+        </section>
+    </main>
   );
 }

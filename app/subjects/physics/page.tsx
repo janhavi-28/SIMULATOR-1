@@ -133,18 +133,7 @@ export default function PhysicsSubjectPage() {
               Live illustration
             </span>
           </Link>
-          <Link
-            href="/subjects/physics/quantum-tunneling"
-            className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-6 transition hover:border-emerald-500/50 hover:bg-neutral-900"
-          >
-            <div className="font-semibold text-white">Quantum Tunneling – Probability leak-through</div>
-            <p className="mt-2 text-sm text-neutral-400">
-              Energy barrier with E &lt; V₀: particles tunnel through classically forbidden regions. Adjust E/V₀, barrier width, and mass.
-            </p>
-            <span className="mt-4 inline-block rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
-              Live illustration
-            </span>
-          </Link>
+          
           <Link
             href="/subjects/physics/wave-function-collapse"
             className="rounded-2xl border border-neutral-800 bg-neutral-950/80 p-6 transition hover:border-cyan-500/50 hover:bg-neutral-900"

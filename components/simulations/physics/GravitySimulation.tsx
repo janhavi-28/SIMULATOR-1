@@ -97,41 +97,32 @@ function SliderRow(props: {
   max: number;
   step: number;
   unit: string;
-  accentClassName: string;
+  accentColor: string;
+  icon?: string;
   onChange: (next: number) => void;
 }) {
-  const { label, value, min, max, step, unit, accentClassName, onChange } =
-    props;
+  const { label, value, min, max, step, unit, accentColor, icon, onChange } = props;
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900/70 px-4 py-3 shadow-sm">
-      <div className="min-w-[180px]">
-        <div className="text-sm font-semibold text-white">{label}</div>
-        <div className="mt-0.5 text-xs text-neutral-400">
-          <span className="tabular-nums text-neutral-200">
-            {formatNumber(value, step < 1 ? 2 : 1)}
-          </span>{" "}
-          {unit}
-        </div>
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">{icon} {label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {step < 0.1 ? value.toFixed(2) : Math.round(value)}
+          {unit ? ` ${unit}` : ""}
+        </span>
       </div>
-
       <input
-        className={`h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-800 outline-none ${accentClassName}`}
         type="range"
         min={min}
         max={max}
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor: accentColor }}
         aria-label={label}
       />
-
-      <div className="min-w-[120px] text-right text-xs text-neutral-400">
-        <span className="tabular-nums text-neutral-200">
-          {formatNumber(value, step < 1 ? 2 : 1)}
-        </span>{" "}
-        {unit}
-      </div>
     </div>
   );
 }
@@ -161,7 +152,8 @@ function CanvasSimulator(props: {
     // Provide stable, readable scaling that adapts to chosen h0, but keeps grid nice.
     const peakEstimate = Math.max(
       2,
-      params.h0 + (params.v0 > 0 ? (params.v0 * params.v0) / (2 * params.g) : 0)
+      params.h0 +
+      (params.v0 > 0 ? (params.v0 * params.v0) / (2 * params.g) : 0),
     );
     const visibleTop = Math.max(10, Math.ceil((peakEstimate * 1.15) / 5) * 5);
     return { visibleTop };
@@ -241,8 +233,7 @@ function CanvasSimulator(props: {
     // Gridlines & y-axis ticks
     const visibleTop = scaleModel.visibleTop;
     const metersPerMajor = visibleTop >= 50 ? 10 : 5;
-    const toYpx = (meters: number) =>
-      groundY - (meters / visibleTop) * plotH;
+    const toYpx = (meters: number) => groundY - (meters / visibleTop) * plotH;
 
     ctx.lineWidth = 1 * dpr;
     ctx.strokeStyle = grid;
@@ -303,14 +294,14 @@ function CanvasSimulator(props: {
     const vScale = (plotH / visibleTop) * 0.9; // px per (m/s) approximation
     const aScale = (plotH / visibleTop) * 6.0; // px per (m/s^2) (clamped)
     const vLen = clamp(sim.v * vScale * 0.12, -plotH * 0.28, plotH * 0.28);
-    const aLen = clamp((-params.g) * aScale * 0.02, -plotH * 0.22, plotH * 0.22);
+    const aLen = clamp(-params.g * aScale * 0.02, -plotH * 0.22, plotH * 0.22);
 
     const drawArrow = (
       x0: number,
       y0: number,
       x1: number,
       y1: number,
-      color: string
+      color: string,
     ) => {
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
@@ -345,15 +336,7 @@ function CanvasSimulator(props: {
     ctx.fillStyle = objectShadow;
     ctx.globalAlpha = 0.65 * shadowStrength;
     ctx.beginPath();
-    ctx.ellipse(
-      xPx,
-      groundY + 6 * dpr,
-      r * 1.35,
-      r * 0.5,
-      0,
-      0,
-      Math.PI * 2
-    );
+    ctx.ellipse(xPx, groundY + 6 * dpr, r * 1.35, r * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
 
@@ -365,7 +348,7 @@ function CanvasSimulator(props: {
       r * 0.4,
       xPx,
       yPx,
-      glowRadius
+      glowRadius,
     );
     glowGrad.addColorStop(0, "rgba(0,255,255,0.75)");
     glowGrad.addColorStop(0.4, "rgba(0,255,255,0.35)");
@@ -396,18 +379,18 @@ function CanvasSimulator(props: {
     ctx.fillText(`y = ${formatNumber(sim.y, 2)} m`, hudX, hudY + line);
     ctx.fillText(`v = ${formatNumber(sim.v, 2)} m/s`, hudX, hudY + 2 * line);
     ctx.fillStyle = accelCrimson;
-    ctx.fillText(`a = −${formatNumber(params.g, 2)} m/s²`, hudX, hudY + 3 * line);
+    ctx.fillText(
+      `a = −${formatNumber(params.g, 2)} m/s²`,
+      hudX,
+      hudY + 3 * line,
+    );
     const weight = params.m * params.g;
     ctx.fillStyle = velocityCyan;
-    ctx.fillText(
-      `m = ${formatNumber(params.m, 1)} kg`,
-      hudX,
-      hudY + 4 * line
-    );
+    ctx.fillText(`m = ${formatNumber(params.m, 1)} kg`, hudX, hudY + 4 * line);
     ctx.fillText(
       `F = m·g = ${formatNumber(weight, 1)} N`,
       hudX,
-      hudY + 5 * line
+      hudY + 5 * line,
     );
 
     // Legend
@@ -429,7 +412,7 @@ function CanvasSimulator(props: {
       badgeX,
       badgeY,
       badgeX + badgeW,
-      badgeY + badgeH
+      badgeY + badgeH,
     );
     // Rough approximation: cyan → gold mix to echo Tailwind classes
     planetGrad.addColorStop(0, "rgba(56,189,248,0.9)");
@@ -443,21 +426,21 @@ function CanvasSimulator(props: {
       badgeX + badgeW,
       badgeY,
       badgeX + badgeW,
-      badgeY + rBadge
+      badgeY + rBadge,
     );
     ctx.lineTo(badgeX + badgeW, badgeY + badgeH - rBadge);
     ctx.quadraticCurveTo(
       badgeX + badgeW,
       badgeY + badgeH,
       badgeX + badgeW - rBadge,
-      badgeY + badgeH
+      badgeY + badgeH,
     );
     ctx.lineTo(badgeX + rBadge, badgeY + badgeH);
     ctx.quadraticCurveTo(
       badgeX,
       badgeY + badgeH,
       badgeX,
-      badgeY + badgeH - rBadge
+      badgeY + badgeH - rBadge,
     );
     ctx.lineTo(badgeX, badgeY + rBadge);
     ctx.quadraticCurveTo(badgeX, badgeY, badgeX + rBadge, badgeY);
@@ -468,61 +451,28 @@ function CanvasSimulator(props: {
     ctx.font = `${12 * dpr}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(
-      planetName,
-      badgeX + badgeW / 2,
-      badgeY + badgeH / 2
-    );
+    ctx.fillText(planetName, badgeX + badgeW / 2, badgeY + badgeH / 2);
   }, [params, planetName, scaleModel.visibleTop, sim]);
 
   return (
-    <div className="rounded-3xl border border-cyan-500/40 bg-neutral-950/60 p-4 shadow-[0_0_40px_rgba(0,255,255,0.12)]">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold text-white">
-            Free-fall with bounces
-          </div>
-          <div className="text-xs text-neutral-400">
-            Cyan = velocity, Crimson = acceleration, Gold = axes
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onRestart}
-            className="rounded-xl border border-cyan-500/40 bg-neutral-900 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-neutral-800 hover:border-cyan-400"
-          >
-            Restart
-          </button>
-          <button
-            type="button"
-            onClick={onTogglePaused}
-            className="rounded-xl bg-cyan-400/90 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-cyan-300"
-          >
-            {paused ? "Play" : "Pause"}
-          </button>
-        </div>
-      </div>
-
-      <div
-        ref={containerRef}
-        className="relative aspect-video w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#050816]"
-      >
-        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-      </div>
+    <div ref={containerRef} className="relative w-full overflow-hidden rounded-2xl border border-neutral-700 bg-[#0D1117] aspect-video">
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full block" />
     </div>
   );
 }
 
-export default function GravitySimulation({ embedded }: { embedded?: boolean }) {
+export default function GravitySimulation({
+  embedded,
+}: {
+  embedded?: boolean;
+}) {
   const [params, setParams] = useState<GravityParams>(DEFAULT_PARAMS);
   const paramsRef = useLatestRef(params);
 
   const [planetId, setPlanetId] = useState<PlanetId>("earth");
   const activePlanet = useMemo(
     () => PLANETS.find((p) => p.id === planetId) ?? PLANETS[1],
-    [planetId]
+    [planetId],
   );
 
   const [paused, setPaused] = useState(false);
@@ -606,7 +556,7 @@ export default function GravitySimulation({ embedded }: { embedded?: boolean }) 
   // Immediate, intuitive cause-effect: changing initial conditions restarts.
   const setParamAndMaybeRestart = (
     patch: Partial<GravityParams>,
-    restartOnChange: boolean
+    restartOnChange: boolean,
   ) => {
     setParams((prev) => ({ ...prev, ...patch }));
     if (restartOnChange) {
@@ -618,59 +568,65 @@ export default function GravitySimulation({ embedded }: { embedded?: boolean }) 
   };
 
   return (
-    <main className="min-h-screen bg-neutral-950">
-      {/* Background */}
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0f172a]" />
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="mx-auto max-w-7xl px-6 pt-10 pb-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Gravity playground
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
-            Drop the same object on the Moon, Earth, Mars or Jupiter. Change the
-            mass, height and throw speed and watch how the motion and weight react
-            to different worlds.
-          </p>
-        </div>
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-        {/* Fixed 3-panel layout (60% / 40%), with bottom controls below left panel */}
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left column: visual + bottom controls */}
-          <div className="w-full lg:w-[60%]">
-            <CanvasSimulator
-              params={params}
-              sim={sim}
-              paused={paused}
-              planetName={activePlanet.name}
-              planetColorClass={activePlanet.colorClass}
-              onTogglePaused={() => setPaused((p) => !p)}
-              onRestart={restart}
-            />
-
-            {/* Bottom panel: planets + sliders */}
-            <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    Choose a world & tweak parameters
-                  </div>
-                  <div className="text-xs text-neutral-400">
-                    Planets set a realistic \(g\). You can still fine‑tune and adjust
-                    mass, height and launch speed.
-                  </div>
+            {/* Top Row: Simulation Canvas */}
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-800 pb-4 mb-6">
+                <div className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400">
+                  ☄ Gravity & Free-fall
                 </div>
+                <div className="text-xs text-neutral-400 hidden sm:block">
+                  Cyan = velocity, Crimson = acceleration, Gold = axes
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaused(p => !p)}
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${paused ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                  >
+                    {paused ? "▶ Play" : "⏸ Pause"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={restart}
+                    className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                  >
+                    ↺ Reset
+                  </button>
+                </div>
+              </div>
+
+              <CanvasSimulator
+                params={params}
+                sim={sim}
+                paused={paused}
+                planetName={activePlanet.name}
+                planetColorClass={activePlanet.colorClass}
+                onTogglePaused={() => setPaused((p) => !p)}
+                onRestart={restart}
+              />
+            </div>
+
+            {/* Controls Panel */}
+            <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+              <div className="flex items-center justify-between mb-2 border-b border-neutral-800 pb-2">
+                <h3 className="text-xs font-bold tracking-widest text-neutral-500">🌍 PRESETS</h3>
                 <button
                   type="button"
                   onClick={resetDefaults}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800"
+                  className="text-xs text-blue-400 hover:text-blue-300 font-semibold transition"
                 >
-                  Reset defaults
+                  Restore Base Values
                 </button>
               </div>
 
-              {/* Planet selector */}
-              <div className="mb-4 grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2 grid-cols-2">
                 {PLANETS.map((planet) => {
                   const active = planet.id === planetId;
                   return (
@@ -681,157 +637,103 @@ export default function GravitySimulation({ embedded }: { embedded?: boolean }) 
                         setPlanetId(planet.id);
                         setParamAndMaybeRestart({ g: planet.g }, false);
                       }}
-                      className={`relative overflow-hidden rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                        active
-                          ? "border-cyan-400/80 bg-cyan-500/10 shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-                          : "border-neutral-800 bg-neutral-900/60 hover:border-cyan-500/60 hover:bg-neutral-900"
-                      }`}
+                      className={`relative overflow-hidden rounded-xl border px-3 py-2 text-left text-sm transition ${active
+                        ? "border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                        : "border-neutral-800 bg-neutral-900/60 hover:border-neutral-600 hover:bg-neutral-800"
+                        }`}
                     >
-                      <div
-                        className={`pointer-events-none absolute inset-0 opacity-60 bg-gradient-to-r ${planet.colorClass}`}
-                      />
-                      <div className="relative">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-white">
-                            {planet.name}
-                          </span>
-                          <span className="rounded-full bg-black/40 px-2 py-0.5 text-[11px] font-medium text-cyan-200">
-                            g = {planet.g.toFixed(2)} m/s²
-                          </span>
-                        </div>
-                        <div className="mt-1 text-[11px] text-slate-200">
-                          {planet.subtitle}
-                        </div>
+                      <div className="relative z-10">
+                        <div className="font-semibold text-white text-xs">{planet.name}</div>
+                        <div className="text-[10px] text-cyan-200 mt-0.5">g = {planet.g.toFixed(1)}</div>
                       </div>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="grid gap-3">
-                <SliderRow
-                  label="Gravitational acceleration, g"
-                  value={params.g}
-                  min={1}
-                  max={25}
-                  step={0.01}
-                  unit="m/s²"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-rose-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(g) => setParamAndMaybeRestart({ g }, false)}
-                />
-                <SliderRow
-                  label="Mass, m"
-                  value={params.m}
-                  min={1}
-                  max={50}
-                  step={1}
-                  unit="kg"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(m) => setParamAndMaybeRestart({ m }, false)}
-                />
-                <SliderRow
-                  label="Initial height, h₀"
-                  value={params.h0}
-                  min={0}
-                  max={100}
-                  step={0.1}
-                  unit="m"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(h0) => setParamAndMaybeRestart({ h0 }, true)}
-                />
-                <SliderRow
-                  label="Initial velocity, v₀ (upwards +)"
-                  value={params.v0}
-                  min={-30}
-                  max={30}
-                  step={0.1}
-                  unit="m/s"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(v0) => setParamAndMaybeRestart({ v0 }, true)}
-                />
-                <SliderRow
-                  label="Bounce efficiency, e"
-                  value={params.e}
-                  min={0}
-                  max={0.95}
-                  step={0.01}
-                  unit="(unitless)"
-                  accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(e) => setParamAndMaybeRestart({ e }, false)}
-                />
+              <div className="pt-2 border-t border-neutral-800">
+                <h3 className="mb-4 text-xs font-bold tracking-widest text-neutral-500">⚙ PARAMETERS</h3>
+                <div className="grid gap-3">
+                  <SliderRow label="Gravitational acceleration, g" value={params.g} min={1} max={25} step={0.01} unit="m/s²" accentColor="#fb7185" icon="⏬" onChange={(g) => setParamAndMaybeRestart({ g }, false)} />
+                  <SliderRow label="Mass, m" value={params.m} min={1} max={50} step={1} unit="kg" accentColor="#facc15" icon="⚖️" onChange={(m) => setParamAndMaybeRestart({ m }, false)} />
+                  <SliderRow label="Initial height, h₀" value={params.h0} min={0} max={100} step={0.1} unit="m" accentColor="#a78bfa" icon="📏" onChange={(h0) => setParamAndMaybeRestart({ h0 }, true)} />
+                  <SliderRow label="Initial velocity, v₀ (+ up)" value={params.v0} min={-30} max={30} step={0.1} unit="m/s" accentColor="#38bdf8" icon="🚀" onChange={(v0) => setParamAndMaybeRestart({ v0 }, true)} />
+                  <SliderRow label="Bounce efficiency, e" value={params.e} min={0} max={0.95} step={0.01} unit="" accentColor="#34d399" icon="🏀" onChange={(e) => setParamAndMaybeRestart({ e }, false)} />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+                <div className="font-bold text-blue-400 mb-2 font-sans">💡 Quick Tip</div>
+                <p className="text-xs text-blue-200/80 leading-relaxed font-sans">
+                  Set <strong className="text-blue-300">v₀ &gt; 0</strong> to throw upward. Increase <strong className="text-blue-300">g</strong> to make the fall noticeably faster.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        {/* Bottom Row: Info Panel */}
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300 flex flex-col md:flex-row gap-6">
+
+          <div className="flex-1 space-y-4">
+            <h3 className="text-sm font-bold text-emerald-400 tracking-widest uppercase">Concept: Motion Under Gravity</h3>
+            <p className="text-sm text-neutral-400 leading-relaxed font-sans">
+              In vertical motion near Earth (ignoring air resistance), gravity provides a nearly constant downward acceleration. Changing <em>g</em> makes the object speed up more quickly; changing <em>h₀</em> and <em>v₀</em> changes the starting conditions and therefore the entire trajectory. The bounce parameter <em>e</em> shows energy loss at impacts, making each rebound smaller.
+            </p>
+
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+              <h4 className="text-sm font-semibold text-neutral-200 mb-3">Key Formulas</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">a = −g <span className="text-neutral-500 float-right text-xs mt-0.5">(m/s²)</span></div>
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">v(t) = v₀ − gt <span className="text-neutral-500 float-right text-xs mt-0.5">(m/s)</span></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">y(t) = h₀ + v₀t − ½gt² <span className="text-neutral-500 float-right text-xs mt-0.5">(m)</span></div>
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">v_post = −e · v_pre <span className="text-neutral-500 float-right text-xs mt-0.5">(bounce)</span></div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right panel: information (spans full height) */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Concept: motion under gravity
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                In vertical motion near Earth (ignoring air resistance), gravity
-                provides a nearly constant downward acceleration. Changing \(g\)
-                makes the object speed up more quickly; changing \(h_0\) and \(v_0\)
-                changes the starting conditions and therefore the entire trajectory.
-                The bounce parameter \(e\) shows energy loss at impacts, making each
-                rebound smaller.
-              </p>
+          <div className="flex-1 space-y-4">
+            <h3 className="text-sm font-bold text-cyan-400 tracking-widest uppercase">Variables Reference</h3>
 
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Key formulas
-                </div>
-                <div className="mt-3 space-y-2 text-sm text-neutral-200">
-                  <div className="font-mono">
-                    a = −g
-                    <span className="ml-2 text-neutral-400">(m/s²)</span>
-                  </div>
-                  <div className="font-mono">
-                    v(t) = v₀ − g t
-                    <span className="ml-2 text-neutral-400">(m/s)</span>
-                  </div>
-                  <div className="font-mono">
-                    y(t) = h₀ + v₀ t − ½ g t²
-                    <span className="ml-2 text-neutral-400">(m)</span>
-                  </div>
-                  <div className="font-mono">
-                    v_after = −e · v_before
-                    <span className="ml-2 text-neutral-400">(bounce)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Variables (with units)
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">\(g\)</dt>
-                    <dd className="text-neutral-400">gravitational acceleration (m/s²)</dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">\(h_0\)</dt>
-                    <dd className="text-neutral-400">initial height (m)</dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">\(v_0\)</dt>
-                    <dd className="text-neutral-400">initial vertical velocity (m/s)</dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">\(e\)</dt>
-                    <dd className="text-neutral-400">coefficient of restitution (unitless)</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                Tip: set \(v_0 &gt; 0\) to throw upward; increase \(g\) to make the
-                fall noticeably faster.
-              </div>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+              <table className="w-full text-sm font-sans text-left">
+                <thead className="bg-neutral-800/50 text-neutral-400 border-b border-neutral-800">
+                  <tr>
+                    <th className="px-4 py-2 font-medium">Symbol</th>
+                    <th className="px-4 py-2 font-medium">Name</th>
+                    <th className="px-4 py-2 font-medium">Unit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-800">
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-cyan-400 bg-neutral-950/30">g</td>
+                    <td className="px-4 py-3 text-neutral-300">Gravitational acceleration</td>
+                    <td className="px-4 py-3 text-neutral-500">m/s²</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-amber-500 bg-neutral-950/30">h₀</td>
+                    <td className="px-4 py-3 text-neutral-300">Initial height</td>
+                    <td className="px-4 py-3 text-neutral-500">m</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-emerald-400 bg-neutral-950/30">v₀</td>
+                    <td className="px-4 py-3 text-neutral-300">Initial vertical velocity</td>
+                    <td className="px-4 py-3 text-neutral-500">m/s</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-purple-400 bg-neutral-950/30">e</td>
+                    <td className="px-4 py-3 text-neutral-300">Coefficient of restitution</td>
+                    <td className="px-4 py-3 text-neutral-500">—</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </aside>
+          </div>
+
         </div>
       </section>
     </main>

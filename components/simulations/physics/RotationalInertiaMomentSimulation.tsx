@@ -137,6 +137,7 @@ function ParameterSlider({
 
 // ─── Main component ───────────────────────────────────────────────────────
 export default function RotationalInertiaMomentSimulation() {
+  const [playing, setPlaying] = useState(true);
   const [angleDeg, setAngleDeg] = useState(DEFAULT_ANGLE);
   const [mass, setMass] = useState(DEFAULT_MASS);
   const [friction, setFriction] = useState(DEFAULT_FRICTION);
@@ -249,9 +250,9 @@ export default function RotationalInertiaMomentSimulation() {
   return (
     <div className="flex flex-col bg-[#1E1E1E] text-[#E5E7EB] min-h-screen">
       {/* Top: 70vh — Simulation (65%) + Controls (35%) */}
-      <div className="flex flex-col lg:flex-row" style={{ height: "70vh", minHeight: 400 }}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3" style={{ height: "70vh", minHeight: 400 }}>
         {/* Simulation box — 65% width, fixed aspect */}
-        <div className="w-full lg:w-[65%] flex flex-col h-full border border-[#374151] bg-[#1E1E1E] overflow-hidden">
+        <div className="w-full lg:col-span-2 flex flex-col h-full border border-[#374151] bg-[#1E1E1E] overflow-hidden">
           <div className="px-3 py-2 border-b border-[#374151] bg-[#252525]/80">
             <h2 className="text-sm font-semibold text-[#E5E7EB]">Interactive Rotational Inertia Lab</h2>
             <p className="text-xs text-[#9CA3AF] mt-0.5">
@@ -312,7 +313,7 @@ export default function RotationalInertiaMomentSimulation() {
         </div>
 
         {/* Data dashboard — 35%, dark panel */}
-        <div className="w-full lg:w-[35%] flex flex-col gap-4 p-4 bg-[#252525] border border-[#374151] border-l-0 overflow-auto">
+        <div className="w-full  flex flex-col gap-4 p-4 bg-[#252525] border border-[#374151] border-l-0 overflow-auto">
           <h3 className="text-sm font-semibold text-[#93C5FD]">Parameter Controls</h3>
           {sliders.map((spec) => (
             <ParameterSlider
@@ -333,14 +334,19 @@ export default function RotationalInertiaMomentSimulation() {
             <p className="text-sm font-medium text-[#22C55E] tabular-nums truncate" title={leaderText}>
               {leaderText}
             </p>
+                <button
+                  type="button"
+                  onClick={() => setPlaying(p => !p)}
+                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20"
+                >
+                  {playing ? "⏸ Pause" : "▶ Play"}
+                </button>
             <button
               type="button"
               onClick={resetToDefault}
               className="w-full mt-3 py-2.5 px-4 rounded-lg bg-[#3B82F6] text-white font-medium hover:bg-[#2563EB] transition focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:ring-offset-2 focus:ring-offset-[#252525]"
               aria-label="Reset simulation to default"
-            >
-              ↩ Reset Simulation
-            </button>
+            >↺ Reset</button>
           </div>
         </div>
       </div>

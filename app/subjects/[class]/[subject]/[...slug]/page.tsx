@@ -3,6 +3,7 @@ import TopicPageContent from "@/components/topics/TopicPageContent";
 import ComingSoonBlock from "@/components/topics/ComingSoonBlock";
 import { slugToTitle } from "@/lib/data/slugToTitle";
 import LazyPhysicsSimulationLoader from "@/components/LazyPhysicsSimulationLoader";
+import { SENIOR_SECONDARY_PHYSICS_SIMS } from "@/lib/data/simulation-mapping";
 
 export const dynamic = "force-dynamic";
 
@@ -56,14 +57,12 @@ export default async function SubjectTopicPage({ params }: PageProps) {
   }
   const title = slugToTitle(slug[slug.length - 1] ?? "");
 
+  const topicId = slug.length >= 2 ? slug[1] : "";
   const isSimulationTopic =
     classSlug === "class-11" &&
     subject === "physics" &&
     slug.length >= 2 &&
-    slug[0] === "kinematics" &&
-    (slug[1] === "projectile-motion" ||
-      slug[1] === "velocity-time-position-time-graphs" ||
-      slug[1] === "relations-for-uniformly-accelerated-motion");
+    (SENIOR_SECONDARY_PHYSICS_SIMS as readonly string[]).includes(topicId);
 
   return (
     <TopicPageContent
@@ -73,29 +72,9 @@ export default async function SubjectTopicPage({ params }: PageProps) {
       title={title}
       fullWidth={isSimulationTopic}
     >
-      {classSlug === "class-11" &&
-      subject === "physics" &&
-      slug.length >= 2 &&
-      slug[0] === "kinematics" &&
-      slug[1] === "projectile-motion" ? (
+      {isSimulationTopic ? (
         <div className="mt-2">
-          <LazyPhysicsSimulationLoader topic="projectile-motion" />
-        </div>
-      ) : classSlug === "class-11" &&
-        subject === "physics" &&
-        slug.length >= 2 &&
-        slug[0] === "kinematics" &&
-        slug[1] === "velocity-time-position-time-graphs" ? (
-        <div className="mt-2">
-          <LazyPhysicsSimulationLoader topic="velocity-time-position-time-graphs" />
-        </div>
-      ) : classSlug === "class-11" &&
-        subject === "physics" &&
-        slug.length >= 2 &&
-        slug[0] === "kinematics" &&
-        slug[1] === "relations-for-uniformly-accelerated-motion" ? (
-        <div className="mt-2">
-          <LazyPhysicsSimulationLoader topic="relations-for-uniformly-accelerated-motion" />
+          <LazyPhysicsSimulationLoader topic={topicId} />
         </div>
       ) : (
         <ComingSoonBlock topicTitle={title} />

@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 
-// ——— Morris–Thorne Wormhole: Full geodesic integration ———
-// ds² = -e^{2Φ(r)} dt² + dr²/(1 - b(r)/r) + r² dφ²
-// b(r) = r0²/r, Φ(r) = -k/r (or 0). Christoffel symbols computed numerically.
-// Geodesics integrated via RK4. Embedding diagram from dz/dr = ±1/√(r/b(r) - 1).
+// â€”â€”â€” Morrisâ€“Thorne Wormhole: Full geodesic integration â€”â€”â€”
+// dsÂ² = -e^{2Î¦(r)} dtÂ² + drÂ²/(1 - b(r)/r) + rÂ² dÏ†Â²
+// b(r) = r0Â²/r, Î¦(r) = -k/r (or 0). Christoffel symbols computed numerically.
+// Geodesics integrated via RK4. Embedding diagram from dz/dr = Â±1/âˆš(r/b(r) - 1).
 
 const DR = 1e-6;
 
@@ -34,11 +34,11 @@ function clamp(n: number, min: number, max: number) {
 }
 
 function formatNum(n: number, decimals = 2) {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "--";
   return n.toFixed(decimals);
 }
 
-// ——— Morris–Thorne: b(r) = r0²/r, Φ(r) = -k/r ———
+// â€”â€”â€” Morrisâ€“Thorne: b(r) = r0Â²/r, Î¦(r) = -k/r â€”â€”â€”
 function shapeFunc(r: number, r0: number): number {
   if (r <= 0) return 0;
   return (r0 * r0) / r;
@@ -117,8 +117,8 @@ function christoffel(
   return { Gttr, Grtt, Grrr, Grphph, Gphrph };
 }
 
-// Geodesic acceleration: d²x^μ/dλ² = -Γ^μ_{αβ} u^α u^β
-// State: [t, r, φ, ut, ur, uφ]
+// Geodesic acceleration: dÂ²x^Î¼/dÎ»Â² = -Î“^Î¼_{Î±Î²} u^Î± u^Î²
+// State: [t, r, Ï†, ut, ur, uÏ†]
 type GeodesicState = [number, number, number, number, number, number];
 
 function geodesicDerivative(
@@ -188,7 +188,7 @@ function rk4Step(
   return next;
 }
 
-// Enforce constraint: null → g_μν u^μ u^ν = 0; timelike → -1
+// Enforce constraint: null â†’ g_Î¼Î½ u^Î¼ u^Î½ = 0; timelike â†’ -1
 function rescaleFourVelocity(
   state: GeodesicState,
   r0: number,
@@ -217,7 +217,7 @@ function rescaleFourVelocity(
   return [t, r, ph, ut * scale, ur * scale, uph * scale];
 }
 
-// Integrate geodesic; returns (r, φ, z) with z from embedding for visualization
+// Integrate geodesic; returns (r, Ï†, z) with z from embedding for visualization
 function integrateGeodesic(
   r0: number,
   k: number,
@@ -267,7 +267,7 @@ function integrateGeodesic(
   return points;
 }
 
-// Embedding diagram: dz/dr = ±1/√(r/b(r) - 1). Integrate to get z(r).
+// Embedding diagram: dz/dr = Â±1/âˆš(r/b(r) - 1). Integrate to get z(r).
 function embeddingZ(r: number, r0: number, sign: 1 | -1): number {
   if (r <= r0) return 0;
   const b = shapeFunc(r, r0);
@@ -300,16 +300,16 @@ function integrateEmbedding(
   return pts;
 }
 
-// Stress-energy from Einstein: G_μν = 8π T_μν. Null energy: ρ + p_r < 0.
-// For Morris-Thorne, at throat: ρ + p_r ∝ (b' - 1)/(2r²) < 0 when b' < 1.
-// b(r) = r0²/r ⇒ b'(r0) = -1, so b' - 1 = -2 < 0 ⇒ NEC violated.
+// Stress-energy from Einstein: G_Î¼Î½ = 8Ï€ T_Î¼Î½. Null energy: Ï + p_r < 0.
+// For Morris-Thorne, at throat: Ï + p_r âˆ (b' - 1)/(2rÂ²) < 0 when b' < 1.
+// b(r) = r0Â²/r â‡’ b'(r0) = -1, so b' - 1 = -2 < 0 â‡’ NEC violated.
 function rhoPlusPrAtThroat(r0: number): number {
   const b = r0;
   const bp = shapeFuncPrime(r0, r0);
   return (bp - 1) / (2 * r0 * r0);
 }
 
-// ——— Slider row ———
+// â€”â€”â€” Slider row â€”â€”â€”
 function SliderRow({
   label,
   value,
@@ -522,9 +522,9 @@ function SimulatorCanvas({
     const hudX = leftPad + 8 * dpr;
     const hudY = topPad + 8 * dpr;
     ctx.fillStyle = RAY_COLOR;
-    ctx.fillText("Geodesics (RK4, Morris–Thorne)", hudX, hudY);
+    ctx.fillText("Geodesics (RK4, Morris-Thorne)", hudX, hudY);
     ctx.fillStyle = SUBTEXT;
-    ctx.fillText(`r₀ = ${formatNum(r0, 2)} · b = ${formatNum(params.impactParam, 2)}`, hudX, hudY + 16 * dpr);
+    ctx.fillText(`r0 = ${formatNum(r0, 2)} · b = ${formatNum(params.impactParam, 2)}`, hudX, hudY + 16 * dpr);
   }, [params, time]);
 
   return (
@@ -574,175 +574,170 @@ export default function WormholesSimulation() {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
       <section className="w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="relative w-full shrink-0 lg:w-[60%]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-neutral-400">
-                Morris–Thorne wormhole: embedding diagram from dz/dr = ±1/√(r/b(r)−1). Geodesics integrated via RK4 from metric.
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPlaying((p) => !p)}
-                  className="rounded-xl border border-teal-500/40 bg-teal-500/10 px-3 py-2 text-xs font-semibold text-teal-200 hover:border-teal-400 hover:bg-teal-500/20"
-                >
-                  {playing ? "Pause" : "Play"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTime(0)}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset time
-                </button>
-              </div>
-            </div>
-
-            <SimulatorCanvas params={params} time={time} playing={playing} />
-
-            <div className="relative z-10 mt-6 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Parameters</div>
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+                <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="text-xs text-neutral-400">
-                    Throat r₀, redshift k, impact param b. Geodesics computed from metric.
+                    Morris-Thorne wormhole: embedding diagram from dz/dr = +/-1/sqrt(r/b(r)-1). Geodesics integrated via RK4 from metric.
                   </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-700"
-                >
-                  Reset
-                </button>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <SliderRow
-                  label="Throat r₀"
-                  value={params.throatRadius}
-                  min={0.5}
-                  max={2}
-                  step={0.05}
-                  unit=""
-                  onChange={(throatRadius) =>
-                    setParams((p) => ({ ...p, throatRadius: clamp(throatRadius, 0.5, 2) }))
-                  }
-                />
-                <SliderRow
-                  label="Redshift k (Φ = −k/r)"
-                  value={params.redshiftK}
-                  min={0}
-                  max={0.5}
-                  step={0.02}
-                  unit=""
-                  onChange={(redshiftK) =>
-                    setParams((p) => ({ ...p, redshiftK: clamp(redshiftK, 0, 0.5) }))
-                  }
-                />
-                <SliderRow
-                  label="Impact param. b"
-                  value={params.impactParam}
-                  min={params.throatRadius * 1.1}
-                  max={5}
-                  step={0.1}
-                  unit=""
-                  onChange={(impactParam) =>
-                    setParams((p) => ({
-                      ...p,
-                      impactParam: clamp(impactParam, p.throatRadius * 1.1, 5),
-                    }))
-                  }
-                />
-                <SliderRow
-                  label="Stability ε"
-                  value={params.stabilityEpsilon}
-                  min={0}
-                  max={0.2}
-                  step={0.01}
-                  unit=""
-                  onChange={(stabilityEpsilon) =>
-                    setParams((p) => ({ ...p, stabilityEpsilon: clamp(stabilityEpsilon, 0, 0.2) }))
-                  }
-                />
-                <SliderRow
-                  label="Num. rays"
-                  value={params.numRays}
-                  min={1}
-                  max={5}
-                  step={1}
-                  unit=""
-                  onChange={(numRays) =>
-                    setParams((p) => ({
-                      ...p,
-                      numRays: Math.round(clamp(numRays, 1, 5)),
-                    }))
-                  }
-                />
-                <div className="flex flex-col gap-2 rounded-2xl border border-neutral-700 bg-neutral-900/70 px-4 py-3 shadow-sm">
-                  <div className="text-sm font-semibold text-white">Geodesic type</div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setParams((p) => ({ ...p, geodesicType: "null" }))}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                        params.geodesicType === "null"
-                          ? "bg-teal-500/30 text-teal-200 border border-teal-500/50"
-                          : "border border-neutral-600 text-neutral-400 hover:bg-neutral-800"
-                      }`}
+                      onClick={() => setPlaying((p) => !p)}
+                      className="rounded-xl border border-emerald-500/70 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_0_1px_rgba(16,185,129,0.15)] hover:bg-emerald-500"
                     >
-                      Null (light)
+                      {playing ? "\u23F8 Pause" : "\u25B6 Play"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setParams((p) => ({ ...p, geodesicType: "timelike" }))}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                        params.geodesicType === "timelike"
-                          ? "bg-teal-500/30 text-teal-200 border border-teal-500/50"
-                          : "border border-neutral-600 text-neutral-400 hover:bg-neutral-800"
-                      }`}
+                      onClick={reset}
+                      className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-100 hover:bg-neutral-700"
                     >
-                      Timelike (massive)
+                      {"\u21BA Reset"}
                     </button>
                   </div>
                 </div>
-                <SliderRow
-                  label="Sim speed"
-                  value={params.simSpeed}
-                  min={0.5}
-                  max={2}
-                  step={0.25}
-                  unit="×"
-                  onChange={(simSpeed) => setParams((p) => ({ ...p, simSpeed }))}
-                />
+
+                <SimulatorCanvas params={params} time={time} playing={playing} />
               </div>
 
-              <div className="mt-4 flex items-center gap-4 rounded-xl border border-neutral-700 bg-neutral-900/50 px-4 py-3">
-                <span className="text-xs font-semibold text-neutral-300">Energy condition at throat:</span>
-                <span className={rhoPlusPr < 0 ? "text-amber-400 font-mono text-sm" : "text-neutral-400 text-sm"}>
-                  ρ + p_r = {formatNum(rhoPlusPr, 4)} {rhoPlusPr < 0 && "(NEC violated)"}
-                </span>
-              </div>
+              <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700">
+                <div className="relative z-10 rounded-3xl border border-neutral-700 bg-neutral-950/50 p-4 shadow-xl">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Parameters</h3>
+                      <div className="text-xs text-neutral-400">
+                        Throat r0, redshift k, impact parameter b. Geodesics computed from metric.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                    <SliderRow
+                      label="Throat r0"
+                      value={params.throatRadius}
+                      min={0.5}
+                      max={2}
+                      step={0.05}
+                      unit=""
+                      onChange={(throatRadius) =>
+                        setParams((p) => ({ ...p, throatRadius: clamp(throatRadius, 0.5, 2) }))
+                      }
+                    />
+                    <SliderRow
+                      label="Redshift k (Phi = -k/r)"
+                      value={params.redshiftK}
+                      min={0}
+                      max={0.5}
+                      step={0.02}
+                      unit=""
+                      onChange={(redshiftK) =>
+                        setParams((p) => ({ ...p, redshiftK: clamp(redshiftK, 0, 0.5) }))
+                      }
+                    />
+                    <SliderRow
+                      label="Impact param. b"
+                      value={params.impactParam}
+                      min={params.throatRadius * 1.1}
+                      max={5}
+                      step={0.1}
+                      unit=""
+                      onChange={(impactParam) =>
+                        setParams((p) => ({
+                          ...p,
+                          impactParam: clamp(impactParam, p.throatRadius * 1.1, 5),
+                        }))
+                      }
+                    />
+                    <SliderRow
+                      label="Stability epsilon"
+                      value={params.stabilityEpsilon}
+                      min={0}
+                      max={0.2}
+                      step={0.01}
+                      unit=""
+                      onChange={(stabilityEpsilon) =>
+                        setParams((p) => ({ ...p, stabilityEpsilon: clamp(stabilityEpsilon, 0, 0.2) }))
+                      }
+                    />
+                    <SliderRow
+                      label="Num. rays"
+                      value={params.numRays}
+                      min={1}
+                      max={5}
+                      step={1}
+                      unit=""
+                      onChange={(numRays) =>
+                        setParams((p) => ({
+                          ...p,
+                          numRays: Math.round(clamp(numRays, 1, 5)),
+                        }))
+                      }
+                    />
+                    <div className="flex flex-col gap-2 rounded-2xl border border-neutral-700 bg-neutral-900/70 px-4 py-3 shadow-sm">
+                      <div className="text-sm font-semibold text-white">Geodesic type</div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setParams((p) => ({ ...p, geodesicType: "null" }))}
+                          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${params.geodesicType === "null"
+                              ? "bg-teal-500/30 text-teal-200 border border-teal-500/50"
+                              : "border border-neutral-600 text-neutral-400 hover:bg-neutral-800"
+                            }`}
+                        >
+                          Null (light)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setParams((p) => ({ ...p, geodesicType: "timelike" }))}
+                          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${params.geodesicType === "timelike"
+                              ? "bg-teal-500/30 text-teal-200 border border-teal-500/50"
+                              : "border border-neutral-600 text-neutral-400 hover:bg-neutral-800"
+                            }`}
+                        >
+                          Timelike (massive)
+                        </button>
+                      </div>
+                    </div>
+                    <SliderRow
+                      label="Sim speed"
+                      value={params.simSpeed}
+                      min={0.5}
+                      max={2}
+                      step={0.25}
+                      unit="x"
+                      onChange={(simSpeed) => setParams((p) => ({ ...p, simSpeed }))}
+                    />
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-4 rounded-xl border border-neutral-700 bg-neutral-900/50 px-4 py-3">
+                    <span className="text-xs font-semibold text-neutral-300">Energy condition at throat:</span>
+                    <span className={rhoPlusPr < 0 ? "text-amber-400 font-mono text-sm" : "text-neutral-400 text-sm"}>
+                      rho + p_r = {formatNum(rhoPlusPr, 4)} {rhoPlusPr < 0 && "(NEC violated)"}
+                    </span>
+                  </div>
+                </div>
+              </aside>
             </div>
-          </div>
 
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
+            <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl">
               <div className="text-sm font-semibold text-white">
-                Wormholes — Morris–Thorne Geodesics
+                Wormholes - Morris-Thorne Geodesics
               </div>
               <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                Morris–Thorne metric (G=c=1): ds² = −e{"^{2Φ}"} dt² + dr²/(1−b/r) + r² dΩ². Shape b(r)=r₀²/r; throat at r=r₀. Geodesics integrated via RK4 from Christoffel symbols. Embedding diagram from dz/dr = ±1/√(r/b−1). Exotic matter violates NEC: ρ+p_r &lt; 0 at throat.
+                Morris-Thorne metric (G=c=1): ds^2 = -e{"^(2Phi)"} dt^2 + dr^2/(1-b/r) + r^2 dOmega^2. Shape b(r)=r0^2/r; throat at r=r0. Geodesics are integrated via RK4 from Christoffel symbols. Embedding diagram from dz/dr = +/-1/sqrt(r/b-1). Exotic matter violates NEC: rho + p_r &lt; 0 at the throat.
               </p>
 
               <div className="mt-6 rounded-2xl border border-neutral-700 bg-neutral-900/60 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Metric &amp; geodesic</div>
                 <div className="mt-3 space-y-2 text-sm font-mono text-neutral-200">
-                  <div><span className="text-teal-300">ds² = −e^(2Φ) dt² + dr²/(1−b/r) + r² dφ²</span></div>
-                  <div><span className="text-teal-300">b(r) = r₀²/r</span></div>
-                  <div><span className="text-teal-300">Φ(r) = −k/r</span></div>
+                  <div><span className="text-teal-300">ds^2 = -e^(2Phi) dt^2 + dr^2/(1-b/r) + r^2 dphi^2</span></div>
+                  <div><span className="text-teal-300">b(r) = r0^2/r</span></div>
+                  <div><span className="text-teal-300">Phi(r) = -k/r</span></div>
                   <div className="text-neutral-400 font-sans font-normal">
-                    d²x^μ/dλ² + Γ^μ{"_{αβ}"} u^α u^β = 0 integrated with RK4.
+                    d2x^mu/dlambda^2 + Gamma^mu{"_(alpha beta)"} u^alpha u^beta = 0, integrated with RK4.
                   </div>
                 </div>
               </div>
@@ -751,7 +746,7 @@ export default function WormholesSimulation() {
                 <div className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Variables</div>
                 <dl className="mt-3 grid gap-2 text-sm">
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">r₀</dt>
+                    <dt className="text-neutral-200">r0</dt>
                     <dd className="text-neutral-400">throat radius</dd>
                   </div>
                   <div className="flex justify-between gap-4">
@@ -759,21 +754,21 @@ export default function WormholesSimulation() {
                     <dd className="text-neutral-400">shape function</dd>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">Φ(r)</dt>
-                    <dd className="text-neutral-400">redshift (e{"^{2Φ}"}≠0 ⇒ no horizon)</dd>
+                    <dt className="text-neutral-200">Phi(r)</dt>
+                    <dd className="text-neutral-400">redshift (e{"^(2Phi)"} != 0, so no horizon)</dd>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <dt className="text-neutral-200">ρ + p_r</dt>
-                    <dd className="text-neutral-400">NEC: &lt;0 ⇒ exotic matter</dd>
+                    <dt className="text-neutral-200">rho + p_r</dt>
+                    <dd className="text-neutral-400">NEC: &lt; 0, so exotic matter</dd>
                   </div>
                 </dl>
               </div>
 
               <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-neutral-300">
-                <span className="font-semibold text-amber-400">NEC violation:</span> At the throat, b&apos;(r₀)=−1, so ρ+p_r ∝ (b&apos;−1)/(2r²) &lt; 0. Traversable wormholes require exotic matter.
+                <span className="font-semibold text-amber-400">NEC violation:</span> At the throat, b&apos;(r0) = -1, so rho + p_r is proportional to (b&apos;-1)/(2r^2) and is &lt; 0. Traversable wormholes require exotic matter.
               </div>
             </div>
-          </aside>
+          </div>
         </div>
       </section>
     </main>

@@ -228,6 +228,7 @@ function RotatedForceDiagram({
 
 // ─── Main simulation component ───────────────────────────────────────────────
 export default function InclinedPlaneFrictionSimulation() {
+  const [playing, setPlaying] = useState(true);
   const [angleDeg, setAngleDeg] = useState(DEFAULT_ANGLE);
   const [mass, setMass] = useState(DEFAULT_MASS);
   const [mu, setMu] = useState(DEFAULT_MU);
@@ -766,118 +767,132 @@ export default function InclinedPlaneFrictionSimulation() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F9FAFB] text-[#111827]">
-      {/* Two-column: Left = simulation, Right = scrollable controls + diagram + legend */}
-      <div
-        className="flex w-full flex-col lg:flex-row"
-        style={{ height: "72vh", minHeight: "440px" }}
-      >
-        {/* Left column — realistic simulation: only W, N, f (no components) */}
-        <div
-          className="relative flex-1 min-w-0 overflow-hidden border-r border-[#E5E7EB] bg-[#F3F4F6]"
-          style={{ minHeight: "380px" }}
-        >
-          <div ref={containerRef} className="absolute inset-0">
-            <canvas
-              ref={canvasRef}
-              className="h-full w-full"
-              style={{ display: "block" }}
-            />
-          </div>
-          <div className="absolute bottom-2 left-2 rounded-md bg-white/95 px-2.5 py-1.5 text-xs text-[#374151] shadow border border-[#E5E7EB]">
-            Realistic view — three forces only: <strong>W</strong>, <strong>N</strong>, <strong>f</strong>
+      <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Left: simulation canvas */}
+            <div className="col-span-1 lg:col-span-2">
+              <div
+                className="relative min-w-0 overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F3F4F6]"
+                style={{ minHeight: "430px" }}
+              >
+                <div ref={containerRef} className="absolute inset-0">
+                  <canvas
+                    ref={canvasRef}
+                    className="h-full w-full"
+                    style={{ display: "block" }}
+                  />
+                </div>
+                <div className="absolute bottom-2 left-2 rounded-md bg-white/95 px-2.5 py-1.5 text-xs text-[#374151] shadow border border-[#E5E7EB]">
+                  Realistic view - three forces only: <strong>W</strong>, <strong>N</strong>, <strong>f</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: parameters */}
+            <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto space-y-4 rounded-2xl border border-[#E5E7EB] bg-white p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wide">
+                  Parameters
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setPlaying((p) => !p)}
+                  className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-700 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20"
+                >
+                  {playing ? "⏸ Pause" : "▶ Play"}
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {sliders.map((spec) => (
+                  <ParameterSlider
+                    key={spec.label}
+                    {...spec}
+                    onChange={(v) => {
+                      if (spec.label.includes("angle")) setAngleDeg(v);
+                      else if (spec.label.includes("Mass")) setMass(v);
+                      else if (spec.label.includes("μ")) setMu(v);
+                      else setG(v);
+                    }}
+                    onReset={() => {
+                      if (spec.label.includes("angle")) setAngleDeg(spec.defaultValue);
+                      else if (spec.label.includes("Mass")) setMass(spec.defaultValue);
+                      else if (spec.label.includes("μ")) setMu(spec.defaultValue);
+                      else setG(spec.defaultValue);
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div className="rounded-lg bg-blue-50 p-2 text-xs text-[#111827]">
+                {tip}
+              </div>
+              <button
+                type="button"
+                onClick={resetToDefault}
+                aria-label="Reset all parameters to default values"
+                className="w-full rounded-lg bg-[#3B82F6] px-4 py-2.5 font-semibold text-white shadow transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+              >
+                ↺ Reset
+              </button>
+            </aside>
           </div>
         </div>
 
-        {/* Right column — controls, diagram, legend; scrollable */}
-        <div
-          className="flex h-full min-h-0 w-full flex-col overflow-y-auto border-l border-[#E5E7EB] bg-white p-4 lg:w-[340px] lg:flex-shrink-0"
-        >
-          <h3 className="mb-2 flex-shrink-0 text-sm font-bold text-[#111827] uppercase tracking-wide">
-            Parameters
-          </h3>
-          <div className="space-y-2">
-            {sliders.map((spec) => (
-              <ParameterSlider
-                key={spec.label}
-                {...spec}
-                onChange={(v) => {
-                  if (spec.label.includes("angle")) setAngleDeg(v);
-                  else if (spec.label.includes("Mass")) setMass(v);
-                  else if (spec.label.includes("μ")) setMu(v);
-                  else setG(v);
-                }}
-                onReset={() => {
-                  if (spec.label.includes("angle")) setAngleDeg(spec.defaultValue);
-                  else if (spec.label.includes("Mass")) setMass(spec.defaultValue);
-                  else if (spec.label.includes("μ")) setMu(spec.defaultValue);
-                  else setG(spec.defaultValue);
-                }}
-              />
-            ))}
-          </div>
+        {/* Below: component analysis + vector legend */}
+        <div className="rounded-3xl border border-[#E5E7EB] bg-white p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <h4 className="mb-1.5 text-xs font-bold text-[#374151] uppercase tracking-wide">
+                Force Component Analysis (Rotated View)
+              </h4>
+              <p className="mb-2 text-[11px] text-[#6B7280] leading-tight">
+                Incline rotated so the surface is horizontal. Forces are resolved along and perpendicular to the plane.
+              </p>
+              <div className="min-h-[220px] rounded-lg bg-slate-50 p-2">
+                <RotatedForceDiagram
+                  N={physics.N}
+                  W_parallel={physics.W_parallel}
+                  W_perp={physics.N}
+                  f={physics.f_friction}
+                  W_total={physics.W_total}
+                  angleDeg={smoothAngle}
+                />
+              </div>
+            </div>
 
-          {/* Rotated Force Analysis — axes aligned so incline looks horizontal */}
-          <div className="mt-3 flex-shrink-0 border-t border-[#E5E7EB] pt-3">
-            <h4 className="mb-1.5 text-xs font-bold text-[#374151] uppercase tracking-wide">
-              Force Component Analysis (Rotated View)
-            </h4>
-            <p className="mb-2 text-[11px] text-[#6B7280] leading-tight">
-              Incline rotated so the surface is horizontal. Forces along/aligned with the plane.
-            </p>
-            <div className="min-h-[200px] rounded-lg bg-slate-50 p-2">
-              <RotatedForceDiagram
-                N={physics.N}
-                W_parallel={physics.W_parallel}
-                W_perp={physics.N}
-                f={physics.f_friction}
-                W_total={physics.W_total}
-                angleDeg={smoothAngle}
-              />
+            <div>
+              <h4 className="mb-2 text-xs font-bold text-[#374151] uppercase tracking-wide">
+                Force Vector Legend
+              </h4>
+              <p className="mb-1.5 text-[11px] text-[#6B7280]">Top panel: realistic view. This panel: component analysis.</p>
+              <ul className="space-y-1.5 text-xs text-[#374151]">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 h-2 w-4 flex-shrink-0 rounded-sm bg-[#DC2626]" aria-hidden />
+                  <span><strong>(W)</strong> Weight - gravity pulling straight down.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 h-2 w-4 flex-shrink-0 rounded-sm bg-[#2563EB]" aria-hidden />
+                  <span><strong>(N)</strong> Normal force - perpendicular to surface, away from plane.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 h-2 w-4 flex-shrink-0 rounded-sm bg-[#059669]" aria-hidden />
+                  <span><strong>(f)</strong> Friction - parallel to surface, opposing motion.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 h-2 w-4 flex-shrink-0 border border-[#0891B2] border-dashed bg-transparent rounded-sm" style={{ borderWidth: 2 }} aria-hidden />
+                  <span><strong>(W∥)</strong> Weight component <em>down</em> the slope (rotated view: right).</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 h-2 w-4 flex-shrink-0 border border-[#64748B] border-dashed bg-transparent rounded-sm" style={{ borderWidth: 2 }} aria-hidden />
+                  <span><strong>(W⊥)</strong> Weight component <em>into</em> the slope (rotated view: down).</span>
+                </li>
+              </ul>
             </div>
           </div>
-
-          <div className="mt-3 flex-shrink-0 border-t border-[#E5E7EB] pt-3">
-            <h4 className="mb-2 text-xs font-bold text-[#374151] uppercase tracking-wide">
-              Force Vector Legend
-            </h4>
-            <p className="mb-1.5 text-[11px] text-[#6B7280]">Left: realistic view. Right: component analysis.</p>
-            <ul className="space-y-1.5 text-xs text-[#374151]">
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-4 flex-shrink-0 rounded-sm bg-[#DC2626]" aria-hidden />
-                <span><strong>(W)</strong> Weight — gravity pulling straight down.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-4 flex-shrink-0 rounded-sm bg-[#2563EB]" aria-hidden />
-                <span><strong>(N)</strong> Normal force — perpendicular to surface, away from plane.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-4 flex-shrink-0 rounded-sm bg-[#059669]" aria-hidden />
-                <span><strong>(f)</strong> Friction — parallel to surface, opposing motion.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-4 flex-shrink-0 border border-[#0891B2] border-dashed bg-transparent rounded-sm" style={{ borderWidth: 2 }} aria-hidden />
-                <span><strong>(W∥)</strong> Weight component <em>down</em> the slope (rotated view: right).</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-4 flex-shrink-0 border border-[#64748B] border-dashed bg-transparent rounded-sm" style={{ borderWidth: 2 }} aria-hidden />
-                <span><strong>(W⊥)</strong> Weight component <em>into</em> the slope (rotated view: down).</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="mt-2 flex-shrink-0 rounded-lg bg-blue-50 p-2 text-xs text-[#111827]">
-            {tip}
-          </div>
-          <button
-            type="button"
-            onClick={resetToDefault}
-            aria-label="Reset all parameters to default values"
-            className="mt-3 w-full flex-shrink-0 rounded-lg bg-[#3B82F6] px-4 py-2.5 font-semibold text-white shadow transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-          >
-            ↺ Reset to Default
-          </button>
         </div>
-      </div>
+      </section>
 
       {/* Full-width: Physics Principle — comprehensive explanation */}
       <section

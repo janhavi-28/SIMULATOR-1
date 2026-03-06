@@ -83,8 +83,8 @@ interface SliderRowProps {
   max: number;
   step: number;
   unit: string;
-  accentClassName: string;
-  onChange: (next: number) => void;
+  accentClassName?: string;
+  onChange: (v: number) => void;
 }
 
 const SliderRow: React.FC<SliderRowProps> = ({
@@ -97,18 +97,20 @@ const SliderRow: React.FC<SliderRowProps> = ({
   accentClassName,
   onChange,
 }) => {
+  // Extract accent color from className (e.g., bg-rose-400 -> #fb7185 approx)
+  // Let's rely on standard physics-range styles from global css or inline style accentColor
+  // For simplicity, we can use the accentClassName or map them.
+  // The simplest fix to restore visibility is making it a block layout or giving flex-1,
+  // but let's match the requested design: removing numbers below the label.
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900/70 px-4 py-3 shadow-sm">
-      <div className="min-w-[210px]">
-        <div className="text-sm font-semibold text-white">{label}</div>
-        <div className="mt-0.5 text-xs text-neutral-400">
-          <span className="tabular-nums text-neutral-200">
-            {formatNumber(value, step < 1 ? 2 : 0)}
-          </span>{" "}
-          {unit}
-        </div>
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">{label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {formatNumber(value, step < 1 ? 2 : 0)}
+          {unit ? ` ${unit}` : ""}
+        </span>
       </div>
-
       <input
         type="range"
         min={min}
@@ -116,16 +118,9 @@ const SliderRow: React.FC<SliderRowProps> = ({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        className={`physics-range w-full h-2 cursor-pointer appearance-none rounded-full outline-none bg-neutral-800 ${accentClassName}`}
         aria-label={label}
-        className={`h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-800 outline-none ${accentClassName}`}
       />
-
-      <div className="min-w-[120px] text-right text-xs text-neutral-400">
-        <span className="tabular-nums text-neutral-200">
-          {formatNumber(value, step < 1 ? 2 : 0)}
-        </span>{" "}
-        {unit}
-      </div>
     </div>
   );
 };
@@ -748,40 +743,38 @@ const CanvasSimulator: React.FC<CanvasSimulatorProps> = ({
   };
 
   return (
-    <div className="rounded-3xl border border-cyan-500/40 bg-neutral-950/60 p-4 shadow-[0_0_40px_rgba(0,255,255,0.18)]">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold text-white">
-            Rutherford scattering simulator
-          </div>
-          <div className="text-xs text-neutral-400">
-            Cyan trails show α-particles; gold band is the foil, crimson dot is the nucleus.
-          </div>
+    <div className="w-full">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-800 pb-4 mb-6">
+        <div className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-rose-400 to-amber-400">
+          ⚛ Rutherford Scattering
         </div>
-
+        <div className="text-xs text-neutral-400 hidden sm:block">
+          Cyan = α-particles, Crimson = nucleus, Gold = foil
+        </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={handleRestartClick}
-            className="rounded-xl border border-cyan-500/40 bg-neutral-900 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-neutral-800 hover:border-cyan-400"
+            onClick={onTogglePaused}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${paused ? "bg-amber-600 hover:bg-amber-700" : "bg-cyan-600 hover:bg-cyan-700"
+              }`}
           >
-            Restart
+            {paused ? "▶ Play" : "⏸ Pause"}
           </button>
           <button
             type="button"
-            onClick={onTogglePaused}
-            className="rounded-xl bg-amber-300/90 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-amber-200"
+            onClick={handleRestartClick}
+            className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
           >
-            {paused ? "Play" : "Pause"}
+            ↺ Reset
           </button>
         </div>
       </div>
 
       <div
         ref={containerRef}
-        className="relative aspect-video w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#050816]"
+        className="relative aspect-video w-full overflow-hidden rounded-2xl border border-neutral-700 bg-[#0D1117]"
       >
-        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full block" />
       </div>
     </div>
   );
@@ -801,63 +794,45 @@ const RutherfordSimulation: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617]">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0b1120]" />
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-      <section className="mx-auto max-w-7xl px-6 pt-10 pb-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Rutherford Gold Foil Explorer
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm text-neutral-400">
-            Dark observatory view of α-particles hitting a thin gold foil. Tune
-            nuclear charge and particle energy to see how scattering angles
-            reveal a tiny, positively charged nucleus.
-          </p>
-        </div>
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Top Row: Simulation Canvas */}
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <CanvasSimulator
+                params={params}
+                paused={paused}
+                onTogglePaused={() => setPaused((p) => !p)}
+                onHardReset={() => {
+                  // no-op hook for now
+                }}
+              />
+            </div>
 
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Left column: simulator + bottom controls */}
-          <div className="w-full lg:w-[60%]">
-            <CanvasSimulator
-              params={params}
-              paused={paused}
-              onTogglePaused={() => setPaused((p) => !p)}
-              onHardReset={() => {
-                // no-op hook for now; reserved if we want additional resets in parent
-              }}
-            />
-
-            {/* Bottom panel: parameter controls */}
-            <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-4 shadow-xl">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    Parameters
-                  </div>
-                  <div className="text-xs text-neutral-400">
-                    Larger \(Z\) or lower \(E\) → stronger Coulomb repulsion and
-                    more large-angle scattering. Increase emission rate to send
-                    more α-particles per second.
-                  </div>
-                </div>
+            {/* Controls Panel */}
+            <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+              <div className="flex items-center justify-between mb-2 border-b border-neutral-800 pb-2">
+                <h3 className="text-xs font-bold tracking-widest text-neutral-500">⚙ PARAMETERS</h3>
                 <button
                   type="button"
                   onClick={handleResetParams}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs font-semibold text-neutral-200 hover:bg-neutral-800"
+                  className="text-xs text-blue-400 hover:text-blue-300 font-semibold transition"
                 >
-                  Reset defaults
+                  Restore Base Values
                 </button>
               </div>
 
-              <div className="grid gap-3">
+              <div className="grid gap-3 pt-2">
                 <SliderRow
-                  label="Nuclear charge number, Z"
+                  label="Nuclear charge, Z"
                   value={params.Z}
                   min={1}
                   max={92}
                   step={1}
-                  unit="(unitless)"
+                  unit=""
                   accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-rose-400 [&::-webkit-slider-thumb]:shadow"
                   onChange={(Z) => setParams((p) => ({ ...p, Z }))}
                 />
@@ -867,130 +842,123 @@ const RutherfordSimulation: React.FC = () => {
                   min={5}
                   max={80}
                   step={1}
-                  unit="α / s"
+                  unit="α/s"
                   accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(emissionRate) =>
-                    setParams((p) => ({ ...p, emissionRate }))
-                  }
+                  onChange={(emissionRate) => setParams((p) => ({ ...p, emissionRate }))}
                 />
                 <SliderRow
-                  label="Alpha kinetic energy, E"
+                  label="Alpha energy, E"
                   value={params.energyMeV}
                   min={0.5}
                   max={12}
                   step={0.1}
                   unit="MeV"
                   accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-sky-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(energyMeV) =>
-                    setParams((p) => ({ ...p, energyMeV }))
-                  }
+                  onChange={(energyMeV) => setParams((p) => ({ ...p, energyMeV }))}
                 />
                 <SliderRow
-                  label="Beam half-width (impact spread)"
+                  label="Beam half-width"
                   value={params.beamHalfWidthFm}
                   min={5}
                   max={120}
                   step={1}
                   unit="fm"
                   accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(beamHalfWidthFm) =>
-                    setParams((p) => ({ ...p, beamHalfWidthFm }))
-                  }
+                  onChange={(beamHalfWidthFm) => setParams((p) => ({ ...p, beamHalfWidthFm }))}
                 />
                 <SliderRow
-                  label="Effective nucleus radius (softening)"
+                  label="Nucleus radius"
                   value={params.nucleusRadiusFm}
                   min={2}
                   max={25}
                   step={0.5}
                   unit="fm"
                   accentClassName="[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-400 [&::-webkit-slider-thumb]:shadow"
-                  onChange={(nucleusRadiusFm) =>
-                    setParams((p) => ({ ...p, nucleusRadiusFm }))
-                  }
+                  onChange={(nucleusRadiusFm) => setParams((p) => ({ ...p, nucleusRadiusFm }))}
                 />
+              </div>
+
+              <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+                <div className="font-bold text-blue-400 mb-2 font-sans">💡 Quick Tip</div>
+                <p className="text-xs text-blue-200/80 leading-relaxed font-sans">
+                  Increase <strong className="text-blue-300">Z</strong> and decrease <strong className="text-blue-300">E</strong> to strengthen Coulomb repulsion and observe more large-angle scatterings.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        {/* Info Panel Below Grid */}
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300 flex flex-col md:flex-row gap-6">
+          <div className="flex-1 space-y-4">
+            <h3 className="text-sm font-bold text-amber-500 tracking-widest uppercase">Concept: Empty Space & Core</h3>
+            <p className="text-sm text-neutral-400 leading-relaxed font-sans">
+              In Rutherford&apos;s experiment, fast α-particles were fired at a very thin gold foil. Most passed straight through with little deviation, showing that atoms are mostly empty space. A rare few scattered at huge angles (even back-scattered), leading to the revolutionary conclusion that an atom’s mass and positive charge are concentrated in a tiny core: the <strong>nucleus</strong>.
+            </p>
+
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+              <h4 className="text-sm font-semibold text-neutral-200 mb-3">Key Formulas</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">
+                    F = k·Z₁Z₂e² / r²
+                    <span className="text-neutral-500 float-right text-xs mt-0.5">(Force)</span>
+                  </div>
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">
+                    θ ≈ 2 arctan(k·Z₁Z₂e² / (2Eb))
+                    <span className="text-neutral-500 float-right text-xs mt-0.5">(Angle)</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">
+                    b = impact parameter
+                  </div>
+                  <div className="font-mono text-sm text-neutral-300 bg-black/40 px-3 py-2 rounded border border-neutral-800">
+                    dσ/dΩ ∝ csc⁴(θ/2)
+                    <span className="text-neutral-500 float-right text-xs mt-0.5">(x-sec)</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right panel: minimal reference-style information */}
-          <aside className="w-full lg:w-[40%]">
-            <div className="h-full rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
-              <div className="text-sm font-semibold text-white">
-                Rutherford gold foil experiment
-              </div>
+          <div className="flex-1 space-y-4">
+            <h3 className="text-sm font-bold text-cyan-400 tracking-widest uppercase">Variables Reference</h3>
 
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                In Rutherford&apos;s experiment, fast α-particles were fired at a
-                very thin gold foil. Most passed straight through, but a few
-                scattered at large angles, showing that positive charge and
-                most of the mass are concentrated in a tiny nuclear core.
-              </p>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Scattering formula
-                </div>
-                <div className="mt-3 space-y-2 text-sm text-neutral-200 font-mono">
-                  <div>
-                    θ ≈ 2 arctan( k · Z₁ Z₂ e² / (2 E b) )
-                  </div>
-                  <div>
-                    dσ/dΩ ∝ (Z₁² Z₂² / E²) · csc⁴(θ / 2)
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-neutral-400">
-                  These relations show that scattering is stronger for larger
-                  nuclear charge Z, smaller impact parameter b, and
-                  lower alpha energy E.
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-xs font-semibold uppercase tracking-wide text-neutral-300">
-                  Key variables
-                </div>
-                <dl className="mt-3 grid gap-2 text-sm">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">Z</dt>
-                    <dd className="text-neutral-400">
-                      nuclear charge number (unitless)
-                    </dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">E</dt>
-                    <dd className="text-neutral-400">
-                      alpha kinetic energy (MeV)
-                    </dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">b</dt>
-                    <dd className="text-neutral-400">
-                      impact parameter (closest approach, fm)
-                    </dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">θ</dt>
-                    <dd className="text-neutral-400">
-                      scattering angle (degrees or radians)
-                    </dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-neutral-200">dσ/dΩ</dt>
-                    <dd className="text-neutral-400">
-                      differential cross-section (m²·sr⁻¹)
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 text-xs text-neutral-400">
-                Try: increase Z and decrease E. You should see more
-                trajectories deflect through large angles and an increased
-                backscatter percentage in the overlay.
-              </div>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+              <table className="w-full text-sm font-sans text-left">
+                <thead className="bg-neutral-800/50 text-neutral-400 border-b border-neutral-800">
+                  <tr>
+                    <th className="px-4 py-2 font-medium">Symbol</th>
+                    <th className="px-4 py-2 font-medium">Name</th>
+                    <th className="px-4 py-2 font-medium">Unit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-800">
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-amber-500 bg-neutral-950/30">Z</td>
+                    <td className="px-4 py-3 text-neutral-300">Nuclear charge number</td>
+                    <td className="px-4 py-3 text-neutral-500">—</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-emerald-400 bg-neutral-950/30">E</td>
+                    <td className="px-4 py-3 text-neutral-300">Alpha kinetic energy</td>
+                    <td className="px-4 py-3 text-neutral-500">MeV</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-violet-400 bg-neutral-950/30">b</td>
+                    <td className="px-4 py-3 text-neutral-300">Impact parameter (offset)</td>
+                    <td className="px-4 py-3 text-neutral-500">fm</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-mono text-pink-400 bg-neutral-950/30">θ</td>
+                    <td className="px-4 py-3 text-neutral-300">Scattering angle</td>
+                    <td className="px-4 py-3 text-neutral-500">deg / rad</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </aside>
+          </div>
         </div>
       </section>
     </main>

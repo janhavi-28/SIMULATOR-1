@@ -265,153 +265,116 @@ export default function MotionInAPlaneSimulation() {
   }, [v0, angleDeg, playing, tFlight, range, hMax, vx, vy]);
 
   return (
-    <div className="flex min-h-0 flex-col bg-gray-100 text-gray-900">
-      <div
-        className="flex flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row"
-        style={{ minHeight: "70vh" }}
-      >
-        <div
-          className="relative flex min-h-0 flex-[0_0_65%] rounded-xl border border-gray-200 shadow-inner"
-          style={{
-            background: "linear-gradient(135deg, #E8EEF2, #FFFFFF)",
-          }}
-        >
-          <p className="absolute left-4 top-3 z-10 text-xs font-medium text-gray-700">
-            Motion in a plane: projectile trajectory (x, y).
-          </p>
-          <div className="absolute inset-0 flex items-center justify-center p-2 pt-8">
-            <canvas
-              ref={canvasRef}
-              className="max-h-full w-full rounded-lg object-contain"
-              style={{ aspectRatio: "16/10" }}
-              aria-label="Motion in a plane projectile simulation"
-            />
-          </div>
-        </div>
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-        <div className="flex w-full flex-col justify-start gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 md:w-[35%] md:min-w-[280px]">
-          <h3 className="text-sm font-bold text-gray-900">Parameter Controls</h3>
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-          <SliderRow
-            label="Initial speed"
-            value={v0}
-            min={5}
-            max={60}
-            step={1}
-            unit="m/s"
-            onChange={(val) => {
-              setV0(val);
-              timeRef.current = 0;
-            }}
-          />
+            {/* Simulation Canvas (2 columns) */}
+            <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+              <div className="flex items-center justify-between flex-wrap gap-4 border-b border-neutral-800 pb-4 mb-2">
+                <div>
+                  <div className="text-sm font-semibold text-white">Motion in a Plane</div>
+                  <div className="text-xs text-neutral-400">Projectile trajectory (x, y)</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPlaying((p) => !p)}
+                    className="rounded-xl border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20"
+                  >
+                    {playing ? "⏸ Pause" : "▶ Play"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                  >
+                    ↺ Reset
+                  </button>
+                </div>
+              </div>
 
-          <SliderRow
-            label="Launch angle"
-            value={angleDeg}
-            min={5}
-            max={85}
-            step={5}
-            unit="°"
-            onChange={(val) => {
-              setAngleDeg(val);
-              timeRef.current = 0;
-            }}
-          />
-
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div className="mb-2 text-xs font-semibold text-gray-700">
-              Live values
+              <div className="relative w-full overflow-hidden rounded-2xl border border-cyan-500/40 bg-[#0A0F1E]" style={{ aspectRatio: "16/10" }}>
+                <div className="absolute inset-0 flex items-center justify-center p-2">
+                  <canvas
+                    ref={canvasRef}
+                    className="max-h-full w-full rounded-lg object-contain"
+                    style={{ aspectRatio: "16/10" }}
+                    aria-label="Motion in a plane projectile simulation"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1 font-mono text-[11px] text-gray-700">
-              <div>Range R = {range.toFixed(2)} m</div>
-              <div>Max height H = {hMax.toFixed(2)} m</div>
-              <div>Time of flight T = {tFlight.toFixed(2)} s</div>
-              <div>v₀ₓ = {vx.toFixed(2)} m/s, v₀ᵧ = {vy.toFixed(2)} m/s</div>
+
+            {/* Controls Panel (1 column) */}
+            <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+              <div>
+                <h3 className="mb-4 text-lg font-semibold text-white">Parameters</h3>
+                <div className="flex flex-col gap-3">
+                  <SliderRow label="Initial speed" value={v0} min={5} max={60} step={1} unit="m/s"
+                    onChange={(val) => { setV0(val); timeRef.current = 0; }} />
+                  <SliderRow label="Launch angle" value={angleDeg} min={5} max={85} step={5} unit="°"
+                    onChange={(val) => { setAngleDeg(val); timeRef.current = 0; }} />
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 space-y-2">
+                <div className="text-xs font-bold text-cyan-400">LIVE VALUES</div>
+                <div className="space-y-1 font-mono text-[11px] text-neutral-300">
+                  <div>Range R = {range.toFixed(2)} m</div>
+                  <div>Max height H = {hMax.toFixed(2)} m</div>
+                  <div>Time of flight T = {tFlight.toFixed(2)} s</div>
+                  <div>v₀ₓ = {vx.toFixed(2)} m/s, v₀ᵧ = {vy.toFixed(2)} m/s</div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => { setV0(25); setAngleDeg(45); timeRef.current = 0; }}
+                className="w-full rounded-xl border border-neutral-600 bg-neutral-800 py-2 text-xs font-medium text-neutral-300 hover:bg-neutral-700"
+              >
+                Reset to default (25 m/s, 45°)
+              </button>
+            </aside>
+          </div>
+        </div>
+
+        {/* Bottom Row: Info Panel */}
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl text-neutral-300">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5">
+              <h4 className="text-sm font-bold text-cyan-400 mb-3">✨ THE CONCEPT</h4>
+              <p className="text-sm mb-3">
+                Motion in a plane is two-dimensional motion. For a projectile, position and velocity are vectors in the (x, y) plane. Horizontal motion is uniform; vertical motion is uniformly accelerated.
+              </p>
+              <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-3">
+                <div className="text-xs font-bold text-yellow-400 mb-1">📐 Projectile Relations</div>
+                <div className="text-sm font-mono text-neutral-200">x = u cos θ · t, y = u sin θ · t − ½gt²</div>
+                <div className="text-sm font-mono text-neutral-200">R = u² sin 2θ / g, H = u² sin²θ / (2g)</div>
+              </div>
+            </div>
+
+            <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5">
+              <h4 className="text-sm font-bold text-cyan-400 mb-3">⚡ ON THE GRAPH</h4>
+              <p className="text-sm">
+                The blue curve shows the full trajectory. The red ball marks the current position; the green arrow is the velocity vector. Changing u or θ updates the path and live R, H, T values.
+              </p>
+            </div>
+
+            <div className="col-span-1 border border-neutral-800 bg-neutral-900/50 rounded-2xl p-5">
+              <h4 className="text-sm font-bold text-cyan-400 mb-3">💡 TRY THIS</h4>
+              <div className="space-y-2 text-sm">
+                <p>🎯 45° gives maximum range for a given speed.</p>
+                <p>⚡ 90° gives straight up and down (zero range).</p>
+                <p>🌟 Higher u → larger R and H.</p>
+              </div>
             </div>
           </div>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setPlaying((p) => !p)}
-              className="flex-1 rounded-xl bg-blue-500 py-2.5 text-sm font-medium text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={playing ? "Pause" : "Play"}
-            >
-              {playing ? "⏸ Pause" : "▶ Play"}
-            </button>
-            <button
-              type="button"
-              onClick={reset}
-              className="flex-1 rounded-xl border border-gray-300 bg-white py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
-              aria-label="Reset animation"
-            >
-              ↺ Reset
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setV0(25);
-              setAngleDeg(45);
-              timeRef.current = 0;
-            }}
-            className="rounded-xl border border-gray-200 bg-gray-100 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200"
-          >
-            Reset to default (25 m/s, 45°)
-          </button>
         </div>
-      </div>
-
-      <div
-        className="grid grid-cols-1 gap-4 overflow-visible border-t border-gray-200 bg-white p-4 md:grid-cols-[40%_30%_30%]"
-        style={{ minHeight: "30vh" }}
-      >
-        <div className="space-y-2">
-          <h3 className="text-sm font-bold text-blue-600">✨ The Concept</h3>
-          <p className="text-xs text-gray-700">
-            Motion in a plane is two-dimensional motion. For a projectile, position and velocity are vectors in the (x, y) plane. Horizontal motion is uniform (constant vₓ); vertical motion is uniformly accelerated (aᵧ = −g). Together they give a parabolic path.
-          </p>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-2">
-            <h4 className="text-xs font-bold text-gray-800">
-              📐 Projectile relations
-            </h4>
-            <p className="mt-1 font-mono text-[11px] text-gray-800">
-              x = u cos θ · t &nbsp; &nbsp; y = u sin θ · t − ½ g t²
-            </p>
-            <p className="mt-1 font-mono text-[11px] text-gray-800">
-              R = u² sin 2θ / g &nbsp; &nbsp; H = u² sin² θ / (2g)
-            </p>
-            <p className="mt-1 text-[10px] text-gray-500">
-              u = initial speed, θ = launch angle, g = {G} m/s²
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-sm font-bold text-blue-600">⚡ On the graph</h3>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-2 text-[11px] text-gray-700">
-            <p>
-              The blue curve is the full trajectory. The red ball shows the current position; the green arrow is the velocity vector. Axes are in metres. Changing u or θ updates the path and the live R, H, T.
-            </p>
-          </div>
-        </div>
-
-        <div className="min-w-0 max-w-full overflow-visible space-y-2">
-          <h3 className="text-sm font-bold text-blue-600">💡 Try this</h3>
-          <div className="max-w-full overflow-visible rounded-lg border border-blue-200 bg-blue-50/80 p-2 text-xs text-gray-800 break-words">
-            <p className="mb-1.5">
-              🎯 45° gives maximum range for a given speed.
-            </p>
-            <p className="mb-1.5">
-              ⚡ 90° gives straight up and down (zero range).
-            </p>
-            <p>
-              🌟 Higher u → larger R and H.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

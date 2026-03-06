@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
@@ -7,7 +7,7 @@ function SimulationLoading() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
       <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-neutral-700 bg-neutral-900/50">
-        <p className="text-neutral-400">Loading simulation…</p>
+        <p className="text-neutral-400">Loading simulationâ€¦</p>
       </div>
     </div>
   );
@@ -171,6 +171,51 @@ const RotationalInertiaMomentSimulation = dynamic(
   () => import("@/components/simulations/physics/RotationalInertiaMomentSimulation"),
   { ssr: false, loading: () => <SimulationLoading /> }
 );
+const EscapeVelocitySimulation = dynamic(
+  () => import("@/components/simulations/physics/EscapeVelocitySimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const KeplersLawsSimulation = dynamic(
+  () => import("@/components/simulations/physics/KeplersLawsSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const OrbitalVelocitySimulation = dynamic(
+  () => import("@/components/simulations/physics/OrbitalVelocitySimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const UniversalLawOfGravitationSimulation = dynamic(
+  () => import("@/components/simulations/physics/UniversalLawOfGravitationSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const COMSimulation = dynamic(
+  () => import("@/components/simulations/physics/COMSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const MomentofInertiaSimulation= dynamic(
+  () => import("@/components/simulations/physics/MomentofInertiaSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const RollingMotionSimulation = dynamic(
+  () => import("@/components/simulations/physics/RollingMotionSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const TorqueAndRotationalDynamicsSimulation = dynamic(
+  () => import("@/components/simulations/physics/TorqueAndRotationalDynamicsSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const HeatTransferSimulation = dynamic(
+  () => import("@/components/simulations/physics/HeatTransferSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const ThermodynamicSystemsAndProcessesSimulation = dynamic(
+  () => import("@/components/simulations/physics/ThermodynamicSystemsAndProcessesSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+const WorkDoneByGasSimulation = dynamic(
+  () => import("@/components/simulations/physics/WorkDoneByGasSimulation"),
+  { ssr: false, loading: () => <SimulationLoading /> }
+);
+
 
 const registry: Record<string, ComponentType> = {
   gravity: GravitySimulation,
@@ -201,6 +246,20 @@ const registry: Record<string, ComponentType> = {
   "banking-of-roads": BankingOfRoadsSimulation,
   "work-energy-theorem": WorkEnergyTheoremSimulation,
   "rotational-inertia-moment": RotationalInertiaMomentSimulation,
+  "escape-velocity": EscapeVelocitySimulation,
+  "keplers-laws-of-planetary-motion": KeplersLawsSimulation,
+  "orbital-velocity": OrbitalVelocitySimulation,
+  "universal-law-of-gravitation": UniversalLawOfGravitationSimulation,
+  "centre-of-mass": COMSimulation,
+  "center-of-mass": COMSimulation,
+  "moment-of-inertia": MomentofInertiaSimulation, 
+  "rolling-motion": RollingMotionSimulation,
+  "Rolling-Motion": RollingMotionSimulation,
+  "torque-and-rotational-dynamics": TorqueAndRotationalDynamicsSimulation,
+  "heat-transfer-conduction-convection-radiation": HeatTransferSimulation,
+  "thermodynamic-systems-and-processes": ThermodynamicSystemsAndProcessesSimulation,
+  "work-done-by-gas": WorkDoneByGasSimulation,
+
 };
 
 export default function PhysicsSimulationLoader({
@@ -212,3 +271,4 @@ export default function PhysicsSimulationLoader({
   if (!Simulation) return null;
   return <Simulation />;
 }
+

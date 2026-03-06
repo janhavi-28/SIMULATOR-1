@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, {
   useCallback,
@@ -28,6 +28,7 @@ interface ParameterSliderProps {
   defaultValue: number;
   icon?: string;
   dramaticRange?: [number, number];
+  accentColor?: string;
   onChange: (value: number) => void;
 }
 
@@ -47,10 +48,10 @@ interface Ball {
 // ---------------------------------------------------------------------------
 
 const COLORS = {
-  bgLight: "#F5F5F5",
-  bgDark: "#1E1E1E",
-  gradientStart: "#E8EEF2",
-  gradientEnd: "#FFFFFF",
+  bgLight: "#020617",
+  bgDark: "#0D1117",
+  gradientStart: "#020617",
+  gradientEnd: "#0D1117",
   primary: "#3B82F6",
   primaryLight: "#60A5FA",
   secondary: "#8B5CF6",
@@ -58,12 +59,12 @@ const COLORS = {
   success: "#10B981",
   warning: "#F59E0B",
   error: "#EF4444",
-  border: "#E5E7EB",
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  track: "#E5E7EB",
-  hover: "#DBEAFE",
-  grid: "rgba(229, 231, 235, 0.5)",
+  border: "#1E293B",
+  textPrimary: "#F8FAFC",
+  textSecondary: "#94A3B8",
+  track: "#1E293B",
+  hover: "#1E293B",
+  grid: "rgba(255, 255, 255, 0.05)",
 } as const;
 
 const G = 9.81;
@@ -95,58 +96,29 @@ function potentialEnergy(m: number, h: number, g: number): number {
 // Parameter Slider Component
 // ---------------------------------------------------------------------------
 
-function ParameterSlider({
-  label,
-  value,
-  min,
-  max,
-  step,
-  unit,
-  icon,
-  dramaticRange,
-  onChange,
+function SliderRow({
+  label, value, min, max, step, unit, icon, accentColor = "#3B82F6", onChange,
 }: ParameterSliderProps) {
-  const id = label.replace(/\s+/g, "-").toLowerCase();
-  const [low, high] = dramaticRange ?? [NaN, NaN];
-  const isInDramaticRange =
-    !Number.isNaN(low) && !Number.isNaN(high) && value >= low && value <= high;
-
   return (
-    <div className="space-y-1 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {icon && <span className="text-base" aria-hidden>{icon}</span>}
-          <label htmlFor={id} className="text-sm font-medium text-gray-900">
-            {label}
-          </label>
-        </div>
-        <span className="text-sm font-bold tabular-nums text-gray-900">
-          {value % 1 === 0 ? value : value.toFixed(2)} {unit}
+        <span className="text-sm font-medium text-neutral-200 flex items-center gap-1.5">{icon} {label}</span>
+        <span className="text-sm text-neutral-400 tabular-nums">
+          {step < 0.1 ? value.toFixed(2) : Math.round(value)}
+          {unit ? ` ${unit}` : ""}
         </span>
       </div>
-      <div
-        className={`relative rounded-full ${isInDramaticRange ? "ring-2 ring-blue-500 ring-offset-1" : ""}`}
-      >
-        <input
-          id={id}
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="h-3 w-full appearance-none rounded-full bg-gray-200 accent-blue-500 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-blue-500"
-          aria-label={`${label}: ${value} ${unit}`}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
-          aria-valuetext={`${value} ${unit}`}
-        />
-      </div>
-      <div className="flex justify-between text-[10px] text-gray-500">
-        <span>{min} {unit}</span>
-        <span>{max} {unit}</span>
-      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="physics-range w-full"
+        style={{ accentColor }}
+        aria-label={label}
+      />
     </div>
   );
 }
@@ -583,260 +555,157 @@ export default function NewtonsCradleSimulation() {
   }, [ballCount, ballsToRelease, massPerBall, initialDisplacement, restitution, prefersReducedMotion, resetKey]);
 
   return (
-    <div className="flex min-h-0 flex-col bg-[#F9FAFB] text-gray-900">
-      {/* Top section: 70vh – Simulation (65%) + Controls (35%) */}
-      <div
-        className="flex flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row"
-        style={{ minHeight: "70vh" }}
-      >
-        {/* Simulation box – 65% */}
-        <div
-          className="relative flex-[0_0_65%] min-h-[320px] rounded-xl border border-gray-200 shadow-inner"
-          style={{
-            background: `linear-gradient(135deg, ${COLORS.gradientStart}, ${COLORS.gradientEnd})`,
-          }}
-        >
-          <p className="absolute left-4 top-3 z-10 text-xs font-medium text-gray-600">
-            Newton&apos;s Cradle – conservation of momentum and energy
-          </p>
-          <div className="absolute inset-0 flex min-h-[280px] items-center justify-center p-2 pt-8">
-            <canvas
-              ref={canvasRef}
-              className="max-h-full w-full cursor-grab rounded-lg object-contain active:cursor-grabbing"
-              style={{ aspectRatio: "16/10" }}
-              aria-label="Newton's Cradle simulation canvas - drag the left ball(s) to pull back"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={togglePause}
-            style={{
-              position: "absolute",
-              bottom: 12,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "white",
-              border: "2px solid #555",
-              borderRadius: 8,
-              padding: "8px 24px",
-              fontWeight: "bold",
-              fontSize: 14,
-              cursor: "pointer",
-              zIndex: 10,
-            }}
-            aria-label={isPaused ? "Run simulation" : "Pause simulation"}
-          >
-            {isPaused ? "▶ Run" : "⏸ Pause"}
-          </button>
-        </div>
+    <main className="min-h-screen bg-[#020617] text-neutral-200">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-br from-[#020617] via-[#0c1222] to-[#020617]" />
 
-        {/* Parameter controls – 35% */}
-        <div className="flex w-full flex-col justify-start gap-3 overflow-y-auto overflow-x-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:w-[35%] md:min-w-[280px]">
-          <h3 className="shrink-0 text-sm font-bold text-gray-900">
-            Parameter Controls
-          </h3>
+      <section className="mx-auto w-full min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl mb-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-          <ParameterSlider
-            label="Ball Count"
-            value={ballCount}
-            min={3}
-            max={7}
-            step={1}
-            unit="balls"
-            defaultValue={5}
-            icon="⚪"
-            dramaticRange={[4, 6]}
-            onChange={setBallCount}
-          />
-          <ParameterSlider
-            label="Balls to release"
-            value={ballsToRelease}
-            min={1}
-            max={Math.max(1, Math.floor(ballCount / 2))}
-            step={1}
-            unit=""
-            defaultValue={1}
-            icon="🎱"
-            onChange={(v) => setBallsToRelease(Math.round(v))}
-          />
-          <ParameterSlider
-            label="Ball Mass"
-            value={massPerBall}
-            min={0.5}
-            max={3}
-            step={0.1}
-            unit="kg"
-            defaultValue={1}
-            icon="⚖️"
-            dramaticRange={[0.5, 1.5]}
-            onChange={setMassPerBall}
-          />
-          <ParameterSlider
-            label="Restitution"
-            value={restitution}
-            min={0.8}
-            max={1}
-            step={0.01}
-            unit=""
-            defaultValue={0.98}
-            icon="🔄"
-            dramaticRange={[0.95, 1]}
-            onChange={setRestitution}
-          />
-          <ParameterSlider
-            label="Initial Displacement"
-            value={initialDisplacement}
-            min={15}
-            max={75}
-            step={5}
-            unit="°"
-            defaultValue={45}
-            icon="📐"
-            dramaticRange={[35, 55]}
-            onChange={setInitialDisplacement}
-          />
-
-          <button
-            type="button"
-            onClick={resetToDefault}
-            onKeyDown={(e) => e.key === "Enter" && resetToDefault()}
-            className="mt-auto flex shrink-0 items-center justify-center gap-2 rounded-xl border border-blue-500 bg-blue-500 py-2.5 text-sm font-medium text-white transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            aria-label="Reset to default parameters"
-          >
-            <span aria-hidden>↺</span> Reset to Default
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom section: 2-column educational content */}
-      <div
-        className="grid min-w-0 grid-cols-1 gap-4 overflow-x-hidden overflow-y-auto border-t border-gray-200 bg-white p-4 md:grid-cols-2 md:items-start"
-        style={{ minHeight: "30vh" }}
-      >
-        {/* Left: Conservation Laws + Live Stats + Try This */}
-        <div className="flex min-w-0 flex-col gap-4">
-          <div className="space-y-3">
-            <h3 className="text-base font-bold text-gray-900">
-              Physics Principle: Conservation of Momentum & Energy
-            </h3>
-            <p className="text-sm text-gray-700">
-              Newton&apos;s Cradle is a classic demonstration of two fundamental laws of physics occurring in an <strong>elastic collision</strong>.
-            </p>
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900">1. The Conservation Laws</h4>
-              <ul className="mt-1 space-y-1.5 text-sm text-gray-700">
-                <li>
-                  <strong>Conservation of Momentum (Σp = constant):</strong> In an isolated system, the total momentum before collision equals the total momentum after.
-                  <div className="mt-0.5 rounded bg-gray-100 px-2 py-1 font-mono text-xs">
-                    m₁v₁ + m₂v₂ = m₁v₁&apos; + m₂v₂&apos;
-                  </div>
-                </li>
-                <li>
-                  <strong>Conservation of Kinetic Energy (ΣKE = constant):</strong> In a perfectly elastic collision, the total energy of motion is preserved.
-                  <div className="mt-0.5 rounded bg-gray-100 px-2 py-1 font-mono text-xs">
-                    ½m₁v₁² + ½m₂v₂² = ½m₁v₁&apos;² + ½m₂v₂&apos;²
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900">2. How It Works (The Shockwave)</h4>
-              <p className="mt-1 text-sm text-gray-700">
-                When the swinging ball strikes the stationary pack, it comes to a near-instant stop. However, its momentum and energy are not lost. They are transferred as a <strong>shockwave</strong> (compression wave) through the intermediate balls.
-              </p>
-              <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-gray-700">
-                <li>The middle balls compress and expand slightly, passing the energy through to the final ball.</li>
-                <li>Because the last ball has no neighbor to pass the energy to, it pops out with the same velocity as the incoming ball.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900">3. Why N-in equals N-out?</h4>
-              <p className="mt-1 text-sm text-gray-700">
-                If you pull back <strong>two</strong> balls, <strong>two</strong> balls must swing out. Why doesn&apos;t just one ball swing out at double speed?
-              </p>
-              <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-gray-700">
-                <li>While that would conserve <em>momentum</em> (m₁v₁ + m₂v₂ = m·2v), it would violate the conservation of <em>energy</em> (kinetic energy would be doubled!).</li>
-                <li>The only solution that satisfies <strong>both</strong> laws simultaneously is for the same mass to leave as entered.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <div className="min-w-0 space-y-2">
-              <h3 className="text-sm font-bold text-blue-600">⚡ Live Stats</h3>
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-2 font-mono text-[11px] text-gray-700">
-                <div>KE: {totalKE.toFixed(2)} J</div>
-                <div>PE: {totalPE.toFixed(2)} J</div>
-                <div>Total: {(totalKE + totalPE).toFixed(2)} J</div>
-                <div>Period T: {period.toFixed(2)} s</div>
-                <div>Collisions: {collisionCount}</div>
+          {/* Top Row: Simulation Canvas (2 columns) */}
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-2">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-neutral-800 pb-4 mb-6">
+              <div className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400">
+                ⚪ Newton&apos;s Cradle
               </div>
-              <div className="text-[10px] text-gray-500">FPS: {liveStats.fps}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={togglePause}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors flex gap-2 items-center ${isPaused ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isPaused ? "▶ Play" : "⏸ Pause"}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetToDefault}
+                  className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
+                >
+                  ↺ Reset
+                </button>
+              </div>
             </div>
-            <div className="min-w-0 max-w-full space-y-2">
-              <h3 className="text-sm font-bold text-blue-600">💡 Try This</h3>
-              <div className="max-w-full rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900 break-words overflow-hidden">
-                <p className="mb-1.5">
-                  <strong>Classic:</strong> 5 balls, 1 release, 45° displacement
-                </p>
-                <p className="mb-1.5">
-                  <strong>2-in 2-out:</strong> Release 2 balls to see symmetric transfer
-                </p>
-                <p className="mb-1.5">
-                  <strong>Energy loss:</strong> Set Restitution &lt; 1 to see swing decay
-                </p>
+
+            <div className="relative w-full overflow-hidden rounded-2xl border border-neutral-700 bg-[#0D1117] aspect-video">
+              <canvas
+                ref={canvasRef}
+                className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing block"
+                aria-label="Newton's Cradle simulation canvas - drag the left ball(s) to pull back"
+              />
+              <div className="absolute top-3 right-3 z-10 bg-neutral-950/90 border border-neutral-700 rounded-lg px-3 py-1.5 font-mono text-xs shadow-md">
+                <div className="text-neutral-400">FPS: <span className="text-cyan-400">{liveStats.fps}</span></div>
+                <div className="text-neutral-400">Total Energy: <span className="text-amber-400">{(totalKE + totalPE).toFixed(2)} J</span></div>
+                <div className="text-neutral-400">Period (T): <span className="text-emerald-400">{period.toFixed(2)} s</span></div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right: Applications & Real-World Context */}
-        <div className="min-w-0 space-y-4">
-          <h3 className="text-base font-bold text-gray-900">
-            Applications & Real-World Context
-          </h3>
+          {/* Controls Panel (1 column) */}
+          <aside className="col-span-1 h-auto lg:max-h-[580px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-700 space-y-6">
+            <div>
+              <h3 className="mb-4 text-xs font-bold tracking-widest text-neutral-500">⚙ PARAMETERS</h3>
+              <div className="flex flex-col gap-3">
+                <SliderRow label="Ball Count" value={ballCount} min={3} max={7} step={1} unit="balls"
+                  defaultValue={5} icon="⚪" dramaticRange={[4, 6]} accentColor="#3B82F6" onChange={setBallCount} />
+                <SliderRow label="Balls to release" value={ballsToRelease} min={1} max={Math.max(1, Math.floor(ballCount / 2))} step={1} unit=""
+                  defaultValue={1} icon="🎱" accentColor="#8B5CF6" onChange={(v) => setBallsToRelease(Math.round(v))} />
+                <SliderRow label="Ball Mass" value={massPerBall} min={0.5} max={3} step={0.1} unit="kg"
+                  defaultValue={1} icon="⚖️" dramaticRange={[0.5, 1.5]} accentColor="#06B6D4" onChange={setMassPerBall} />
+                <SliderRow label="Restitution" value={restitution} min={0.8} max={1} step={0.01} unit=""
+                  defaultValue={0.98} icon="🔄" dramaticRange={[0.95, 1]} accentColor="#10B981" onChange={setRestitution} />
+                <SliderRow label="Initial Displacement" value={initialDisplacement} min={15} max={75} step={5} unit="°"
+                  defaultValue={45} icon="📐" dramaticRange={[35, 55]} accentColor="#F59E0B" onChange={setInitialDisplacement} />
+              </div>
+            </div>
 
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900">Real-World Applications</h4>
-            <p className="mt-1 text-sm text-gray-700">
-              While Newton&apos;s Cradle is a toy, the physics governs massive industrial and astronomical events:
-            </p>
-            <ul className="mt-2 space-y-2 text-sm text-gray-700">
-              <li>
-                <strong>Pile Drivers:</strong> Construction machines use massive weights to strike piles. The momentum transfer drives the pile into the ground, just like the swinging ball transfers energy.
-              </li>
-              <li>
-                <strong>Billiards/Pool:</strong> A perfect &apos;stop shot&apos; in pool (where the cue ball hits a target ball and stops dead) is exactly the same physics as the first ball in Newton&apos;s Cradle stopping upon impact.
-              </li>
-              <li>
-                <strong>Rocket Slingshots:</strong> Spacecraft use &apos;gravity assists&apos; to steal momentum from planets to speed up—a cosmic version of elastic collision!
-              </li>
-            </ul>
-          </div>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 font-mono text-sm space-y-2">
+              <div className="text-neutral-500 font-sans font-bold tracking-wider text-xs mb-1">LIVE METRICS</div>
+              <div className="flex justify-between"><span className="text-neutral-400">Kinetic Energy</span><span className="text-cyan-400">{totalKE.toFixed(2)} J</span></div>
+              <div className="flex justify-between"><span className="text-neutral-400">Potential Energy</span><span className="text-emerald-400">{totalPE.toFixed(2)} J</span></div>
+              <div className="flex justify-between"><span className="text-neutral-400">Collisions Count</span><span className="text-amber-400">{collisionCount}</span></div>
+            </div>
 
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900">Why do they eventually stop?</h4>
-            <p className="mt-1 text-sm text-gray-700">
-              In a perfect world, they would swing forever. In reality, they stop due to:
-            </p>
-            <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-gray-700">
-              <li><strong>Air Resistance:</strong> Drag slows the balls down.</li>
-              <li><strong>Sound Energy:</strong> The &apos;click&apos; sound you hear is energy escaping the system!</li>
-              <li><strong>Heat:</strong> Tiny vibrations inside the metal turn kinetic energy into heat.</li>
-            </ul>
-          </div>
-
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <h4 className="text-sm font-semibold text-amber-900">Historical Fact</h4>
-            <p className="mt-1 text-sm text-amber-900">
-              Isaac Newton didn&apos;t actually invent this device! It was likely created by French physicist Edme Mariotte in the 17th century to demonstrate Newton&apos;s laws.
-            </p>
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+              <div className="font-bold text-blue-400 mb-2 font-sans">💡 Try This</div>
+              <div className="space-y-3 font-sans text-xs">
+                <div><span className="text-blue-300 font-bold">Classic:</span> <span className="text-blue-200/80">5 balls, 1 release, 45° displacement</span></div>
+                <div><span className="text-blue-300 font-bold">2-in 2-out:</span> <span className="text-blue-200/80">Release 2 balls to see symmetric transfer</span></div>
+                <div><span className="text-blue-300 font-bold">Energy loss:</span> <span className="text-blue-200/80">Set Restitution &lt; 1 to see swing decay</span></div>
+              </div>
+            </div>
+          </aside>
           </div>
         </div>
-      </div>
-    </div>
+
+          {/* Bottom Row: Info Panel */}
+          <div className="rounded-3xl border border-neutral-700 bg-neutral-950/50 p-6 shadow-xl flex flex-col md:flex-row gap-6">
+
+            <div className="flex-1 space-y-4">
+              <h3 className="text-sm font-bold text-cyan-400 tracking-widest uppercase">Physics Principle: Conservation Laws</h3>
+              <p className="text-sm text-neutral-400 leading-relaxed font-sans">
+                Newton&apos;s Cradle is a classic demonstration of two fundamental laws of physics occurring in an <strong>elastic collision</strong>.
+              </p>
+
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-200 mb-1">1. The Conservation Laws</h4>
+                  <ul className="space-y-2 text-sm text-neutral-400 font-sans">
+                    <li>
+                      <strong className="text-emerald-400">Conservation of Momentum (Σp = constant):</strong> In an isolated system, the total momentum before collision equals the total momentum after.
+                      <div className="mt-1 rounded border border-neutral-700 bg-black/40 px-3 py-1.5 font-mono text-[11px] text-emerald-300">
+                        m₁v₁ + m₂v₂ = m₁v₁&apos; + m₂v₂&apos;
+                      </div>
+                    </li>
+                    <li>
+                      <strong className="text-amber-400">Conservation of Kinetic Energy (ΣKE = constant):</strong> In a perfectly elastic collision, the total energy of motion is preserved.
+                      <div className="mt-1 rounded border border-neutral-700 bg-black/40 px-3 py-1.5 font-mono text-[11px] text-amber-300">
+                        ½m₁v₁² + ½m₂v₂² = ½m₁v₁&apos;² + ½m₂v₂&apos;²
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-200 mb-1">2. How It Works (The Shockwave)</h4>
+                  <p className="text-sm text-neutral-400 font-sans leading-relaxed">
+                    When the swinging ball strikes the stationary pack, it comes to a near-instant stop. However, its momentum and energy are not lost. They are transferred as a <strong>shockwave</strong> (compression wave) through the intermediate balls.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4">
+              <h3 className="text-sm font-bold text-emerald-400 tracking-widest uppercase">Applications & Real-World Context</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-200 mb-1">Real-World Applications</h4>
+                  <p className="text-sm text-neutral-400 font-sans mb-2">
+                    While Newton&apos;s Cradle is a toy, the physics governs massive industrial and astronomical events:
+                  </p>
+                  <ul className="space-y-2 text-sm text-neutral-400 font-sans list-disc pl-5 marker:text-emerald-500">
+                    <li>
+                      <strong className="text-neutral-300">Pile Drivers:</strong> Construction machines use massive weights to strike piles. The momentum transfer drives the pile into the ground, just like the swinging ball transfers energy.
+                    </li>
+                    <li>
+                      <strong className="text-neutral-300">Rocket Slingshots:</strong> Spacecraft use &apos;gravity assists&apos; to steal momentum from planets to speed up—a cosmic version of elastic collision!
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="rounded-xl border border-amber-900/30 bg-amber-900/10 p-4">
+                  <h4 className="text-sm font-semibold text-amber-500 mb-1">Why do they eventually stop?</h4>
+                  <p className="text-sm text-amber-200/70 font-sans mb-2">In reality, they stop due to:</p>
+                  <ul className="space-y-1 text-sm text-amber-200/70 font-sans list-disc pl-5">
+                    <li><strong>Air Resistance:</strong> Drag slows the balls down.</li>
+                    <li><strong>Sound Energy:</strong> The &apos;click&apos; sound is energy escaping.</li>
+                    <li><strong>Heat:</strong> Tiny vibrations turn kinetic energy into heat.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+    </main>
   );
 }

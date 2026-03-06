@@ -26,6 +26,15 @@ const colorClasses: Record<string, string> = {
   fuchsia: "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 group-hover:border-fuchsia-400 group-hover:bg-fuchsia-500/15",
 };
 
+const EXCLUDED_HOME_SLUGS = new Set([
+  "work-energy-theorem",
+  "newtons-second-law-force-acceleration-lab",
+]);
+
+const homePageSimulations = physicsSimulations.filter(
+  (sim) => !EXCLUDED_HOME_SLUGS.has(sim.slug)
+);
+
 export default function HomePage() {
   return (
     <main className="relative overflow-hidden">
@@ -84,7 +93,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold text-white mb-2">Interactive Simulations</h2>
           <p className="text-neutral-400 mb-8">Try these demos. Understanding begins with seeing.</p>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {physicsSimulations.map((sim) => (
+            {homePageSimulations.map((sim) => (
               <Link
                 key={sim.slug}
                 href={sim.href}

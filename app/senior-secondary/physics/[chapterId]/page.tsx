@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import { physicsChapters, physicsTopicsByChapter } from "@/lib/data/senior-secondary-physics";
 import SeniorSecondaryTopicLayout from "@/app/components/SeniorSecondaryTopicLayout";
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: ChapterPageProps) {
   const chapter = physicsChapters.find((c) => c.id === chapterId);
   if (!chapter) return { title: "Chapter not found" };
   return {
-    title: `Senior Secondary Physics – ${chapter.title} | Illustrate.live`,
+    title: `Senior Secondary Physics - ${chapter.title} | Illustrate.live`,
     description: `Topics for ${chapter.title} in Senior Secondary Physics.`,
   };
 }
@@ -68,7 +68,7 @@ export default async function SeniorSecondaryPhysicsChapterPage({
                         {topic.title}
                       </div>
                       <p className="mt-2 text-xs text-neutral-400">
-                        Open topic · illustration coming soon
+                        Open topic · live simulation
                       </p>
                     </Link>
                   ))}
@@ -91,7 +91,7 @@ export default async function SeniorSecondaryPhysicsChapterPage({
                       {topic.title}
                     </div>
                     <p className="mt-2 text-xs text-neutral-400">
-                      Open topic · illustration coming soon
+                      Open topic · live simulation
                     </p>
                   </Link>
                 ))}
@@ -103,3 +103,5 @@ export default async function SeniorSecondaryPhysicsChapterPage({
     </SeniorSecondaryTopicLayout>
   );
 }
+
+

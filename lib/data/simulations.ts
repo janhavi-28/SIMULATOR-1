@@ -25,7 +25,6 @@ export const trendingTopicsPhysicsSimulations: SimulationLink[] = [
   { slug: "quantum-entanglement", title: "Quantum Entanglement – Instant correlation", description: "Two particles reacting together no matter the distance. Measure one and see the other correlate.", color: "fuchsia", href: "/trending-topics/physics/quantum-entanglement" },
   { slug: "quantum-tunneling", title: "Quantum Tunneling – Probability leak-through", description: "Energy barrier with E < V₀: particles tunnel through classically forbidden regions.", color: "emerald", href: "/trending-topics/physics/quantum-tunneling" },
   { slug: "wave-function-collapse", title: "Wave Function Collapse – Fuzzy → sharp on measurement", description: "Before measurement: fuzzy probability. After: one sharp outcome.", color: "cyan", href: "/trending-topics/physics/wave-function-collapse" },
-  { slug: "resonance", title: "Resonance – Driven oscillator", description: "Drive an oscillator at its natural frequency and watch the amplitude soar. Adjust damping and force for dramatic effects.", color: "amber", href: "/trending-topics/physics/resonance" },
 ];
 
 // Syllabus sims (Class 11/12) → Senior Secondary
@@ -41,9 +40,19 @@ export const seniorSecondaryPhysicsSimulations: SimulationLink[] = [
   },
   { slug: "projectile-motion", title: "Projectile Motion Simulator", description: "Visualize 2D projectile motion with adjustable speed, launch angle, height and gravity.", color: "amber", href: "/senior-secondary/physics/kinematics/projectile-motion" },
   { slug: "velocity-time-position-time-graphs", title: "Velocity–Time and Position–Time Graphs", description: "Interactive v–t and x–t graphs for kinematics.", color: "sky", href: "/senior-secondary/physics/kinematics/velocity-time-position-time-graphs" },
-  { slug: "relations-for-uniformly-accelerated-motion", title: "Relations for Uniformly Accelerated Motion", description: "Explore v = u + at, s = ut + ½at² and v² = u² + 2as.", color: "violet", href: "/senior-secondary/physics/kinematics/relations-for-uniformly-accelerated-motion" },
   { slug: "resonance", title: "Resonance", description: "Drive a damped oscillator and see amplitude peak at resonance when f ≈ f₀.", color: "amber", href: "/senior-secondary/physics/oscillations-and-waves/resonance" },
   { slug: "work-energy-theorem", title: "The Work-Energy Theorem", description: "Explore how friction stops a sliding block. Adjust mass, initial velocity, and friction; see stopping distance and work done. Net Work = ΔKE.", color: "cyan", href: "/senior-secondary/physics/work-energy-and-power/work-energy-theorem" },
+  { slug: "escape-velocity", title: "Escape Velocity", description: "Explore the escape velocity of celestial bodies. Adjust mass and radius to see how they affect escape velocity.", color: "violet", href: "/senior-secondary/physics/gravitation/escape-velocity" },
+  { slug: "universal-law-of-gravitation", title: "Universal Law of Gravitation", description: "Explore Newton's law F = Gm₁m₂/r² with a live orbital simulator, auto-scaling trajectories, and force-dominance scale bars.", color: "sky", href: "/senior-secondary/physics/gravitation/universal-law-of-gravitation" },
+  { slug: "keplers-laws-of-planetary-motion", title: "Kepler's Laws of Planetary Motion", description: "Visualize elliptical orbits and Kepler's laws. Adjust eccentricity, orbital period, and see how they relate to the sun.", color: "emerald", href: "/senior-secondary/physics/gravitation/keplers-laws-of-planetary-motion" },
+  { slug: "orbital-velocity", title: "Orbital Velocity", description: "Explore the orbital velocity of satellites. Adjust mass and radius to see how they affect orbital velocity.", color: "indigo", href: "/senior-secondary/physics/gravitation/orbital-velocity" },
+  { slug: "newtons-second-law-force-acceleration-lab", title: "Newton's Second Law – Force & Acceleration Lab", description: "Apply different forces to a mass and see how it accelerates. Adjust mass and force to explore F = ma.", color: "fuchsia", href: "/senior-secondary/physics/laws-of-motion/newtons-second-law-force-acceleration-lab" },
+  { slug: "inclined-plane-friction-force-analysis", title: "Inclined Plane & Friction – Force Analysis Lab", description: "Analyze forces on a block on an inclined plane with adjustable angle, mass, and friction coefficient.", color: "teal", href: "/senior-secondary/physics/laws-of-motion/inclined-plane-friction-force-analysis" },
+  { slug: "banking-of-roads", title: "Banking of Roads", description: "Explore the physics of banked curves. Adjust speed, radius, and banking angle to see how they affect the required friction for safe turns.", color: "indigo", href: "/senior-secondary/physics/laws-of-motion/banking-of-roads" },
+  { slug: "centre-of-mass", title: "Center of Mass Simulation", description: "Visualize the center of mass of a system of particles. Adjust masses and positions to see how the center of mass changes.", color: "fuchsia", href: "/senior-secondary/physics/motion-of-system-of-particles-and-rigid-body/centre-of-mass" },
+  { slug: "moment-of-inertia", title: "Moment of Inertia Simulation", description: "Explore the moment of inertia of different shapes and mass distributions. Adjust parameters to see how it affects rotational motion.", color: "emerald", href: "/senior-secondary/physics/motion-of-system-of-particles-and-rigid-body/moment-of-inertia" },
+  { slug: "rolling-motion", title: "Rolling Motion Simulation", description: "Visualize rolling motion with adjustable radius, mass, and incline angle. See how these parameters affect the rolling behavior.", color: "sky", href: "/senior-secondary/physics/motion-of-system-of-particles-and-rigid-body/rolling-motion" },
+  { slug: "torque-and-rotational-dynamics", title: "Torque and Rotational Dynamics Simulation", description: "Explore torque and rotational dynamics with adjustable force, lever arm, and moment of inertia. See how these parameters affect angular acceleration.", color: "violet", href: "/senior-secondary/physics/motion-of-system-of-particles-and-rigid-body/torque-and-rotational-dynamics" },
 ];
 
 // Combined for landing page (trending first, then senior secondary)
@@ -51,3 +60,4 @@ export const physicsSimulations: SimulationLink[] = [
   ...trendingTopicsPhysicsSimulations,
   ...seniorSecondaryPhysicsSimulations,
 ];
+
