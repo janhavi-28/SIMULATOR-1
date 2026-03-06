@@ -368,7 +368,7 @@ export default function QuantumTunnelingSimulation() {
                   onClick={clearScreen}
                   className="min-w-[110px] rounded-xl border border-neutral-600 bg-neutral-800 px-5 py-2.5 text-sm font-semibold text-neutral-200 transition-colors hover:bg-neutral-700"
                 >
-                  Clear particles
+                  {"\u21BA Reset"}
                 </button>
               </div>
             </div>
@@ -390,7 +390,7 @@ export default function QuantumTunnelingSimulation() {
                   onClick={resetDefaults}
                   className="rounded-xl border border-neutral-600 bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-100 transition-colors hover:bg-neutral-700"
                 >
-                  Reset defaults
+                  {"\u21BA Reset"}
                 </button>
               </div>
 
@@ -440,7 +440,7 @@ export default function QuantumTunnelingSimulation() {
           </aside>
         </div>
       </div>
-
+ok 
         <div className="mt-6 rounded-3xl border border-neutral-800 bg-neutral-950/40 p-6 shadow-xl">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
