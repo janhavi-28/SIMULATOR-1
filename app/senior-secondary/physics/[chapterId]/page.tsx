@@ -4,6 +4,9 @@ import { physicsChapters, physicsTopicsByChapter } from "@/lib/data/senior-secon
 import SeniorSecondaryTopicLayout from "@/app/components/SeniorSecondaryTopicLayout";
 import PhysicalWorldMeasurementChapterContent from "@/app/components/PhysicalWorldMeasurementChapterContent";
 import WorkEnergyTheoremAccordion from "@/app/components/WorkEnergyTheoremAccordion";
+import { SENIOR_SECONDARY_PHYSICS_SIMS } from "@/lib/data/simulation-mapping";
+
+const liveSims = new Set<string>(SENIOR_SECONDARY_PHYSICS_SIMS);
 
 type ChapterPageProps = {
   params: Promise<{ chapterId: string }>;
@@ -58,20 +61,23 @@ export default async function SeniorSecondaryPhysicsChapterPage({
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 {topics
                   .filter((t) => t.id !== "work-energy-theorem")
-                  .map((topic) => (
-                    <Link
-                      key={topic.id}
-                      href={`${base}/${chapter.id}/${topic.id}`}
-                      className="group rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4 transition hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900"
-                    >
-                      <div className="text-sm font-semibold text-white">
-                        {topic.title}
-                      </div>
-                      <p className="mt-2 text-xs text-neutral-400">
-                        Open topic · live simulation
-                      </p>
-                    </Link>
-                  ))}
+                  .map((topic) => {
+                    const isLive = liveSims.has(topic.id);
+                    return (
+                      <Link
+                        key={topic.id}
+                        href={`${base}/${chapter.id}/${topic.id}`}
+                        className={`group rounded-2xl border bg-neutral-950/80 p-4 transition ${isLive ? "border-neutral-800 hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900" : "border-neutral-800/50 opacity-60 cursor-default pointer-events-none"}`}
+                      >
+                        <div className="text-sm font-semibold text-white">
+                          {topic.title}
+                        </div>
+                        <p className="mt-2 text-xs text-neutral-400">
+                          {isLive ? "Open topic · live simulation" : "Coming soon"}
+                        </p>
+                      </Link>
+                    );
+                  })}
               </div>
             </>
           )}
@@ -81,20 +87,23 @@ export default async function SeniorSecondaryPhysicsChapterPage({
                 Topics in this chapter
               </h2>
               <div className="grid gap-4 md:grid-cols-2">
-                {topics.map((topic) => (
-                  <Link
-                    key={topic.id}
-                    href={`${base}/${chapter.id}/${topic.id}`}
-                    className="group rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4 transition hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900"
-                  >
-                    <div className="text-sm font-semibold text-white">
-                      {topic.title}
-                    </div>
-                    <p className="mt-2 text-xs text-neutral-400">
-                      Open topic · live simulation
-                    </p>
-                  </Link>
-                ))}
+                {topics.map((topic) => {
+                  const isLive = liveSims.has(topic.id);
+                  return (
+                    <Link
+                      key={topic.id}
+                      href={`${base}/${chapter.id}/${topic.id}`}
+                      className={`group rounded-2xl border bg-neutral-950/80 p-4 transition ${isLive ? "border-neutral-800 hover:-translate-y-0.5 hover:border-emerald-500/60 hover:bg-neutral-900" : "border-neutral-800/50 opacity-60 cursor-default pointer-events-none"}`}
+                    >
+                      <div className="text-sm font-semibold text-white">
+                        {topic.title}
+                      </div>
+                      <p className="mt-2 text-xs text-neutral-400">
+                        {isLive ? "Open topic · live simulation" : "Coming soon"}
+                      </p>
+                    </Link>
+                  );
+                })}
               </div>
             </>
           )}
